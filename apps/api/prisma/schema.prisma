@@ -1,0 +1,247 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+//
+// ENUMS
+//
+
+enum TokenType {
+  PASSWORD_RECOVER
+}
+
+enum OAuthProvider {
+  GOOGLE
+  MICROSOFT
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  MEMBER
+  COACH
+  BILLING
+}
+
+//
+// USER + AUTH
+//
+
+model User {
+  id           String   @id @default(uuid())
+  name         String?
+  email        String   @unique
+  passwordHash String?  @map("password_hash")
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  tokens         Token[]
+  accounts       Account[]
+  invites        Invite[]        @relation("InviteAuthor")
+  members_on     Member[]
+  clubsOwned     Club[]          @relation("ClubOwner")
+  workouts       Workout[]
+  athleteProfile AthleteProfile?
+  raceResults    RaceResult[]
+  rankings       Ranking[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String        @id @default(uuid())
+  provider          OAuthProvider
+  providerAccountId String        @map("provider_account_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Token {
+  id        String    @id @default(uuid())
+  type      TokenType
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+
+  @@map("tokens")
+}
+
+//
+// MULTI-TENANCY — CLUBS (ORGANIZATIONS)
+//
+// Cada usuário pertence a um clube através da tabela Member.
+//
+
+model Club {
+  id                        String   @id @default(uuid())
+  name                      String
+  slug                      String   @unique
+  domain                    String?  @unique
+  cnpj                      String?  @unique
+  shouldAttachUsersByDomain Boolean  @default(false) @map("should_attach_users_by_domain")
+  avatarUrl                 String?  @map("avatar_url")
+  createdAt                 DateTime @default(now()) @map("created_at")
+  updatedAt                 DateTime @updatedAt @map("updated_at")
+
+  owner   User   @relation("ClubOwner", fields: [ownerId], references: [id])
+  ownerId String @map("owner_id")
+
+  members  Member[]
+  invites  Invite[]
+  workouts Workout[]
+  races    Race[]
+  rankings Ranking[]
+
+  @@map("clubs")
+}
+
+model Invite {
+  id        String   @id @default(uuid())
+  email     String
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+
+  author   User?   @relation("InviteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorId String? @map("author_id")
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  @@unique([email, clubId])
+  @@index([email])
+  @@map("invites")
+}
+
+model Member {
+  id   String @id @default(uuid())
+  role Role   @default(MEMBER)
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @map("user_id")
+
+  @@unique([clubId, userId])
+  @@map("members")
+}
+
+//
+// ATHLETE PROFILE
+//
+
+model AthleteProfile {
+  id        String    @id @default(uuid())
+  paceAvg   Float? // pace médio
+  weight    Float?
+  birthDate DateTime?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @map("user_id")
+
+  @@map("athlete_profiles")
+}
+
+//
+// WORKOUTS
+//
+
+model Workout {
+  id        String   @id @default(uuid())
+  title     String?
+  distance  Float // km
+  duration  Int? // segundos
+  pace      Float? // calculado ou enviado
+  type      String // long run, intervalado, easy, etc.
+  slug      String?  @unique
+  date      DateTime
+  notes     String?
+  imageUrl  String? // upload do print do treino (tipo Strava)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId String @map("athlete_id")
+
+  @@index([clubId])
+  @@map("workouts")
+}
+
+//
+// RACES
+//
+
+model Race {
+  id        String   @id @default(uuid())
+  name      String
+  distance  Float
+  city      String
+  date      DateTime
+  imageUrl  String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  results RaceResult[]
+
+  @@map("races")
+}
+
+model RaceResult {
+  id        String   @id @default(uuid())
+  time      Int // tempo total em segundos
+  position  Int?
+  pace      Float?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  race   Race   @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  raceId String @map("race_id")
+
+  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId String @map("athlete_id")
+
+  @@unique([raceId, athleteId]) // atleta só pode ter um resultado por corrida
+  @@map("race_results")
+}
+
+//
+// RANKING
+//
+
+model Ranking {
+  id        String   @id @default(uuid())
+  year      Int
+  month     Int?
+  points    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  athleteId String @map("athlete_id")
+
+  @@unique([clubId, athleteId, year, month])
+  @@index([clubId])
+  @@map("rankings")
+}

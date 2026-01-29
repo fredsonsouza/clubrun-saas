@@ -1,0 +1,265 @@
+@import 'tailwindcss';
+
+@theme inline {
+  /* ========================================
+     FONTES
+     ======================================== */
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-manrope);
+  --font-display: var(--font-catamaran);
+
+  /* ========================================
+     CORES - LARANJA (PRIMÁRIO)
+     ======================================== */
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-200: #fed7aa;
+  --orange-300: #fdba74;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
+  --orange-800: #9a3412;
+  --orange-900: #7c2d12;
+  --orange-950: #431407;
+
+  /* ========================================
+     CORES - ZINC (NEUTROS)
+     ======================================== */
+  --zinc-50: #fafafa;
+  --zinc-100: #f4f4f5;
+  --zinc-200: #e4e4e7;
+  --zinc-300: #d4d4d8;
+  --zinc-400: #a1a1aa;
+  --zinc-500: #71717a;
+  --zinc-600: #52525b;
+  --zinc-700: #3f3f46;
+  --zinc-800: #27272a;
+  --zinc-900: #18181b;
+  --zinc-950: #09090b;
+
+  /* ========================================
+     RADIUS
+     ======================================== */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+}
+
+/* ========================================
+   TEMA PRINCIPAL (LIGHT/DARK)
+   ======================================== */
+
+:root {
+  --radius: 0.5rem;
+
+  /* LIGHT MODE */
+  --background: 0 0% 100%;
+  --foreground: 240 10% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 240 10% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 240 10% 3.9%;
+  --primary: 24.6 95% 53.1%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 240 4.8% 95.9%;
+  --secondary-foreground: 240 5.9% 10%;
+  --muted: 240 4.8% 95.9%;
+  --muted-foreground: 240 3.8% 46.1%;
+  --accent: 240 4.8% 95.9%;
+  --accent-foreground: 240 5.9% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 5.9% 90%;
+  --input: 240 5.9% 90%;
+  --ring: 24.6 95% 53.1%;
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+}
+
+.dark {
+  /* DARK MODE */
+  --background: 0 0% 0%; /* Pure black */
+  --foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 24.6 95% 53.1%;
+  --primary-foreground: 240 10% 3.9%;
+  --secondary: 240 3.7% 15.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --ring: 24.6 95% 53.1%;
+  --chart-1: 220 70% 50%;
+  --chart-2: 160 60% 45%;
+  --chart-3: 30 80% 55%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 340 75% 55%;
+}
+
+/* ========================================
+   BASE STYLES
+   ======================================== */
+
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+}
+
+.metric-display,
+.stat-number {
+  font-family: var(--font-display);
+}
+
+/* ========================================
+   UTILITIES
+   ======================================== */
+
+.font-heading {
+  font-family: var(--font-heading);
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+/* Grid Background Utility */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(39, 39, 42, 1) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(39, 39, 42, 1) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: hsl(var(--muted));
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Gradientes */
+.gradient-orange {
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 50%, #ea580c 100%);
+}
+
+.gradient-zinc {
+  background: linear-gradient(135deg, #27272a 0%, #18181b 50%, #09090b 100%);
+}
+
+/* Glass effect */
+.glass {
+  background-color: hsl(var(--background) / 0.8);
+  border: 1px solid hsl(var(--border) / 0.5);
+  backdrop-filter: blur(12px);
+}
+
+/* Blur effects */
+.blur-card {
+  background-color: rgba(24, 24, 27, 0.6);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.blur-header {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Animação */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* ========================================
+   BADGES DE TREINO
+   ======================================== */
+
+.workout-run {
+  background-color: rgb(249 115 22 / 0.1);
+  color: rgb(249 115 22);
+  border: 1px solid rgb(249 115 22 / 0.2);
+}
+
+.workout-long-run {
+  background-color: rgb(59 130 246 / 0.1);
+  color: rgb(59 130 246);
+  border: 1px solid rgb(59 130 246 / 0.2);
+}
+
+.workout-interval {
+  background-color: rgb(239 68 68 / 0.1);
+  color: rgb(239 68 68);
+  border: 1px solid rgb(239 68 68 / 0.2);
+}
+
+.workout-recovery {
+  background-color: rgb(34 197 94 / 0.1);
+  color: rgb(34 197 94);
+  border: 1px solid rgb(34 197 94 / 0.2);
+}
+
+.workout-tempo {
+  background-color: rgb(245 158 11 / 0.1);
+  color: rgb(245 158 11);
+  border: 1px solid rgb(245 158 11 / 0.2);
+}
+
+.workout-race {
+  background-color: rgb(168 85 247 / 0.1);
+  color: rgb(168 85 247);
+  border: 1px solid rgb(168 85 247 / 0.2);
+}
