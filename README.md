@@ -1,4 +1,4 @@
-# Next.js SaaS + RBAC
+# Club Run Saas
 
 This project contains all the necessary boilerplate to setup a multi-tenant SaaS with Next.js including authentication and RBAC authorization.
 

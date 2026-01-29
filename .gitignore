@@ -39,3 +39,6 @@ yarn-error.log*
 
 # Database
 /generetade
+
+# Docker
+docker-compose.yml
