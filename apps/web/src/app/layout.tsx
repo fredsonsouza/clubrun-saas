@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { inter, manrope, catamaran } from './fonts'
 import './globals.css'
+import { ThemeProvider } from 'next-themes'
 
 export const metadata: Metadata = {
   title: 'ClubRun',
@@ -21,7 +22,7 @@ export default function RootLayout({
     //   </body>
     // </html>
 
-    <html lang="pt-BR" className="dark">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${manrope.variable} ${catamaran.variable} font-sans antialiased`}
       >
@@ -49,8 +50,13 @@ export default function RootLayout({
             }}
           />
         </div>
-
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="dark"
+          disableTransitionOnChange
+        >
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   )

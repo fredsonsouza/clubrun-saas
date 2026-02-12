@@ -8,6 +8,7 @@ import { Menu, X } from 'lucide-react'
 import { NavLink } from './nav-link'
 import { ProfileButton } from './profile-button'
 import { Button } from '@/components/ui/button'
+import { ThemeSwitcher } from './theme/theme-switcher'
 
 interface User {
   id: string
@@ -126,6 +127,7 @@ export function HeaderClient({ user }: HeaderClientProps) {
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
+          <ThemeSwitcher />
           <ProfileButton user={user} />
 
           {/* Mobile Menu Button */}
