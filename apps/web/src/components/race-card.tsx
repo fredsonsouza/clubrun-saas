@@ -11,6 +11,8 @@ import {
 import { Button } from './ui/button'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import clubrunIcon from '@/app/assets/brand/clubrun-icon.png'
+import Image from 'next/image'
 
 interface RaceCardProps {
   id: string
@@ -76,7 +78,10 @@ export function RaceCard({
             </div>
           )}
         </div>
-        <div className="text-5xl">🏁</div>
+        <div className="text-5xl">
+          {' '}
+          <Image src={clubrunIcon} alt="ClubRun" className="h-10 w-auto" />
+        </div>
       </div>
 
       {/* Info */}
@@ -148,7 +153,7 @@ export function RaceCard({
       <div className="flex gap-3">
         <Button
           variant="outline"
-          className="flex-1 border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
+          className="flex-1 cursor-pointer rounded-full border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800 hover:text-white"
           onClick={(e) => {
             e.stopPropagation()
             onViewDetails?.(id)
@@ -159,7 +164,7 @@ export function RaceCard({
 
         {!isPast && registrationOpen && !isUserRegistered && (
           <Button
-            className="flex-1 bg-orange-500 font-semibold text-white hover:bg-orange-600"
+            className="flex-1 cursor-pointer rounded-full bg-orange-500 font-semibold text-white hover:bg-orange-600"
             onClick={(e) => {
               e.stopPropagation()
               onRegister?.(id)
@@ -171,7 +176,7 @@ export function RaceCard({
 
         {isPast && hasResults && (
           <Button
-            className="flex-1 bg-blue-500 font-semibold text-white hover:bg-blue-600"
+            className="flex-1 cursor-pointer rounded-full bg-blue-500 font-semibold text-white hover:bg-blue-600"
             onClick={(e) => {
               e.stopPropagation()
               onViewResults?.(id)

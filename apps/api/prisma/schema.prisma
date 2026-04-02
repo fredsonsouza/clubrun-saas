@@ -34,6 +34,11 @@ enum Role {
   BILLING
 }
 
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+}
+
 //
 // USER + AUTH
 //
@@ -130,8 +135,9 @@ model Invite {
 }
 
 model Member {
-  id   String @id @default(uuid())
-  role Role   @default(MEMBER)
+  id     String       @id @default(uuid())
+  role   Role         @default(MEMBER)
+  status MemberStatus @default(ACTIVE)
 
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   clubId String @map("club_id")
@@ -159,7 +165,7 @@ model AthleteProfile {
   @@map("athlete_profiles")
 }
 
-//
+//>
 // WORKOUTS
 //
 

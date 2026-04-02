@@ -156,7 +156,7 @@ export default function RacesPage() {
 
   return (
     <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto mt-16 max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -175,9 +175,8 @@ export default function RacesPage() {
           {isManager && (
             <Button
               onClick={handleCreateRace}
-              className="bg-orange-500 font-semibold text-white transition-all hover:bg-orange-600 active:scale-[0.98]"
+              className="cursor-pointer rounded-full bg-orange-500 font-semibold text-white transition-all hover:bg-orange-600 active:scale-[0.98]"
             >
-              <Plus className="mr-2 h-5 w-5" />
               Nova Corrida
             </Button>
           )}

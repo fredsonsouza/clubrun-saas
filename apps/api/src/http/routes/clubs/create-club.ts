@@ -35,6 +35,16 @@ export async function createClub(app: FastifyInstance) {
 
         const { name, domain, shouldAttachUsersByDomain, cnpj } = request.body
 
+        const activeMemberShip = await prisma.member.findFirst({
+          where: {
+            userId,
+            status: 'ACTIVE',
+          },
+        })
+        if (activeMemberShip) {
+          throw new BadRequestError('Member already belongs active club.')
+        }
+
         if (domain) {
           const culbByDomain = await prisma.club.findUnique({
             where: { domain },

@@ -30,7 +30,7 @@ export function RaceTabs({ activeTab, onTabChange, counts }: RaceTabsProps) {
           <button
             key={tab.id}
             onClick={() => onTabChange(tab.id)}
-            className={`relative flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
+            className={`relative flex-1 cursor-pointer rounded-full px-4 py-2.5 text-sm font-semibold transition-all ${
               activeTab === tab.id
                 ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20'
                 : 'text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200'
