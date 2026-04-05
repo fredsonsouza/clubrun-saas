@@ -41,6 +41,7 @@ import { rejectInvite } from './routes/invites/reject-invite'
 import { revokeInvite } from './routes/invites/revoke-invite'
 import { getPendingInvites } from './routes/invites/get-pending-invites'
 import { getClubBilling } from './routes/billing/get-club-billing'
+import { getMyWorkouts } from './routes/workouts/get-my-workouts'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -99,6 +100,7 @@ app.register(deleteWorkout)
 app.register(getWorkout)
 app.register(getWorkouts)
 app.register(updateWorkout)
+app.register(getMyWorkouts)
 
 app.register(getMembers)
 app.register(updateMember)

@@ -16,6 +16,10 @@ export async function getWorkouts(app: FastifyInstance) {
         params: z.object({
           slug: z.string(),
         }),
+        querystring: z.object({
+          page: z.coerce.number().min(1).default(1),
+          limit: z.coerce.number().min(1).max(50).default(20),
+        }),
         response: {
           200: z.object({
             workouts: z.array(

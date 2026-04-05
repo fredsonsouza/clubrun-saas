@@ -39,6 +39,19 @@ enum MemberStatus {
   INACTIVE
 }
 
+enum Visibility {
+  PUBLIC
+  COACH_ONLY
+  PRIVATE
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
 //
 // USER + AUTH
 //
@@ -95,15 +108,20 @@ model Token {
 //
 
 model Club {
-  id                        String   @id @default(uuid())
+  id                        String  @id @default(uuid())
   name                      String
-  slug                      String   @unique
-  domain                    String?  @unique
-  cnpj                      String?  @unique
-  shouldAttachUsersByDomain Boolean  @default(false) @map("should_attach_users_by_domain")
-  avatarUrl                 String?  @map("avatar_url")
-  createdAt                 DateTime @default(now()) @map("created_at")
-  updatedAt                 DateTime @updatedAt @map("updated_at")
+  slug                      String  @unique
+  domain                    String? @unique
+  cnpj                      String? @unique
+  shouldAttachUsersByDomain Boolean @default(false) @map("should_attach_users_by_domain")
+  avatarUrl                 String? @map("avatar_url")
+
+  stripeCustomerId     String? @unique @map("stripe_customer_id")
+  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
+  subscriptionStatus   String? @map("subscription_status")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   owner   User   @relation("ClubOwner", fields: [ownerId], references: [id])
   ownerId String @map("owner_id")
@@ -113,6 +131,7 @@ model Club {
   workouts Workout[]
   races    Race[]
   rankings Ranking[]
+  invoices Invoice[]
 
   @@map("clubs")
 }
@@ -142,8 +161,9 @@ model Member {
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   clubId String @map("club_id")
 
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @map("user_id")
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId   String    @map("user_id")
+  invoices Invoice[]
 
   @@unique([clubId, userId])
   @@map("members")
@@ -170,17 +190,18 @@ model AthleteProfile {
 //
 
 model Workout {
-  id        String   @id @default(uuid())
-  title     String?
-  distance  Float // km
-  duration  Int? // segundos
-  pace      Float? // calculado ou enviado
-  type      String // long run, intervalado, easy, etc.
-  slug      String?  @unique
-  date      DateTime
-  notes     String?
-  imageUrl  String? // upload do print do treino (tipo Strava)
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String     @id @default(uuid())
+  title      String?
+  distance   Float // km
+  duration   Int? // segundos
+  pace       Float? // calculado ou enviado
+  type       String // long run, intervalado, easy, etc.
+  slug       String?    @unique
+  date       DateTime
+  notes      String?
+  visibility Visibility @default(PUBLIC)
+  imageUrl   String? // upload do print do treino (tipo Strava)
+  createdAt  DateTime   @default(now()) @map("created_at")
 
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
   clubId String @map("club_id")
@@ -250,4 +271,28 @@ model Ranking {
   @@unique([clubId, athleteId, year, month])
   @@index([clubId])
   @@map("rankings")
+}
+
+//
+// INVOICE
+//
+
+model Invoice {
+  id          String        @id @default(uuid())
+  amount      Float
+  description String
+  status      InvoiceStatus @default(PENDING)
+  dueDate     DateTime      @map("due_date")
+  paidAt      DateTime?     @map("paid_at")
+
+  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId String @map("club_id")
+
+  member   Member @relation(fields: [memberId], references: [id])
+  memberId String @map("member_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("invoices")
 }
