@@ -42,6 +42,7 @@ import { revokeInvite } from './routes/invites/revoke-invite'
 import { getPendingInvites } from './routes/invites/get-pending-invites'
 import { getClubBilling } from './routes/billing/get-club-billing'
 import { getMyWorkouts } from './routes/workouts/get-my-workouts'
+import { payInvoice } from './routes/billing/pay-invoice'
 
 const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -115,6 +116,7 @@ app.register(revokeInvite)
 app.register(getPendingInvites)
 
 app.register(getClubBilling)
+app.register(payInvoice)
 
 app.listen({ port: env.SERVER_PORT }).then(() => {
   console.log('HTTP server runnig ✅')

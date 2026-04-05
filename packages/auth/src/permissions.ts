@@ -36,14 +36,27 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can(['update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
 
     can('get', ['Race', 'RaceResult', 'Ranking'])
+
+    if (user.currentClubId) {
+      can('get', 'Workout', {
+        clubId: { $eq: user.currentClubId },
+        visibility: { $in: ['PUBLIC', 'COACH_ONLY'] },
+      })
+    }
   },
 
-  COACH(_, { can }) {
+  COACH(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
 
     can(['create', 'update'], 'Workout')
 
     can(['get'], 'Race')
+
+    if (user.currentClubId) {
+      can('get', 'Workout', {
+        clubId: { $eq: user.currentClubId },
+      })
+    }
 
     can(['create', 'update'], 'RaceResult')
 
@@ -52,5 +65,6 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
   BILLING(_, { can }) {
     can('manage', 'Billing')
+    can('manage', 'Invoice')
   },
 }

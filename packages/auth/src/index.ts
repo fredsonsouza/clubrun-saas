@@ -16,6 +16,7 @@ import { athleteprofileSubject } from './subjects/athlete-profile'
 import { raceSubject } from './subjects/race'
 import { raceResultSubject } from './subjects/race-result'
 import { rankingSubject } from './subjects/ranking'
+import { invoiceSubject } from './subjects/invoice'
 
 export * from './models/athlete-profile'
 export * from './models/club'
@@ -23,6 +24,7 @@ export * from './models/race'
 export * from './models/race-result'
 export * from './models/ranking'
 export * from './models/user'
+export * from './models/invoice'
 export * from './models/workout'
 export * from './roles'
 
@@ -36,6 +38,7 @@ const appAbilitiesSchema = z.union([
   raceSubject,
   raceResultSubject,
   rankingSubject,
+  invoiceSubject,
 
   z.tuple([z.literal('manage'), z.literal('all')]),
 ])

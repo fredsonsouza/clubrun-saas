@@ -5,5 +5,7 @@ export const workoutSchema = z.object({
 
   id: z.string(),
   athleteId: z.string(),
+  clubId: z.string(),
+  visibility: z.enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE']),
 })
 export type Workout = z.infer<typeof workoutSchema>
