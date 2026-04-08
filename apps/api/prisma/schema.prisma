@@ -259,6 +259,7 @@ model Ranking {
   id        String   @id @default(uuid())
   year      Int
   month     Int?
+  week      Int?
   points    Int      @default(0)
   createdAt DateTime @default(now()) @map("created_at")
 
@@ -268,7 +269,7 @@ model Ranking {
   athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   athleteId String @map("athlete_id")
 
-  @@unique([clubId, athleteId, year, month])
+  @@unique([clubId, athleteId, year, month, week])
   @@index([clubId])
   @@map("rankings")
 }

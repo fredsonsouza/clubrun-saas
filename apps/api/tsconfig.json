@@ -3,6 +3,7 @@
   "include": ["src/**/*", "generated", "@types/*.d.ts"],
   "compilerOptions": {
     "types": ["node"],
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
