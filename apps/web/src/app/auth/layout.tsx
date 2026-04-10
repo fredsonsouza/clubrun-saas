@@ -2,7 +2,6 @@ import { isAuthenticated } from '@/auth/auth'
 import { redirect } from 'next/navigation'
 import clubrunIcon from '@/app/assets/brand/clubrun-icon.png'
 import Image from 'next/image'
-import Footer from '@/components/footer'
 
 export default async function AuthLayout({
   children,
@@ -64,7 +63,6 @@ export default async function AuthLayout({
           </div>
         </div>
       </div>
-      <Footer />
     </div>
   )
 }

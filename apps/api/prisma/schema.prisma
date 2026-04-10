@@ -52,6 +52,12 @@ enum InvoiceStatus {
   CANCELLED
 }
 
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
 //
 // USER + AUTH
 //
@@ -177,7 +183,15 @@ model AthleteProfile {
   id        String    @id @default(uuid())
   paceAvg   Float? // pace médio
   weight    Float?
+  height    Int?
+  gender    Gender?
   birthDate DateTime?
+  bio       String?   @db.Text
+  city      String
+
+  instagramUrl String? @map("instagram_url")
+  youtubeUrl   String? @map("youtube_url")
+  stravaUrl    String? @map("strava_url")
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique @map("user_id")
@@ -185,7 +199,7 @@ model AthleteProfile {
   @@map("athlete_profiles")
 }
 
-//>
+//
 // WORKOUTS
 //
 

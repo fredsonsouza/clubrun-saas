@@ -170,7 +170,7 @@ export function SignInForm() {
           Entrar com Google
         </button>
         <Link
-          href="/"
+          href="/home-page"
           className="mx-auto mt-5 flex cursor-pointer items-center gap-2 text-gray-500 transition-colors hover:text-white"
         >
           <ArrowLeft className="h-4 w-4" />
