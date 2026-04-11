@@ -28,6 +28,7 @@ enum OAuthProvider {
 
 enum Role {
   OWNER
+  MANAGER
   ADMIN
   MEMBER
   COACH

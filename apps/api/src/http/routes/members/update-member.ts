@@ -24,6 +24,7 @@ export async function updateMember(app: FastifyInstance) {
           }),
           body: z.object({
             role: roleSchema,
+            status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
           }),
           response: {
             204: z.null(),
@@ -33,25 +34,31 @@ export async function updateMember(app: FastifyInstance) {
       async (request, reply) => {
         const { slug, memberId } = request.params
         const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { memberShip } = await request.getUserMemberShip(slug)
 
-        if (cannot('update', 'User')) {
+        if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
           throw new UnauthorizedError(
             `You're not allowed to update this member`
           )
         }
+        // const { cannot } = getUserPermissions(userId, memberShip.role)
 
-        const { role } = request.body
+        // if (cannot('update', 'User')) {
+        //   throw new UnauthorizedError(
+        //     `You're not allowed to update this member`
+        //   )
+        // }
+
+        const { role, status } = request.body
 
         await prisma.member.update({
           where: {
             id: memberId,
-            clubId: club.id,
           },
           data: {
-            role,
+            ...(role && { role: role as any }),
+            ...(status && { status }),
           },
         })
 
