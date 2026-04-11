@@ -46,6 +46,11 @@ export async function createAccount(app: FastifyInstance) {
           name,
           email,
           passwordHash,
+          athleteProfile: {
+            create: {
+              isPublic: true,
+            },
+          },
           members_on: autoJoinClub
             ? {
                 create: {

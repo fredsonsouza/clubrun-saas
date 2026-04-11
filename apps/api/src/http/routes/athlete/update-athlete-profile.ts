@@ -33,12 +33,11 @@ export async function updateAthleteProfile(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const data = request.body
 
-        const profile = await prisma.athleteProfile.upsert({
+        const profile = await prisma.athleteProfile.update({
           where: {
             userId,
           },
-          update: data,
-          create: { ...data, userId },
+          data,
         })
 
         return reply.send({ profile })

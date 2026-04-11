@@ -22,7 +22,9 @@ export async function getMyStats(app: FastifyInstance) {
                 totalDistance: z.number(),
                 avgPace: z.number().nullable(),
                 totalWorkouts: z.number(),
+                totalCalories: z.number(),
                 weeklyProgress: z.number(),
+                isProfileComplete: z.boolean(),
               }),
             }),
           },
@@ -31,17 +33,29 @@ export async function getMyStats(app: FastifyInstance) {
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
 
-        const allWorkouts = await prisma.workout.findMany({
-          where: { athleteId: userId },
-          select: {
-            distance: true,
-            pace: true,
-          },
-        })
+        const [profile, allWorkouts] = await Promise.all([
+          prisma.athleteProfile.findUnique({
+            where: { userId },
+          }),
+          prisma.workout.findMany({
+            where: { athleteId: userId },
+            select: {
+              distance: true,
+              pace: true,
+              duration: true,
+            },
+          }),
+        ])
+
         const totalDistance = allWorkouts.reduce(
           (acc, w) => acc + w.distance,
           0
         )
+        const totalDurationInSeconds = allWorkouts.reduce(
+          (acc, w) => acc + (w.duration || 0),
+          0
+        )
+
         const workoutsWithPace = allWorkouts.filter((w) => w.pace && w.pace > 0)
         const avgPace =
           workoutsWithPace.length > 0
@@ -49,32 +63,38 @@ export async function getMyStats(app: FastifyInstance) {
               workoutsWithPace.length
             : null
 
+        let totalCalories = 0
+        if (profile?.weight) {
+          const totalDurationHours = totalDurationInSeconds / 3600
+          totalCalories = Math.round(10.0 * profile.weight * totalDurationHours)
+        }
+
         const now = new Date()
         const currentWeekStart = startOfISOWeek(now)
         const lastWeekStart = startOfISOWeek(subWeeks(now, 1))
         const lastWeekEnd = endOfISOWeek(subWeeks(now, 1))
 
-        const currentWeekDistance = await prisma.workout.aggregate({
-          where: {
-            athleteId: userId,
-            date: { gte: currentWeekStart },
-          },
-          _sum: { distance: true },
-        })
+        const [currentWeekData, lastWeekData] = await Promise.all([
+          prisma.workout.aggregate({
+            where: {
+              athleteId: userId,
+              date: { gte: currentWeekStart },
+            },
+            _sum: { distance: true },
+          }),
+          prisma.workout.aggregate({
+            where: {
+              athleteId: userId,
+              date: { gte: lastWeekStart, lte: lastWeekEnd },
+            },
+            _sum: { distance: true },
+          }),
+        ])
 
-        const lastWeekDistance = await prisma.workout.aggregate({
-          where: {
-            athleteId: userId,
-            date: { gte: lastWeekStart, lte: lastWeekEnd },
-          },
-          _sum: { distance: true },
-        })
-
-        const currentDist = currentWeekDistance._sum.distance || 0
-        const lastDist = lastWeekDistance._sum.distance || 0
+        const currentDist = currentWeekData._sum.distance || 0
+        const lastDist = lastWeekData._sum.distance || 0
 
         let weeklyProgress = 0
-
         if (lastDist > 0) {
           weeklyProgress = ((currentDist - lastDist) / lastDist) * 100
         } else if (currentDist > 0) {
@@ -86,7 +106,9 @@ export async function getMyStats(app: FastifyInstance) {
             totalDistance: Number(totalDistance.toFixed(2)),
             avgPace: avgPace ? Number(avgPace.toFixed(2)) : null,
             totalWorkouts: allWorkouts.length,
+            totalCalories,
             weeklyProgress: Number(weeklyProgress.toFixed(1)),
+            isProfileComplete: !!(profile?.weight && profile.height),
           },
         })
       }

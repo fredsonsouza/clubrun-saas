@@ -187,11 +187,12 @@ model AthleteProfile {
   gender    Gender?
   birthDate DateTime?
   bio       String?   @db.Text
-  city      String
+  city      String?
 
   instagramUrl String? @map("instagram_url")
   youtubeUrl   String? @map("youtube_url")
   stravaUrl    String? @map("strava_url")
+  isPublic     Boolean @default(true) @map("is_public")
 
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique @map("user_id")
