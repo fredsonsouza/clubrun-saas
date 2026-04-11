@@ -15,7 +15,7 @@ export async function getClubBilling(app: FastifyInstance) {
       '/clubs/:slug/billing',
       {
         schema: {
-          tags: ['billing'],
+          tags: ['billings'],
           summary: 'Get billing information from club',
           security: [{ bearerAuth: [] }],
           params: z.object({

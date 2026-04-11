@@ -13,7 +13,7 @@ export async function getMyStats(app: FastifyInstance) {
       '/workouts/my-stats',
       {
         schema: {
-          tags: ['Workouts'],
+          tags: ['workouts'],
           summary: 'Get personal running statistics and progress',
           security: [{ bearerAuth: [] }],
           response: {

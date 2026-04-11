@@ -40,6 +40,10 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
     can('get', ['Race', 'RaceResult', 'Ranking'])
 
+    can('create', 'Invite')
+
+    can('get', 'Invite', { authorId: { $eq: user.id } })
+
     if (user.currentClubId) {
       can('get', 'Workout', {
         clubId: { $eq: user.currentClubId },

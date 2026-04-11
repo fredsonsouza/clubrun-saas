@@ -15,7 +15,7 @@ export async function payInvoice(app: FastifyInstance) {
       '/clubs/:slug/invoices/:invoiceId/pay',
       {
         schema: {
-          tags: ['Billing'],
+          tags: ['billings'],
           summary: 'Mark an invoice as paid',
           security: [{ bearerAuth: [] }],
           params: z.object({

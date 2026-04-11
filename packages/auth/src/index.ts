@@ -25,6 +25,7 @@ export * from './models/race-result'
 export * from './models/ranking'
 export * from './models/user'
 export * from './models/invoice'
+export * from './models/invite'
 export * from './models/workout'
 export * from './roles'
 
@@ -39,6 +40,7 @@ const appAbilitiesSchema = z.union([
   raceResultSubject,
   rankingSubject,
   invoiceSubject,
+  inviteSubject,
 
   z.tuple([z.literal('manage'), z.literal('all')]),
 ])
