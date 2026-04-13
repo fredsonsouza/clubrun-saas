@@ -9,6 +9,7 @@
     "test": "vitest run --project unit",
     "test:e2e": "vitest run --project e2e",
     "test:watch": "vitest --project unit",
+    "test:e2e:watch": "vitest --project e2e",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui"
   },
@@ -35,12 +36,13 @@
     "@saas/prettier": "workspace:*",
     "@saas/tsconfig": "workspace:*",
     "@types/node": "^24.10.1",
+    "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.4",
     "dotenv": "^17.2.3",
     "dotenv-cli": "^11.0.0",
     "prisma": "^7.1.0",
-    "tsx": "^4.21.0",
     "supertest": "^7.2.2",
+    "tsx": "^4.21.0",
     "vite-tsconfig-paths": "^6.1.1",
     "vitest": "^4.1.4"
   },

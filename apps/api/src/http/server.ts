@@ -48,7 +48,7 @@ import { register } from 'module'
 import { approveInvite } from './routes/invites/approve-invite'
 import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
 
-const app = fastify().withTypeProvider<ZodTypeProvider>()
+export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)
@@ -126,6 +126,12 @@ app.register(payInvoice)
 app.register(getClubeRanking)
 app.register(getClubDashBoard)
 
-app.listen({ port: env.SERVER_PORT }).then(() => {
-  console.log('HTTP server runnig ✅')
-})
+// app.listen({ port: env.SERVER_PORT }).then(() => {
+//   console.log('HTTP server runnig ✅')
+// })
+
+if (process.env.NODE_ENV !== 'test') {
+  app.listen({ port: 3333 }).then(() => {
+    console.log('HTTP server running!✅')
+  })
+}

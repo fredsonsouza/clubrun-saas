@@ -1,7 +1,7 @@
 import { expect, it, describe } from 'vitest'
 
-describe('Environment Check', () => {
-  it('should pass a dummy unit test', () => {
+describe('Ambiente de Testes', () => {
+  it('deve somar dois números corretamente', () => {
     expect(1 + 1).toBe(2)
   })
 })

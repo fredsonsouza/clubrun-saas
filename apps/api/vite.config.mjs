@@ -1,58 +1,48 @@
-// import { defineConfig } from 'vitest/config'
-
-// export default defineConfig({
-//   plugins: true, // Adicione os parênteses () aqui
-//   test: {
-//     globals: true,
-//   },
-
-//   projects: [
-//     {
-//       test: {
-//         name: 'unit',
-//         include: ['src/**/*.spec.ts'],
-//         environment: 'node',
-//       },
-//     },
-//     {
-//       test: {
-//         name: 'e2e',
-//         include: ['src/http/routes/**/*.e2e-spec.ts'],
-//         environment:
-//           './prisma/vitest-environment-prisma/prisma-test-environment.ts',
-//       },
-//     },
-//   ],
-// })
-
 import { defineConfig } from 'vitest/config'
-import { resolve } from 'node:path'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
   resolve: {
-    // Ativa a resolução nativa de paths do tsconfig
-    tsconfigPaths: true,
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
   test: {
-    // Configurações base para todos os projetos
+    dir: 'src',
     globals: true,
+    coverage: {
+      all: false,
+    },
+    env: {
+      JWT_SECRET: 'test-jwt-secret-key-for-vitest',
+      GOOGLE_OAUTH_CLIENT_ID: 'test-google-client-id',
+      GOOGLE_OAUTH_CLIENT_SECRET: 'test-google-client-secret',
+      GOOGLE_OAUTH_CLIENT_REDIRECT_URI:
+        'http://localhost:3333/api/auth/callback/google',
+    },
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: 'unit',
+          dir: 'src/http/routes',
+          include: ['**/*.spec.ts'],
+          exclude: ['**/*.e2e-spec.ts'],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: 'e2e',
+          dir: 'src/http/routes',
+          include: ['**/*.e2e-spec.ts'],
+          environment:
+            './prisma/vitest-environment-prisma/prisma-test-environment.ts',
+        },
+      },
+    ],
   },
-  projects: [
-    {
-      test: {
-        name: 'unit',
-        // Usamos resolve para garantir que o caminho seja absoluto
-        include: [resolve(__dirname, 'src/**/*.spec.ts')],
-        environment: 'node',
-      },
-    },
-    {
-      test: {
-        name: 'e2e',
-        include: [resolve(__dirname, 'src/http/routes/**/*.e2e-spec.ts')],
-        environment:
-          './prisma/vitest-environment-prisma/prisma-test-environment.ts',
-      },
-    },
-  ],
 })
