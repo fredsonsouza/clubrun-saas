@@ -7,6 +7,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     workout: {
       findMany: vi.fn(),
+      count: vi.fn(),
       findUnique: vi.fn(),
     },
   },
@@ -32,6 +33,7 @@ describe('Get Workouts (Unit)', () => {
       role: 'ADMIN',
       club: { id: clubId, slug: 'test-club' },
     } as any)
+    vi.mocked(prisma.workout.count).mockResolvedValue(1)
   })
 
   it('should be able to list club workouts', async () => {
@@ -70,5 +72,6 @@ describe('Get Workouts (Unit)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.json().workouts).toHaveLength(1)
+    expect(response.json().meta.total).toBe(1)
   })
 })

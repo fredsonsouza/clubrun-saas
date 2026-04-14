@@ -62,7 +62,7 @@ export async function createWorkout(app: FastifyInstance) {
             pace,
             type,
             notes,
-            slug: createSlug(title),
+            slug: `${createSlug(title)}-${Date.now()}`,
             clubId: club.id,
             athleteId: userId,
           },

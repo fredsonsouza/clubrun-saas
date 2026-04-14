@@ -22,7 +22,7 @@ export function getProfile(app: FastifyInstance) {
                 id: z.uuid(),
                 name: z.string().nullable(),
                 email: z.email(),
-                avatarUrl: z.url().nullable(),
+                avatarUrl: z.string().nullable(),
               }),
             }),
           },

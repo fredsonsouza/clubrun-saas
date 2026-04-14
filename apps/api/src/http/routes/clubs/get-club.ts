@@ -26,7 +26,7 @@ export async function getClub(app: FastifyInstance) {
               slug: z.string(),
               domain: z.string().nullable(),
               shouldAttachUsersByDomain: z.boolean(),
-              avatarUrl: z.url().nullable(),
+              avatarUrl: z.string().nullable(),
               createdAt: z.date(),
               updatedAt: z.date(),
               ownerId: z.uuid(),

@@ -67,7 +67,7 @@ describe('Create Club (E2E)', () => {
       })
 
     expect(response.statusCode).toBe(400)
-    expect(response.body.message).toBe('Member already belongs active club.')
+    expect(response.body.message).toBe('Member already belongs to an active club.')
   })
 
   it('should not be able to create a club with a duplicate domain', async () => {

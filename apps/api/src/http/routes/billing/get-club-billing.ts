@@ -48,14 +48,12 @@ export async function getClubBilling(app: FastifyInstance) {
           )
         }
 
-        const [amountOfMembers] = await Promise.all([
-          prisma.member.count({
-            where: {
-              clubId: club.id,
-              role: { not: 'BILLING' },
-            },
-          }),
-        ])
+        const amountOfMembers = await prisma.member.count({
+          where: {
+            clubId: club.id,
+            role: { not: 'BILLING' },
+          },
+        })
 
         return {
           billing: {

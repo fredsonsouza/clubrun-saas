@@ -42,7 +42,17 @@ export async function createClub(app: FastifyInstance) {
           },
         })
         if (activeMemberShip) {
-          throw new BadRequestError('Member already belongs active club.')
+          throw new BadRequestError('Member already belongs to an active club.')
+        }
+
+        const slug = createSlug(name)
+
+        const clubBySlug = await prisma.club.findUnique({
+          where: { slug },
+        })
+
+        if (clubBySlug) {
+          throw new BadRequestError('Another club with same name already exists!')
         }
 
         if (domain) {
@@ -59,7 +69,7 @@ export async function createClub(app: FastifyInstance) {
         const club = await prisma.club.create({
           data: {
             name,
-            slug: createSlug(name),
+            slug,
             domain,
             cnpj,
             shouldAttachUsersByDomain,

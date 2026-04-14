@@ -32,7 +32,7 @@ export async function getMyWorkouts(app: FastifyInstance) {
                 clubId: z.uuid(),
                 club: z.object({
                   name: z.string(),
-                  avatarUrl: z.url().nullable(),
+                  avatarUrl: z.string().nullable(),
                 }),
                 createdAt: z.coerce.date(),
               })

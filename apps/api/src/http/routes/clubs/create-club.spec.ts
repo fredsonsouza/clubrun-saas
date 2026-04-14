@@ -76,7 +76,7 @@ describe('Create Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('Member already belongs active club.')
+    expect(response.json().message).toBe('Member already belongs to an active club.')
   })
 
   it('should not be able to create a club with existing domain', async () => {
@@ -84,7 +84,10 @@ describe('Create Club (Unit)', () => {
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
-    vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'existing-club' } as any)
+    // First call (slug check) returns null, second call (domain check) returns existing-club
+    vi.mocked(prisma.club.findUnique)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({ id: 'existing-club' } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -100,5 +103,27 @@ describe('Create Club (Unit)', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.json().message).toBe('Another club with same domain already exists!')
+  })
+
+  it('should not be able to create a club with existing name (slug)', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'existing-club' } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        name: 'Existing Club',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json().message).toBe('Another club with same name already exists!')
   })
 })

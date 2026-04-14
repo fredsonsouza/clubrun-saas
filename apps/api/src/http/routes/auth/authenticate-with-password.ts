@@ -26,21 +26,21 @@ export function authenticateWithPassword(app: FastifyInstance) {
     async (request, reply) => {
       const { email, password } = request.body
 
-      const useFromEmail = await prisma.user.findUnique({
+      const userFromEmail = await prisma.user.findUnique({
         where: { email },
       })
 
-      if (!useFromEmail) {
+      if (!userFromEmail) {
         throw new BadRequestError('Invalid credentials')
       }
 
-      if (useFromEmail.passwordHash === null) {
+      if (userFromEmail.passwordHash === null) {
         throw new BadRequestError(
           'User does not have a password, use social login'
         )
       }
 
-      const isPasswordValid = await compare(password, useFromEmail.passwordHash)
+      const isPasswordValid = await compare(password, userFromEmail.passwordHash)
 
       if (!isPasswordValid) {
         throw new BadRequestError('Invalid credentials')
@@ -50,7 +50,7 @@ export function authenticateWithPassword(app: FastifyInstance) {
         {},
         {
           sign: {
-            sub: useFromEmail.id,
+            sub: userFromEmail.id,
             expiresIn: '7d',
           },
         }

@@ -23,7 +23,7 @@ export async function getClubs(app: FastifyInstance) {
                   id: z.uuid(),
                   name: z.string(),
                   slug: z.string(),
-                  avatarUrl: z.url().nullable(),
+                  avatarUrl: z.string().nullable(),
                   role: roleSchema,
                 })
               ),

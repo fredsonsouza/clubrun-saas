@@ -111,7 +111,7 @@ model Token {
 //
 // MULTI-TENANCY — CLUBS (ORGANIZATIONS)
 //
-// Cada usuário pertence a um clube através da tabela Member.
+// Each user belongs to a club through the Member table.
 //
 
 model Club {
@@ -182,7 +182,7 @@ model Member {
 
 model AthleteProfile {
   id        String    @id @default(uuid())
-  paceAvg   Float? // pace médio
+  paceAvg   Float? // average pace
   weight    Float?
   height    Int?
   gender    Gender?
@@ -209,14 +209,14 @@ model Workout {
   id         String     @id @default(uuid())
   title      String?
   distance   Float // km
-  duration   Int? // segundos
-  pace       Float? // calculado ou enviado
-  type       String // long run, intervalado, easy, etc.
+  duration   Int? // seconds
+  pace       Float? // calculated or provided
+  type       String // long run, intervals, easy, etc.
   slug       String?    @unique
   date       DateTime
   notes      String?
   visibility Visibility @default(PUBLIC)
-  imageUrl   String? // upload do print do treino (tipo Strava)
+  imageUrl   String? // workout screenshot upload (Strava type)
   createdAt  DateTime   @default(now()) @map("created_at")
 
   club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
@@ -252,7 +252,7 @@ model Race {
 
 model RaceResult {
   id        String   @id @default(uuid())
-  time      Int // tempo total em segundos
+  time      Int // total time in seconds
   position  Int?
   pace      Float?
   createdAt DateTime @default(now()) @map("created_at")
@@ -263,7 +263,7 @@ model RaceResult {
   athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   athleteId String @map("athlete_id")
 
-  @@unique([raceId, athleteId]) // atleta só pode ter um resultado por corrida
+  @@unique([raceId, athleteId]) // an athlete can only have one result per race
   @@map("race_results")
 }
 

@@ -35,16 +35,21 @@ export async function getClubeRanking(app: FastifyInstance) {
         const whereClause: any = {
           clubId: club.id,
           year,
+          month: null, // Default
+          week: null,  // Default
         }
 
-        if (type === 'weekly') {
-          whereClause.week = week ?? getISOWeek(new Date())
-        } else if (type === 'monthly') {
-          whereClause.month = month ?? getMonth(new Date()) + 1
-          whereClause.week = null
-        } else if (type === 'yearly') {
-          whereClause.month = null
-          whereClause.week = null
+        switch (type) {
+          case 'weekly':
+            whereClause.week = week ?? getISOWeek(new Date())
+            whereClause.month = undefined // We want ANY month for this week
+            break
+          case 'monthly':
+            whereClause.month = month ?? getMonth(new Date()) + 1
+            break
+          case 'yearly':
+            // Both month and week already null
+            break
         }
 
         const rankings = await prisma.ranking.findMany({
