@@ -13,6 +13,7 @@ import {
 import { createAccount } from './routes/auth/create-account'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
 import { getProfile } from './routes/auth/get-profile'
+import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
 import { errorHandler } from './error-handle'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resetPassword } from './routes/auth/reset-password'
@@ -88,6 +89,7 @@ app.register(fastifyCors)
 app.register(createAccount)
 app.register(authenticateWithPassword)
 app.register(getProfile)
+app.register(updateAthleteProfile)
 app.register(requestPasswordRecovery)
 app.register(resetPassword)
 app.register(authenticateWithGoogle)
