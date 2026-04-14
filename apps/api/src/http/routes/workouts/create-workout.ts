@@ -46,7 +46,7 @@ export async function createWorkout(app: FastifyInstance) {
 
         if (cannot('create', 'Workout')) {
           throw new UnauthorizedError(
-            `You're not allowed to create new projects`
+            `You're not allowed to create new workouts`
           )
         }
 

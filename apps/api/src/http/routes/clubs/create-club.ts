@@ -46,11 +46,11 @@ export async function createClub(app: FastifyInstance) {
         }
 
         if (domain) {
-          const culbByDomain = await prisma.club.findUnique({
+          const clubByDomain = await prisma.club.findUnique({
             where: { domain },
           })
 
-          if (culbByDomain) {
+          if (clubByDomain) {
             throw new BadRequestError(
               'Another club with same domain already exists!'
             )
