@@ -9,7 +9,7 @@ export async function approveInvite(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .patch(
-      '/clubs/:slugs/invites/:inviteId/approve',
+      '/clubs/:slug/invites/:inviteId/approve',
       {
         schema: {
           tags: ['invites'],
@@ -25,10 +25,10 @@ export async function approveInvite(app: FastifyInstance) {
         const { memberShip } = await request.getUserMemberShip(slug)
 
         if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
-          return new UnauthorizedError('Unauthorized')
+          throw new UnauthorizedError('Unauthorized')
         }
-
-        return reply.send(204)
+ 
+        return reply.status(204).send()
       }
     )
 }
