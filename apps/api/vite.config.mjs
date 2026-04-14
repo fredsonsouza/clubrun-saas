@@ -24,6 +24,7 @@ export default defineConfig({
       GOOGLE_OAUTH_CLIENT_REDIRECT_URI:
         'http://localhost:3333/api/auth/callback/google',
     },
+    globalSetup: ['./src/test/global-teardown.ts'],
     projects: [
       {
         extends: true,
@@ -42,6 +43,10 @@ export default defineConfig({
           include: ['**/*.e2e-spec.ts'],
           environment:
             './prisma/vitest-environment-prisma/prisma-test-environment.ts',
+          setupFiles: ['./src/test/setup-e2e.ts'],
+          forks: {
+            singleFork: true,
+          },
         },
       },
     ],

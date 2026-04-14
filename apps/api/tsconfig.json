@@ -1,20 +1,12 @@
 {
   "extends": "@saas/tsconfig/node.json",
-  "include": [
-    "src/**/*",
-    "generated/**/*",
-    "@types/*.d.ts"
-  ],
+  "include": ["src/**/*", "generated/**/*", "@types/*.d.ts"],
   "compilerOptions": {
-    "types": [
-      "node"
-    ],
-    "ignoreDeprecations": "5.0",
+    "types": ["node"],
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   }
 }

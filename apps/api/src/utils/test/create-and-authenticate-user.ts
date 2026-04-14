@@ -1,5 +1,4 @@
-import { prisma } from '@/lib/prisma'
-import { hash } from 'bcryptjs'
+import { prisma, pool } from '@/lib/prisma'
 import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
 
@@ -11,7 +10,7 @@ export async function createAndAuthenticateUser(
     data: {
       name: 'John Doe',
       email: `johndoe-${randomUUID()}@example.com`,
-      passwordHash: await hash('123456', 6),
+      passwordHash: '$2a$10$asdfghjklpowieurytqxcvbnm', // Pre-computed or dummy hash
     },
   })
 

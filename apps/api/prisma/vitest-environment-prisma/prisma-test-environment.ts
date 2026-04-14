@@ -49,27 +49,22 @@ export default <ContextTestEnvironment>{
 
     return {
       async teardown() {
-        // Importe também o 'pool' que você exportou no src/lib/prisma.ts
-        const { prisma, pool } = (await import('../../src/lib/prisma')) as any
+        // Redundância removida, agora tratado pelo globalSetup e setup-e2e
 
-        await prisma.$disconnect()
-
-        if (pool) {
-          await pool.end()
-        }
-
-        const dropDbSql = `
-          SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();
-          DROP DATABASE "${dbName}";
-        `
         if (Client) {
           const client = new Client({ connectionString: originalUrl })
           await client.connect()
-          await client.query(dropDbSql)
+          await client.query(
+            `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();`
+          )
+          await client.query(`DROP DATABASE "${dbName}";`)
           await client.end()
         } else {
           execSync(`npx prisma db execute --url "${originalUrl}" --stdin`, {
-            input: dropDbSql,
+            input: `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();`,
+          })
+          execSync(`npx prisma db execute --url "${originalUrl}" --stdin`, {
+            input: `DROP DATABASE "${dbName}";`,
           })
         }
       },
