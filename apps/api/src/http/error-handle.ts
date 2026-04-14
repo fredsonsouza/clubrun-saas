@@ -1,18 +1,22 @@
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyError } from 'fastify'
 import { z, ZodError } from 'zod'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { UnauthorizedError } from './routes/_errors/unauthorized-error'
-import { ResourceNotFoundError } from './routes/_errors/resoruce-not-found-error'
+import { ResourceNotFoundError } from './routes/_errors/resource-not-found-error'
+
 type FastifyErrorHandler = FastifyInstance['errorHandler']
+
 export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
+  const fastifyError = error as FastifyError
+
   if (error instanceof ZodError) {
     return reply.status(400).send({
       message: 'Validation error',
-      errors: error.flatten().fieldErrors,
+      errors: z.flattenError(error).fieldErrors,
     })
   }
 
-  if (error.code === 'FST_ERR_VALIDATION') {
+  if (fastifyError.code === 'FST_ERR_VALIDATION') {
     return reply.status(400).send({
       message: 'Validation error',
       errors: (error as any).validation,
@@ -37,9 +41,9 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
     })
   }
  
-  if (error.statusCode) {
-    return reply.status(error.statusCode).send({
-      message: error.message,
+  if (fastifyError.statusCode) {
+    return reply.status(fastifyError.statusCode).send({
+      message: fastifyError.message,
     })
   }
   console.error(error)

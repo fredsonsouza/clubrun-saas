@@ -5,7 +5,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
-import { ResourceNotFoundError } from '../_errors/resoruce-not-found-error'
+import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function payInvoice(app: FastifyInstance) {
   app
