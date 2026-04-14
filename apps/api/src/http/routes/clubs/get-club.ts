@@ -2,9 +2,14 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 
+import { auth } from '@/http/middlewares/auth'
+
 export async function getClub(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().get(
-    '/clubs/:slug',
+  app
+    .withTypeProvider<ZodTypeProvider>()
+    .register(auth)
+    .get(
+      '/clubs/:slug',
     {
       schema: {
         tags: ['clubs'],

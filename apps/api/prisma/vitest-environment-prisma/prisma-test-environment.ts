@@ -49,8 +49,14 @@ export default <ContextTestEnvironment>{
 
     return {
       async teardown() {
-        const { prisma } = await import('../../src/lib/prisma')
+        // Importe também o 'pool' que você exportou no src/lib/prisma.ts
+        const { prisma, pool } = (await import('../../src/lib/prisma')) as any
+
         await prisma.$disconnect()
+
+        if (pool) {
+          await pool.end()
+        }
 
         const dropDbSql = `
           SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();

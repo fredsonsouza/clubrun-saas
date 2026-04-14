@@ -12,7 +12,7 @@ export async function createWorkout(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .post(
-      '/clubs/:slug/:workouts',
+      '/clubs/:slug/workouts',
       {
         schema: {
           tags: ['workouts'],

@@ -7,9 +7,14 @@ import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { BadRequestError } from '../_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
 
+import { auth } from '@/http/middlewares/auth'
+
 export async function createInvite(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().post(
-    '/clubs/:slug/invites',
+  app
+    .withTypeProvider<ZodTypeProvider>()
+    .register(auth)
+    .post(
+      '/clubs/:slug/invites',
     {
       schema: {
         tags: ['invites'],

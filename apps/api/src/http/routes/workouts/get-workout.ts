@@ -13,7 +13,7 @@ export async function getWorkout(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .get(
-      '/clubs/:clubSlug/:workouts/workoutSlug',
+      '/clubs/:clubSlug/workouts/:workoutSlug',
       {
         schema: {
           tags: ['workouts'],
