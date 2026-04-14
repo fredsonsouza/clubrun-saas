@@ -2,7 +2,7 @@ import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z, { uuid } from 'zod'
+import z from 'zod'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
@@ -13,19 +13,20 @@ export async function getWorkout(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .get(
-      '/clubs/:clubSlug/workouts/:workoutSlug',
+      '/clubs/:slug/workouts/:workoutSlug',
       {
         schema: {
           tags: ['workouts'],
           summary: 'Get workout details',
           security: [{ bearerAuth: [] }],
           params: z.object({
-            clubSlug: z.string(),
+            slug: z.string(),
             workoutSlug: z.string(),
           }),
           response: {
             200: z.object({
               workout: z.object({
+                id: z.uuid(),
                 title: z.string().nullable(),
                 distance: z.number(),
                 duration: z.number().int().nullable(),
@@ -40,15 +41,16 @@ export async function getWorkout(app: FastifyInstance) {
                   name: z.string().nullable(),
                   avatarUrl: z.string().nullable(),
                 }),
+                createdAt: z.coerce.date(),
               }),
             }),
           },
         },
       },
       async (request, reply) => {
-        const { clubSlug, workoutSlug } = request.params
+        const { slug, workoutSlug } = request.params
         const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(clubSlug)
+        const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(userId, memberShip.role)
 
@@ -56,7 +58,7 @@ export async function getWorkout(app: FastifyInstance) {
           throw new UnauthorizedError(`You're not allowed to see this workout`)
         }
 
-        const workout = await prisma.workout.findUnique({
+        const workout = await prisma.workout.findFirst({
           select: {
             id: true,
             title: true,
@@ -69,6 +71,7 @@ export async function getWorkout(app: FastifyInstance) {
             type: true,
             date: true,
             notes: true,
+            createdAt: true,
             athlete: {
               select: {
                 id: true,

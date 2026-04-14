@@ -13,7 +13,7 @@ export async function deleteWorkout(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .delete(
-      '/clubs/:slug/workouts/workoutId',
+      '/clubs/:slug/workouts/:workoutId',
       {
         schema: {
           tags: ['workouts'],
@@ -54,9 +54,9 @@ export async function deleteWorkout(app: FastifyInstance) {
           )
         }
 
-        await prisma.club.delete({
+        await prisma.workout.delete({
           where: {
-            id: workout.id,
+            id: workoutId,
           },
         })
 

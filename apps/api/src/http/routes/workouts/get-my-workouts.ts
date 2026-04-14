@@ -1,10 +1,14 @@
+import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 
 export async function getMyWorkouts(app: FastifyInstance) {
-  app.withTypeProvider<ZodTypeProvider>().get(
+  app
+    .withTypeProvider<ZodTypeProvider>()
+    .register(auth)
+    .get(
     '/workouts/me',
     {
       schema: {
@@ -23,14 +27,14 @@ export async function getMyWorkouts(app: FastifyInstance) {
                 title: z.string().nullable(),
                 distance: z.number().nullable(),
                 duration: z.number().nullable(),
-                date: z.date(),
+                date: z.coerce.date(),
                 notes: z.string().nullable(),
                 clubId: z.uuid(),
                 club: z.object({
                   name: z.string(),
                   avatarUrl: z.url().nullable(),
                 }),
-                createdAt: z.date(),
+                createdAt: z.coerce.date(),
               })
             ),
             meta: z.object({
