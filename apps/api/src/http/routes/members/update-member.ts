@@ -12,11 +12,11 @@ export async function updateMember(app: FastifyInstance) {
     .withTypeProvider<ZodTypeProvider>()
     .register(auth)
     .put(
-      '/clubs/:slug/members/memberId',
+      '/clubs/:slug/members/:memberId',
       {
         schema: {
           tags: ['members'],
-          summary: 'Update a memebber',
+          summary: 'Update a member',
           security: [{ bearerAuth: [] }],
           params: z.object({
             slug: z.string(),

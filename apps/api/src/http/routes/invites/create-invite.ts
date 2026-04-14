@@ -48,9 +48,13 @@ export async function createInvite(app: FastifyInstance) {
 
       const [, domain] = email.split('@')
 
-      if (club.shouldAttachUsersByDomain && club.domain) {
+      if (
+        club.shouldAttachUsersByDomain &&
+        club.domain &&
+        domain === club.domain
+      ) {
         throw new BadRequestError(
-          `User with ${domain} damain will join your club automaticaly on login`
+          `User with ${domain} domain will join your club automatically on login`
         )
       }
 
