@@ -17,8 +17,8 @@ describe('Create Club (E2E)', () => {
   it('should be able to create a new club', async () => {
     const { token, user } = await createAndAuthenticateUser(app)
 
-    const name = faker.company.name()
-    const domain = faker.internet.domainName()
+    const name = `${faker.company.name()} - ${Math.random()}`
+    const domain = `${faker.internet.domainName()}-${Math.random()}`
     const cnpj = faker.string.numeric(14)
 
     const response = await request(app.server)
@@ -30,6 +30,10 @@ describe('Create Club (E2E)', () => {
         cnpj,
         shouldAttachUsersByDomain: true,
       })
+
+    if (response.statusCode !== 201) {
+      console.error(response.body)
+    }
 
     expect(response.statusCode).toBe(201)
     expect(response.body).toHaveProperty('clubId')
@@ -63,7 +67,7 @@ describe('Create Club (E2E)', () => {
       .post('/clubs')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        name: faker.company.name(),
+        name: `${faker.company.name()} - ${Math.random()}`,
       })
 
     expect(response.statusCode).toBe(400)
@@ -72,14 +76,14 @@ describe('Create Club (E2E)', () => {
 
   it('should not be able to create a club with a duplicate domain', async () => {
     const { token: token1 } = await createAndAuthenticateUser(app)
-    const domain = faker.internet.domainName()
+    const domain = `${faker.internet.domainName()}-${Math.random()}`
 
     // Cria o primeiro clube
     await request(app.server)
       .post('/clubs')
       .set('Authorization', `Bearer ${token1}`)
       .send({
-        name: faker.company.name(),
+        name: `${faker.company.name()} - ${Math.random()}`,
         domain,
       })
 
@@ -90,7 +94,7 @@ describe('Create Club (E2E)', () => {
       .post('/clubs')
       .set('Authorization', `Bearer ${token2}`)
       .send({
-        name: faker.company.name(),
+        name: `${faker.company.name()} - ${Math.random()}`,
         domain,
       })
 
