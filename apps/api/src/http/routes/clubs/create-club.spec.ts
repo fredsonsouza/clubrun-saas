@@ -1,0 +1,104 @@
+import { app } from '@/http/server'
+import { prisma } from '@/lib/prisma'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/lib/prisma', () => ({
+  prisma: {
+    member: {
+      findFirst: vi.fn(),
+    },
+    club: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+  },
+}))
+
+describe('Create Club (Unit)', () => {
+  beforeAll(async () => {
+    await app.ready()
+  })
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('should be able to create a new club', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.club.create).mockResolvedValue({
+      id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+    } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        name: 'New Club',
+        domain: 'newclub.com',
+        shouldAttachUsersByDomain: true,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(response.json()).toEqual({ clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7' })
+    expect(prisma.club.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          name: 'New Club',
+          ownerId: userId,
+        }),
+      })
+    )
+  })
+
+  it('should not be able to create a club if user already belongs to an active club', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({ id: 'existing-member' } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        name: 'New Club',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json().message).toBe('Member already belongs active club.')
+  })
+
+  it('should not be able to create a club with existing domain', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'existing-club' } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        name: 'New Club',
+        domain: 'existing.com',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(response.json().message).toBe('Another club with same domain already exists!')
+  })
+})
