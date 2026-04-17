@@ -1,4 +1,4 @@
-import { Inter, Manrope, Catamaran } from 'next/font/google'
+import { Inter, Public_Sans, Space_Grotesk } from 'next/font/google'
 
 export const inter = Inter({
   subsets: ['latin'],
@@ -6,15 +6,14 @@ export const inter = Inter({
   display: 'swap',
 })
 
-export const manrope = Manrope({
+export const publicSans = Public_Sans({
   subsets: ['latin'],
-  variable: '--font-manrope',
+  variable: '--font-display', // Para títulos fortes
   display: 'swap',
 })
 
-export const catamaran = Catamaran({
+export const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '600', '700'],
-  variable: '--font-catamaran',
+  variable: '--font-mono', // Para métricas (KM, Pace, Tempo)
   display: 'swap',
 })

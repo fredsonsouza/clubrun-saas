@@ -1,93 +1,110 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { ArrowLeft, CheckCircle2, Mail } from 'lucide-react'
+import React, { useState } from 'react'
 import Link from 'next/link'
-import { motion } from 'motion/react'
+import { ArrowLeft, Flame, MailCheck } from 'lucide-react'
 
-export default function ForgotPassword() {
-  // const [submitted, setSubmitted] = useState(false)
+export default function ForgotPasswordPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSent, setIsSent] = useState(false)
 
-  // const handleSubmit = (e: React.FormEvent) => {
-  //   e.preventDefault()
-  //   // Aqui você vai adicionar a lógica de recuperação
-  //   setSubmitted(true)
-  // }
-  // if (submitted) {
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setTimeout(() => {
+      setIsLoading(false)
+      setIsSent(true) // Mostra a tela de sucesso
+    }, 1500)
+  }
+
   return (
-    <div className="w-full space-y-6">
-      {/* Header */}
-      <div className="space-y-2 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-orange-500/10">
-          <Mail className="h-8 w-8 text-orange-500" />
-        </div>
-        <h1 className="font-heading text-3xl font-bold text-white">
-          Esqueceu sua senha?
-        </h1>
-        <p className="text-zinc-400">
-          Sem problemas! Informe seu e-mail e enviaremos as instruções para
-          recuperação
-        </p>
-      </div>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 p-6 font-sans">
+      {/* Efeito Visual Laranja Suave no Fundo */}
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/5 blur-[120px]" />
 
-      {/* Form */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-      >
-        <form className="space-y-5">
-          {/* Email Field */}
-          <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-sm font-medium text-zinc-200"
-            >
-              E-mail
-            </Label>
-            <div className="relative">
-              <Mail className="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-zinc-500" />
-              <Input
-                name="email"
-                type="email"
-                id="email"
-                placeholder="seu@email.com"
-                required
-                className="h-12 border-zinc-700 bg-zinc-900 pl-10 text-white placeholder:text-zinc-500 focus:border-orange-500 focus:ring-orange-500"
-              />
+      <div className="animate-in zoom-in-95 relative z-10 w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-xl duration-500 sm:p-10">
+        {/* Logo Centralizada */}
+        <div className="mb-8 flex justify-center">
+          <Link href="/" className="group flex items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-500 shadow-md shadow-orange-500/20 transition-transform group-hover:scale-105">
+              <Flame className="h-7 w-7 text-white" fill="currentColor" />
             </div>
+          </Link>
+        </div>
+
+        {!isSent ? (
+          <>
+            <div className="mb-8 text-center">
+              <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
+                Esqueceu sua senha?
+              </h1>
+              <p className="text-sm font-medium text-gray-500">
+                Digite o e-mail associado à sua conta e enviaremos um link para
+                redefinir sua senha.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1.5">
+                <label
+                  htmlFor="email"
+                  className="text-sm font-bold text-gray-700"
+                >
+                  E-mail
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="atleta@exemplo.com"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+              >
+                {isLoading ? (
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                ) : (
+                  'Enviar link de recuperação'
+                )}
+              </button>
+            </form>
+          </>
+        ) : (
+          /* Estado de Sucesso (Link Enviado) */
+          <div className="animate-in fade-in slide-in-from-bottom-4 text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-500">
+              <MailCheck className="h-8 w-8" />
+            </div>
+            <h2 className="mb-3 text-2xl font-extrabold tracking-tight text-gray-900">
+              Verifique seu E-mail
+            </h2>
+            <p className="mb-8 text-sm font-medium text-gray-500">
+              Enviamos as instruções de recuperação para o e-mail informado. Não
+              se esqueça de checar a caixa de spam.
+            </p>
+            <button
+              onClick={() => setIsSent(false)}
+              className="text-sm font-bold text-gray-500 transition-colors hover:text-gray-900"
+            >
+              Tentar com outro e-mail
+            </button>
           </div>
+        )}
 
-          {/* Submit Button */}
-          <Button
-            type="submit"
-            className="h-12 w-full bg-orange-500 font-semibold text-white transition-all hover:bg-orange-600 active:scale-[0.98]"
+        <div className="mt-8 flex justify-center border-t border-gray-100 pt-6">
+          <Link
+            href="/auth/sign-in"
+            className="flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-orange-500"
           >
-            Enviar link de recuperação
-          </Button>
-
-          {/* Back to Login */}
-          <Button
-            asChild
-            variant="ghost"
-            className="w-full text-zinc-400 hover:text-white"
-          >
-            <Link href="/auth/sign-in">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Voltar para o login
-            </Link>
-          </Button>
-        </form>
-      </motion.div>
-
-      {/* Help Text */}
-      <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
-        <p className="text-sm text-zinc-400">
-          <strong className="text-zinc-300">Dica:</strong> Se não encontrar o
-          e-mail, verifique sua pasta de spam ou lixeira.
-        </p>
+            <ArrowLeft className="h-4 w-4" /> Voltar para o Login
+          </Link>
+        </div>
       </div>
     </div>
   )

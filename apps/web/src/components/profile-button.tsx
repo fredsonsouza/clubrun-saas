@@ -1,104 +1,100 @@
 'use client'
 
-import { ChevronDown, LogOut, User as UserIcon, Settings } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+import React, { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import { ChevronDown, LogOut, User } from 'lucide-react'
 
-interface User {
-  id: string
-  name: string | null
-  email: string
-  avatarUrl: string | null
+const mockUser = {
+  name: 'Fredson Souza',
+  email: 'fredson@exemplo.com',
+  avatarUrl: 'https://i.pravatar.cc/150?img=11',
 }
 
-interface ProfileButtonProps {
-  user: User
-}
+export function ProfileButton() {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
 
-export function ProfileButton({ user }: ProfileButtonProps) {
-  const getInitials = (name: string | null) => {
-    if (!name) return 'CR'
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase()
-  }
+  const getInitials = (name: string) =>
+    name ? name.charAt(0).toUpperCase() : 'U'
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
-    <DropdownMenu modal={false}>
-      <DropdownMenuTrigger className="group flex items-center gap-3 rounded-full border border-transparent bg-transparent p-1 pr-3 transition-all outline-none hover:border-zinc-200 hover:bg-zinc-100/80 focus:ring-2 focus:ring-orange-500/20 dark:border-transparent dark:bg-zinc-900/50 dark:hover:border-zinc-800 dark:hover:bg-zinc-800">
-        <Avatar className="h-8 w-8 border border-zinc-200 transition-transform group-hover:scale-105 dark:border-zinc-800">
-          <AvatarImage src={user.avatarUrl ?? undefined} />
-          <AvatarFallback className="bg-zinc-100 text-xs font-bold text-orange-600 dark:bg-zinc-800 dark:text-orange-500">
-            {getInitials(user.name)}
-          </AvatarFallback>
-        </Avatar>
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 rounded-full border border-transparent p-1.5 pr-3 transition-all hover:border-gray-200 hover:bg-gray-50 focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+      >
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-gray-200 bg-white shadow-sm">
+          {mockUser.avatarUrl ? (
+            <img
+              src={mockUser.avatarUrl}
+              alt={mockUser.name}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            <span className="text-sm font-extrabold text-gray-500">
+              {getInitials(mockUser.name)}
+            </span>
+          )}
+        </div>
 
-        <div className="hidden flex-col items-start sm:flex">
-          <span className="text-xs font-medium text-zinc-700 group-hover:text-black dark:text-zinc-200 dark:group-hover:text-white">
-            {user.name?.split(' ')[0] ?? 'Atleta'}
+        <div className="hidden max-w-[140px] flex-col items-start lg:flex">
+          <span className="w-full truncate text-left text-sm leading-tight font-bold text-gray-900">
+            {mockUser.name}
+          </span>
+          <span className="w-full truncate text-left text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+            {mockUser.email.split('@')[0]}
           </span>
         </div>
 
-        <ChevronDown className="h-3 w-3 text-zinc-400 transition-transform duration-300 group-data-[state=open]:rotate-180 dark:text-zinc-500" />
-      </DropdownMenuTrigger>
+        <ChevronDown
+          className={`hidden h-4 w-4 text-gray-400 transition-transform duration-200 sm:block ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
 
-      <DropdownMenuContent
-        align="end"
-        className="mt-2 w-64 border-zinc-200 bg-white/95 p-2 text-zinc-700 backdrop-blur-xl dark:border-zinc-800 dark:bg-zinc-950/90 dark:text-zinc-200"
-      >
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1 p-2">
-            <p className="text-sm leading-none font-medium text-zinc-900 dark:text-white">
-              {user.name}
-            </p>
-            <p className="text-xs leading-none text-zinc-500 dark:text-zinc-400">
-              {user.email}
-            </p>
+      {isOpen && (
+        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl duration-100">
+          <div className="space-y-1 px-2">
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <User className="h-4 w-4 text-gray-400 transition-colors group-hover:text-orange-500" />{' '}
+              Meu Perfil
+            </Link>
           </div>
-        </DropdownMenuLabel>
 
-        <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
+          <div className="my-2 h-px bg-gray-100" />
 
-        <DropdownMenuItem
-          asChild
-          className="cursor-pointer focus:bg-zinc-100 dark:focus:bg-zinc-800"
-        >
-          <a
-            href="/profile"
-            className="flex w-full items-center gap-2 rounded-md px-2 py-2"
-          >
-            <UserIcon className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
-            <span>Perfil</span>
-          </a>
-        </DropdownMenuItem>
-
-        {/* ... Resto do menu ... */}
-
-        <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
-
-        <DropdownMenuItem
-          asChild
-          className="group cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-700 dark:text-red-400 dark:focus:bg-red-500/10 dark:focus:text-red-400"
-        >
-          <a
-            href="/api/auth/sign-out"
-            className="flex w-full items-center gap-2 rounded-md px-2 py-2"
-          >
-            <LogOut className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
-            <span>Sair</span>
-          </a>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <div className="px-2">
+            <button
+              onClick={() => {
+                setIsOpen(false)
+                alert('Fazendo logout...')
+              }}
+              // Adicionamos a classe 'group' no botão
+              className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
+            >
+              {/* Adicionamos a transição no ícone reagindo ao hover do botão (group) */}
+              <LogOut className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />{' '}
+              Sair
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
