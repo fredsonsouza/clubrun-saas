@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
 
   const redirectUrl = request.nextUrl.clone()
 
-  redirectUrl.pathname = '/dashboard'
+  redirectUrl.pathname = '/'
   redirectUrl.search = ''
 
   return NextResponse.redirect(redirectUrl)

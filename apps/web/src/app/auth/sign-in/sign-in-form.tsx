@@ -21,7 +21,7 @@ export function SignInForm() {
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
     () => {
-      router.push('/dashboard')
+      router.push('/')
     }
   )
 
@@ -56,7 +56,7 @@ export function SignInForm() {
             </span>
           </Link>
           <Link
-            href="/"
+            href="/home"
             className="flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar ao site
@@ -119,7 +119,7 @@ export function SignInForm() {
           <form action={signInWithGoogle}>
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
+              className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path

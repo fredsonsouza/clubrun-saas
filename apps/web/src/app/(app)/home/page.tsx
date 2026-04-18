@@ -1,80 +1,3 @@
-// import { auth } from '@/auth/auth'
-// import { StatCard } from '@/components/dashboard/stat-card'
-// import { RecentActivities } from '@/components/dashboard/recent-activities'
-// import { ClubSidebar } from '@/components/dashboard/club-sidebar'
-// import { Activity, Trophy, Timer, Users as UsersIcon } from 'lucide-react'
-
-// export default async function DashboardPage() {
-//   const { user } = await auth()
-//   const firstName = user.name?.split(' ')[0]
-
-//   return (
-//     <div className="space-y-10">
-//       {/* Welcome Header */}
-//       <header className="flex flex-col gap-1 pt-20">
-//         <h1 className="font-heading text-3xl font-bold tracking-tight text-white">
-//           Bom dia, {firstName}! 👋
-//         </h1>
-//         <p className="text-sm font-medium text-zinc-500">
-//           {new Date().toLocaleDateString('pt-BR', {
-//             weekday: 'long',
-//             day: 'numeric',
-//             month: 'long',
-//           })}
-//         </p>
-//       </header>
-
-//       <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
-//         <div className="space-y-10 lg:col-span-2">
-//           {/* Stats Grid */}
-//           <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-//             <StatCard
-//               title="Distância Total"
-//               value="124.8"
-//               unit="km"
-//               icon={<Activity className="h-5 w-5" />}
-//               trend={{ value: 12, isPositive: true }}
-//               delay={0.1}
-//             />
-//             <StatCard
-//               title="Tempo Ativo"
-//               value="12:45"
-//               unit="h"
-//               icon={<Timer className="h-5 w-5" />}
-//               trend={{ value: 5, isPositive: true }}
-//               delay={0.2}
-//             />
-//             <StatCard
-//               title="Recordes Pessoais"
-//               value="3"
-//               unit="PRs"
-//               icon={<Trophy className="h-5 w-5" />}
-//               delay={0.3}
-//             />
-//             <StatCard
-//               title="Meus Clubes"
-//               value="2"
-//               unit="Ativos"
-//               icon={<UsersIcon className="h-5 w-5" />}
-//               delay={0.4}
-//             />
-//           </section>
-
-//           {/* Activities Feed */}
-//           <section>
-//             <RecentActivities />
-//           </section>
-//         </div>
-
-//         {/* Sidebar */}
-//         <aside className="space-y-10">
-//           <ClubSidebar />
-//         </aside>
-//       </div>
-//     </div>
-//   )
-// }
-
 'use client'
 
 import React, { useState, useEffect } from 'react'
@@ -222,7 +145,7 @@ export default function HomePage() {
 
           <h1 className="animate-in fade-in slide-in-from-bottom-6 mb-6 max-w-4xl text-5xl leading-[1.1] font-extrabold tracking-tight text-gray-900 delay-100 duration-700 md:text-7xl">
             Sua comunidade de corrida, <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
+            <span className="bg-linear-to-r from-orange-500 to-amber-500 bg-clip-text text-transparent">
               agora em alta performance.
             </span>
           </h1>
@@ -273,7 +196,7 @@ export default function HomePage() {
             </div>
 
             {/* Card 2: Destaque / Ranking */}
-            <div className="flex transform flex-col items-center justify-center rounded-3xl bg-gradient-to-b from-orange-500 to-orange-600 p-6 text-white shadow-2xl shadow-orange-500/20 transition-transform hover:translate-y-2 md:translate-y-4">
+            <div className="flex transform flex-col items-center justify-center rounded-3xl bg-linear-to-b from-orange-500 to-orange-600 p-6 text-white shadow-2xl shadow-orange-500/20 transition-transform hover:translate-y-2 md:translate-y-4">
               <Trophy className="mb-3 h-10 w-10 text-orange-200" />
               <p className="mb-1 text-sm font-bold tracking-widest text-orange-100 uppercase">
                 Líder da Semana

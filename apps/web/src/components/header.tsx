@@ -5,7 +5,15 @@ import { usePathname } from 'next/navigation'
 import { Flame, ChevronDown, UserPlus } from 'lucide-react'
 import { ProfileButton } from './profile-button'
 
-export function Header() {
+interface HeaderProps {
+  user: {
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  }
+}
+
+export function Header({ user }: HeaderProps) {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
@@ -63,8 +71,8 @@ export function Header() {
             <UserPlus className="h-4 w-4" /> Convidar
           </button>
 
-          {/* Aqui injetamos o componente de Perfil */}
-          <ProfileButton />
+          {/* Passamos o usuário para o ProfileButton */}
+          <ProfileButton user={user} />
         </div>
       </div>
     </nav>

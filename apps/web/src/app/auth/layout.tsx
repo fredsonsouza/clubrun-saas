@@ -8,7 +8,7 @@ export default async function AuthLayout({
 }>) {
   // Proteção da rota: se já estiver logado, manda direto para o app
   if (await isAuthenticated()) {
-    redirect('/dashboard')
+    redirect('/')
   }
 
   return (
