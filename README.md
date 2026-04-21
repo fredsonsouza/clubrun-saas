@@ -51,7 +51,7 @@ Roles & permissions.
 - Administrator
 - Member
 - Coach
-- Billing (one per organization)
+- Billing (one per club)
 - Anonymous
 
 ### Permissions table

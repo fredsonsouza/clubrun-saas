@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Flame, ChevronDown, UserPlus } from 'lucide-react'
 import { ProfileButton } from './profile-button'
+import { ClubSwitcher } from './club-switcher'
 
 interface HeaderProps {
   user: {
@@ -34,9 +35,7 @@ export function Header({ user }: HeaderProps) {
 
           <div className="hidden h-6 w-px bg-gray-200 md:block"></div>
 
-          <button className="hidden items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50 md:flex">
-            Macuxi Runner <ChevronDown className="h-4 w-4 text-gray-400" />
-          </button>
+          <ClubSwitcher />
         </div>
 
         <div className="hidden items-center gap-6 text-sm font-bold text-gray-500 lg:flex">

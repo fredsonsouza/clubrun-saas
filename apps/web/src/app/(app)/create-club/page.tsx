@@ -1,0 +1,279 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import {
+  ArrowRight,
+  Globe,
+  MapPin,
+  Trophy,
+  Users,
+  Zap,
+  AlignLeft,
+  Flame,
+  ArrowLeft,
+  LogOut,
+} from 'lucide-react'
+
+// --- MOCK DO PROFILE BUTTON PARA O PREVIEW ---
+function MinimalProfileButton() {
+  const [isOpen, setIsOpen] = useState(false)
+  const avatarUrl = 'https://i.pravatar.cc/150?img=11'
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 focus:outline-none"
+      >
+        <div className="h-10 w-10 overflow-hidden rounded-full border-2 border-gray-200 bg-white shadow-sm transition-colors hover:border-orange-500">
+          <img
+            src={avatarUrl}
+            alt="Perfil"
+            className="h-full w-full object-cover"
+          />
+        </div>
+      </button>
+      {isOpen && (
+        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl duration-100">
+          <button className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm font-bold text-red-600 hover:bg-red-50">
+            <LogOut className="h-4 w-4" /> Sair
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// --- FUNÇÃO DE SLUG ---
+const generateSlug = (text: string) => {
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+}
+
+// --- PÁGINA PRINCIPAL DO PREVIEW ---
+export default function CreateClubPreviewPage() {
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [description, setDescription] = useState('')
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Simulação de Contexto (Em prod, viria do hook de Auth/Clubes)
+  const hasExistingClub = true // Mude para false para testar a lógica
+
+  useEffect(() => {
+    if (!isSlugManuallyEdited) setSlug(generateSlug(name))
+  }, [name, isSlugManuallyEdited])
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsSlugManuallyEdited(true)
+    setSlug(generateSlug(e.target.value))
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setTimeout(() => {
+      setIsLoading(false)
+      alert(
+        `Clube '${name}' criado com sucesso! Redirecionando para /${slug}/dashboard...`
+      )
+    }, 1500)
+  }
+
+  const handleGoBack = () => {
+    if (hasExistingClub) {
+      alert('Voltando para o seu Dashboard atual...')
+      // router.push('/dashboard')
+    } else {
+      alert('Voltando para explorar clubes públicos...')
+      // router.push('/explore') ou router.back()
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
+      {/* HEADER MINIMALISTA */}
+      <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-2">
+            <Flame className="h-7 w-7 text-orange-500" fill="currentColor" />
+            <span className="text-xl font-extrabold tracking-tight text-gray-900">
+              Club<span className="text-orange-500">Run</span>
+            </span>
+          </div>
+          <MinimalProfileButton />
+        </div>
+      </nav>
+
+      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 pb-24 duration-500 sm:px-6 lg:px-8">
+        {/* BOTÃO DE VOLTAR NO TOPO */}
+        <button
+          onClick={handleGoBack}
+          className="group mb-6 flex items-center gap-2 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900"
+        >
+          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          Voltar
+        </button>
+
+        <div className="mb-10 text-center md:text-left">
+          <h1 className="mb-3 text-4xl font-extrabold tracking-tight text-gray-900">
+            Crie o seu pelotão
+          </h1>
+          <p className="text-lg font-medium text-gray-500">
+            Defina a identidade do seu clube e convide seus atletas para
+            começarem a competir.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
+          {/* FORMULÁRIO */}
+          <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm sm:p-10 lg:col-span-7">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="space-y-2">
+                <label
+                  htmlFor="name"
+                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                >
+                  <Trophy className="h-4 w-4 text-orange-500" /> Nome do Clube
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Ex: Macuxi Runner"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-lg font-bold text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="slug"
+                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                >
+                  <Globe className="h-4 w-4 text-orange-500" /> Link Público
+                </label>
+                <div className="flex items-stretch overflow-hidden rounded-xl shadow-sm transition-all focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/50">
+                  <span className="flex items-center border border-r-0 border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-500 sm:text-base">
+                    clubrun.com/
+                  </span>
+                  <input
+                    id="slug"
+                    type="text"
+                    required
+                    value={slug}
+                    onChange={handleSlugChange}
+                    placeholder="nome-do-clube"
+                    className="w-full flex-1 border border-gray-200 bg-gray-50 px-4 py-4 font-bold text-gray-900 focus:bg-white focus:outline-none"
+                  />
+                </div>
+                <p className="mt-1.5 text-xs font-medium text-gray-400">
+                  Este será o endereço para convidar novos membros.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="description"
+                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                >
+                  <AlignLeft className="h-4 w-4 text-orange-500" /> Descrição
+                  (Opcional)
+                </label>
+                <textarea
+                  id="description"
+                  rows={3}
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Qual o foco da sua assessoria ou grupo de amigos?"
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                />
+              </div>
+
+              <hr className="border-gray-100" />
+
+              {/* AÇÕES DO FORMULÁRIO */}
+              <div className="flex flex-col-reverse items-center justify-end gap-3 sm:flex-row sm:gap-4">
+                <button
+                  type="button"
+                  onClick={handleGoBack}
+                  className="w-full rounded-xl px-6 py-4 font-bold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 sm:w-auto"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={isLoading || name.length < 3}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 py-4 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:pointer-events-none disabled:opacity-70 sm:w-auto"
+                >
+                  {isLoading ? (
+                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  ) : (
+                    <>
+                      Criar meu Clube <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* LIVE PREVIEW CARD */}
+          <div className="relative hidden md:block lg:col-span-5">
+            <div className="sticky top-24">
+              <p className="mb-4 ml-2 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-400 uppercase">
+                <div className="h-2 w-2 animate-pulse rounded-full bg-green-500"></div>{' '}
+                Pré-visualização ao vivo
+              </p>
+
+              <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-8 shadow-xl transition-all duration-300">
+                <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl" />
+
+                <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-orange-100 bg-orange-50 text-orange-500">
+                  <Zap className="h-8 w-8" />
+                </div>
+
+                <h3
+                  className={`mb-2 truncate text-2xl font-extrabold transition-colors duration-300 ${name ? 'text-gray-900' : 'text-gray-300'}`}
+                >
+                  {name || 'Nome do seu Clube'}
+                </h3>
+
+                <p
+                  className={`mb-6 line-clamp-3 min-h-[60px] text-sm font-medium transition-colors duration-300 ${description ? 'text-gray-500' : 'text-gray-300'}`}
+                >
+                  {description ||
+                    'Sua descrição aparecerá aqui para visitantes e futuros atletas.'}
+                </p>
+
+                <div className="mb-8 flex flex-wrap gap-3 text-xs font-bold text-gray-600">
+                  <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-gray-400" /> Global
+                  </span>
+                  <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
+                    <Users className="h-3.5 w-3.5 text-gray-400" /> 1 Membro
+                  </span>
+                </div>
+
+                <div className="flex w-full cursor-not-allowed items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4 opacity-50 grayscale">
+                  <span className="text-sm font-bold text-gray-500">
+                    Pedir para Participar
+                  </span>
+                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}

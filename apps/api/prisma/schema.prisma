@@ -109,7 +109,7 @@ model Token {
 }
 
 //
-// MULTI-TENANCY — CLUBS (ORGANIZATIONS)
+// MULTI-TENANCY — CLUBS 
 //
 // Each user belongs to a club through the Member table.
 //
