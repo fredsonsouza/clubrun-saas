@@ -14,6 +14,8 @@ interface ProfileButtonProps {
 }
 
 export function ProfileButton({ user }: ProfileButtonProps) {
+  if (!user) return null
+
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 

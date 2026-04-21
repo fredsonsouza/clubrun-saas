@@ -2,14 +2,38 @@
 
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Globe, MapPin, Trophy, Users, Zap, AlignLeft, ArrowLeft } from 'lucide-react'
-import { Header } from '@/components/header' // <-- AQUI
+import {
+  ArrowRight,
+  Globe,
+  MapPin,
+  Trophy,
+  Users,
+  Zap,
+  AlignLeft,
+  ArrowLeft,
+} from 'lucide-react'
+import { Header } from '@/components/header'
 
 const generateSlug = (text: string) => {
-  return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-')
+  return text
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
 }
 
-export default function CreateClubPage() {
+interface CreateClubFormProps {
+  user: {
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  }
+}
+
+export function CreateClubForm({ user }: CreateClubFormProps) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [slug, setSlug] = useState('')
@@ -49,14 +73,7 @@ export default function CreateClubPage() {
     <div className="min-h-screen bg-gray-50 font-sans text-gray-900 pb-20 selection:bg-orange-500 selection:text-white">
 
       {/* HEADER IMPORTADO E CONFIGURADO */}
-      <Header
-        variant="onboarding"
-        user={{
-          name: 'Fredson Souza',
-          email: 'fredson@example.com',
-          avatarUrl: 'https://github.com/fredsonsouza.png',
-        }}
-      />
+      <Header variant="onboarding" user={user} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-24 animate-in fade-in duration-500">
 

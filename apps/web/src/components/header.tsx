@@ -12,14 +12,31 @@ interface HeaderProps {
     email: string
     avatarUrl: string | null
   }
+  variant?: 'default' | 'onboarding'
 }
 
-export function Header({ user }: HeaderProps) {
+export function Header({ user, variant = 'default' }: HeaderProps) {
   const pathname = usePathname()
 
   const isActive = (path: string) => {
     if (!pathname) return false
     return pathname.includes(path)
+  }
+  // Se for onboarding, renderizamos uma versão super limpa (só Logo e Perfil)
+  if (variant === 'onboarding') {
+    return (
+      <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <Link href="/" className="flex items-center gap-2">
+            <Flame className="h-7 w-7 text-orange-500" fill="currentColor" />
+            <span className="text-xl font-extrabold tracking-tight text-gray-900">
+              Club<span className="text-orange-500">Run</span>
+            </span>
+          </Link>
+          <ProfileButton user={user} />
+        </div>
+      </nav>
+    )
   }
 
   return (
