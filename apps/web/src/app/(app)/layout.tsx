@@ -1,23 +1,14 @@
-import { auth, isAuthenticated } from '@/auth/auth'
-import { Header } from '@/components/header'
+import { isAuthenticated } from '@/auth/auth'
 import { redirect } from 'next/navigation'
 
-export default function AppLayout({
+export default async function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  if (!isAuthenticated()) {
-    redirect('/home')
+  if (!(await isAuthenticated())) {
+    redirect('/')
   }
 
-  // const { user } = await auth()
-
-  return (
-    <>{children}</>
-    // <div className="min-h-screen bg-black text-white">
-    //   <Header user={user} />
-    //   <main className="mx-auto max-w-7xl px-6 py-8">{children}</main>
-    // </div>
-  )
+  return <>{children}</>
 }

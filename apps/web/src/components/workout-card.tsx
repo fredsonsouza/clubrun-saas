@@ -33,7 +33,7 @@ export interface Workout {
 interface WorkoutCardProps {
   workout: Workout
   currentUserId: string
-  userRole: 'OWNER' | 'MANAGER' | 'MEMBER'
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
   onDelete?: (id: string) => void
   onEdit?: (id: string) => void
 }
@@ -47,7 +47,7 @@ export function WorkoutCard({
 }: WorkoutCardProps) {
   // Lógica de Permissão (Espelhando o CASL do Back-end)
   const isAuthor = currentUserId === workout.author.id
-  const canModify = isAuthor || userRole === 'OWNER' || userRole === 'MANAGER'
+  const canModify = isAuthor || userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
 
   // Cálculo de Pace
   const calculatePace = (dist: number, mins: number) => {
@@ -176,10 +176,10 @@ export function WorkoutCard({
 
       {/* FEEDBACK SOCIAL */}
       <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">
-        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500">
+        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500 cursor-pointer">
           <ThumbsUp className="h-4 w-4" /> Dar Kudos
         </button>
-        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900">
+        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900 cursor-pointer">
           <MessageCircle className="h-4 w-4" /> Comentar
         </button>
       </div>

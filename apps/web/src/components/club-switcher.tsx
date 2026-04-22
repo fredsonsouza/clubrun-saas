@@ -12,6 +12,7 @@ interface Club {
   name: string
   slug: string
   avatarUrl: string | null
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
 }
 
 export function ClubSwitcher() {

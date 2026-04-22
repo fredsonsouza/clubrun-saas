@@ -10,7 +10,7 @@ export async function auth() {
   const token = (await cookies()).get('token')?.value
 
   if (!token) {
-    redirect('/auth/sign-in')
+    redirect('/')
   }
 
   try {

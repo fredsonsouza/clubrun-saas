@@ -56,7 +56,7 @@ export function SignInForm() {
             </span>
           </Link>
           <Link
-            href="/home"
+            href="/"
             className="flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar ao site

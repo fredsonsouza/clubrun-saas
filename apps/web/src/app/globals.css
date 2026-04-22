@@ -44,6 +44,12 @@
   .font-mono {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Garante que botões e links sempre mostrem o cursor de clique */
+  button,
+  a {
+    @apply cursor-pointer;
+  }
 }
 
 @layer utilities {
