@@ -13,7 +13,7 @@ import {
   Settings,
   UserPlus,
   BarChart3,
-  CalendarDays,
+  ArrowLeft,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { WorkoutCard, Workout, TYPE_CONFIG, WorkoutType } from '@/components/workout-card'
@@ -84,6 +84,20 @@ export function DashboardClient({
       <Header user={user} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+        
+        {/* VOLTAR PARA EXPLORAR (Breadcrumb/Action) */}
+        <div className="mb-6">
+          <Link 
+            href="/explore" 
+            className="group flex w-fit items-center gap-2 text-xs font-bold text-gray-400 transition-colors hover:text-orange-500"
+          >
+            <div className="flex h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white transition-colors group-hover:border-orange-200 group-hover:bg-orange-50">
+              <ArrowLeft className="h-3 w-3" />
+            </div>
+            VOLTAR PARA EXPLORAR CLUBES
+          </Link>
+        </div>
+
         {/* ==========================================
             BANNER DO CLUBE (Resumo Global)
         ========================================== */}
@@ -194,7 +208,7 @@ export function DashboardClient({
           {/* COLUNA DIREITA: Sidebar (30%) */}
           <div className="space-y-6 lg:col-span-4">
             
-            {/* NOVO: Resumo de Atividades por Tipo */}
+            {/* Widget: Resumo de Atividades por Tipo */}
             <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm">
               <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl" />
               <h3 className="relative z-10 mb-6 flex items-center gap-2 font-extrabold text-gray-900">
@@ -218,7 +232,7 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* NOVO: Lista de Membros */}
+            {/* Widget: Lista de Membros */}
             <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm">
               <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/5 blur-2xl" />
               <div className="relative z-10 mb-6 flex items-center justify-between">

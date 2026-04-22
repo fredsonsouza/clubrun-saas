@@ -14,7 +14,9 @@ import {
   UserPlus,
 } from 'lucide-react'
 
-type Role = 'OWNER' | 'MANAGER' | 'MEMBER'
+// --- TIPOS ---
+type Role = 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+
 interface PendingInvite {
   id: string
   email: string
@@ -22,69 +24,75 @@ interface PendingInvite {
   createdAt: string
 }
 
-const MOCK_INVITES: PendingInvite[] = [
-  {
-    id: 'inv-1',
-    email: 'atleta.novo@exemplo.com',
-    role: 'MEMBER',
-    createdAt: 'Há 2 dias',
-  },
-  {
-    id: 'inv-2',
-    email: 'treinador.pro@exemplo.com',
-    role: 'MANAGER',
-    createdAt: 'Há 5 horas',
-  },
-]
+interface InvitesClientProps {
+  user: {
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  }
+  slug: string
+  initialInvites: PendingInvite[]
+}
 
-export default function InvitesPreviewPage() {
-  const [invites, setInvites] = useState<PendingInvite[]>(MOCK_INVITES)
+export function InvitesClient({
+  user,
+  slug,
+  initialInvites,
+}: InvitesClientProps) {
+  const [invites, setInvites] = useState<PendingInvite[]>(initialInvites)
   const [emailToInvite, setEmailToInvite] = useState('')
   const [roleToInvite, setRoleToInvite] = useState<Role>('MEMBER')
   const [isCopied, setIsCopied] = useState(false)
   const [isSending, setIsSending] = useState(false)
 
-  const clubInviteLink = 'https://clubrun.com/join/macuxi-runner-xyz987'
+  // URL mockada do clube atual
+  const clubInviteLink = `https://clubrun.com/join/${slug}-xyz987`
 
+  // Função para copiar o link com feedback visual
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(clubInviteLink)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     } catch (err) {
-      // Fallback fallback visual se clipboard falhar no preview
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
+      console.error('Falha ao copiar:', err)
     }
   }
 
+  // Função para enviar convite por e-mail (POST /invites/create-invite)
   const handleSendInvite = (e: React.FormEvent) => {
     e.preventDefault()
     if (!emailToInvite) return
+
     setIsSending(true)
     setTimeout(() => {
       setIsSending(false)
-      setInvites([
-        {
-          id: Math.random().toString(),
-          email: emailToInvite,
-          role: roleToInvite,
-          createdAt: 'Agora mesmo',
-        },
-        ...invites,
-      ])
+      const newInvite: PendingInvite = {
+        id: Math.random().toString(),
+        email: emailToInvite,
+        role: roleToInvite,
+        createdAt: 'Agora mesmo',
+      }
+      setInvites([newInvite, ...invites])
       setEmailToInvite('')
+      alert('Convite enviado com sucesso!')
     }, 1000)
   }
 
+  // Função para revogar convite (DELETE /invites/revoke-invite)
   const handleRevokeInvite = (id: string) => {
-    if (confirm('Deseja cancelar este convite? O link deixará de funcionar.')) {
+    if (
+      confirm(
+        'Deseja cancelar este convite? O link enviado deixará de funcionar.'
+      )
+    ) {
       setInvites(invites.filter((inv) => inv.id !== id))
     }
   }
 
+  // Componente visual para o Cargo no Convite
   const RoleBadge = ({ role }: { role: Role }) => {
-    if (role === 'MANAGER')
+    if (role === 'MANAGER' || role === 'ADMIN' || role === 'OWNER')
       return (
         <span className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold tracking-wider text-blue-600 uppercase">
           <User className="h-3 w-3" /> Administrador
@@ -98,26 +106,28 @@ export default function InvitesPreviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
-      {/* Importa o Header real do sistema (certifique-se de que o componente existe) */}
-      <Header />
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
+      <Header user={user} />
 
       <main className="animate-in fade-in mx-auto max-w-5xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+        {/* CABEÇALHO DA PÁGINA */}
         <div className="mb-8">
           <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
             Convites do Clube
           </h1>
           <p className="text-sm font-medium text-gray-500">
-            Expanda a sua equipa partilhando o link ou enviando convites diretos
-            por e-mail.
+            Expanda o seu pelotão partilhando o link ou enviando convites
+            diretos.
           </p>
         </div>
 
         <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-12">
+          {/* COLUNA ESQUERDA: Ações de Convite (Gerar Link & Form de E-mail) */}
           <div className="space-y-6 md:col-span-5">
-            {/* CARD: Link Público */}
+            {/* CARTÃO 1: Link Público (Para WhatsApp/Grupos) */}
             <div className="relative overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-orange-500/5 blur-2xl" />
+
               <div className="relative z-10 mb-4 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
                   <LinkIcon className="h-5 w-5" />
@@ -131,7 +141,8 @@ export default function InvitesPreviewPage() {
                   </p>
                 </div>
               </div>
-              <div className="relative z-10 flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1.5 transition-all focus-within:ring-2 focus-within:ring-orange-500/50">
+
+              <div className="relative z-10 flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1.5">
                 <input
                   type="text"
                   readOnly
@@ -140,7 +151,7 @@ export default function InvitesPreviewPage() {
                 />
                 <button
                   onClick={handleCopyLink}
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:text-orange-500'}`}
+                  className={`cursor-pointer flex h-10 w-10 items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:text-orange-500'}`}
                   title="Copiar Link"
                 >
                   {isCopied ? (
@@ -152,7 +163,7 @@ export default function InvitesPreviewPage() {
               </div>
             </div>
 
-            {/* CARD: Convite Direto */}
+            {/* CARTÃO 2: Convite Direto por E-mail (Para Admins ou Convites Fechados) */}
             <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
@@ -167,6 +178,7 @@ export default function InvitesPreviewPage() {
                   </p>
                 </div>
               </div>
+
               <form onSubmit={handleSendInvite} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
@@ -181,23 +193,29 @@ export default function InvitesPreviewPage() {
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
                     Cargo
                   </label>
-                  <select
-                    value={roleToInvite}
-                    onChange={(e) => setRoleToInvite(e.target.value as Role)}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                  >
-                    <option value="MEMBER">Atleta (Membro Comum)</option>
-                    <option value="MANAGER">Administrador (Staff)</option>
-                  </select>
+                  <div className="relative">
+                    <select
+                      value={roleToInvite}
+                      onChange={(e) => setRoleToInvite(e.target.value as Role)}
+                      className="cursor-pointer w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    >
+                      <option value="MEMBER">Atleta (Membro Comum)</option>
+                      <option value="MANAGER">
+                        Administrador (Treinador/Staff)
+                      </option>
+                    </select>
+                  </div>
                 </div>
+
                 <button
                   type="submit"
                   disabled={isSending || !emailToInvite}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white transition-colors hover:bg-gray-800 active:scale-95 disabled:opacity-70"
+                  className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white transition-colors hover:bg-gray-800 active:scale-95 disabled:opacity-70"
                 >
                   {isSending ? (
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-white" />
@@ -211,8 +229,8 @@ export default function InvitesPreviewPage() {
             </div>
           </div>
 
-          {/* COLUNA DIREITA: Pendentes */}
-          <div className="h-full md:col-span-7">
+          {/* COLUNA DIREITA: Lista de Pendentes */}
+          <div className="md:col-span-7">
             <div className="flex h-full min-h-[400px] flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
               <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-5">
                 <h3 className="flex items-center gap-2 font-extrabold text-gray-900">
@@ -222,6 +240,7 @@ export default function InvitesPreviewPage() {
                   {invites.length}
                 </span>
               </div>
+
               {invites.length > 0 ? (
                 <div className="flex-1 divide-y divide-gray-50 overflow-y-auto">
                   {invites.map((invite) => (
@@ -240,9 +259,11 @@ export default function InvitesPreviewPage() {
                           </span>
                         </div>
                       </div>
+
+                      {/* Botão de Revogar (Revela-se no hover em desktop) */}
                       <button
                         onClick={() => handleRevokeInvite(invite.id)}
-                        className="rounded-lg p-2 text-gray-400 opacity-100 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 md:opacity-0"
+                        className="cursor-pointer rounded-lg p-2 text-gray-400 opacity-100 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 md:opacity-0"
                         title="Revogar Convite"
                       >
                         <Trash2 className="h-4 w-4" />

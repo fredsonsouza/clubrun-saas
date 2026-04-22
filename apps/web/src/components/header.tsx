@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Flame, UserPlus, LayoutDashboard, Trophy, Users as UsersIcon, Settings } from 'lucide-react'
+import { Flame, UserPlus, LayoutDashboard, Trophy, Users as UsersIcon, Settings, Compass } from 'lucide-react'
 import { ProfileButton } from './profile-button'
 import { ClubSwitcher } from './club-switcher'
 import { useEffect, useState } from 'react'
@@ -46,7 +46,6 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
   const isActive = (path: string) => {
     if (!pathname) return false
-    // Verifica se o pathname termina com o path ou se o path está contido de forma isolada
     return pathname.endsWith(path) || pathname.includes(`${path}/`)
   }
 
@@ -68,9 +67,12 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   }
 
   const isOwner = userRole === 'OWNER'
+  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
+  
   const dashboardHref = activeSlug ? `/${activeSlug}/dashboard` : '/'
   const rankingHref = activeSlug ? `/${activeSlug}/ranking` : '#'
   const membersHref = activeSlug ? `/${activeSlug}/members` : '#'
+  const invitesHref = activeSlug ? `/${activeSlug}/invites` : '#'
   const settingsHref = activeSlug ? `/${activeSlug}/settings` : '#'
 
   return (
@@ -90,6 +92,16 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         <div className="hidden items-center gap-6 text-sm font-bold text-gray-500 lg:flex">
+          <Link
+            href="/explore"
+            className={`flex h-16 items-center gap-2 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+          >
+            <Compass className="h-4 w-4" />
+            Explorar
+          </Link>
+
+          <div className="h-4 w-px bg-gray-200 mx-2"></div>
+
           <Link
             href={dashboardHref}
             className={`flex h-16 items-center gap-2 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
@@ -123,9 +135,14 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-3">
-          <button className="hidden cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 sm:flex">
-            <UserPlus className="h-4 w-4" /> Convidar
-          </button>
+          {canManage && (
+            <Link 
+              href={invitesHref}
+              className="hidden cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 sm:flex"
+            >
+              <UserPlus className="h-4 w-4" /> Convidar
+            </Link>
+          )}
 
           <ProfileButton user={user} />
         </div>
