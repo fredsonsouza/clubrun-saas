@@ -11,12 +11,16 @@ import {
   Users,
   ChevronRight,
   Settings,
+  UserPlus,
+  BarChart3,
+  CalendarDays,
 } from 'lucide-react'
 import { Header } from '@/components/header'
-import { WorkoutCard, Workout } from '@/components/workout-card'
+import { WorkoutCard, Workout, TYPE_CONFIG, WorkoutType } from '@/components/workout-card'
 import { CreateWorkoutModal } from '@/components/workout-modal'
 import { setCookie } from 'cookies-next'
 import { useEffect } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface DashboardClientProps {
   user: {
@@ -34,6 +38,7 @@ interface DashboardClientProps {
     monthlyDistance: number
   }
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  isMember: boolean
   initialFeed: Workout[]
   ranking: Array<{
     id: string
@@ -42,14 +47,27 @@ interface DashboardClientProps {
     distance: number
     isMe?: boolean
   }>
+  members: Array<{
+    id: string
+    name: string
+    avatarUrl: string | null
+    role: string
+  }>
+  typeStats: Array<{
+    type: string
+    count: number
+  }>
 }
 
 export function DashboardClient({
   user,
   club,
   userRole,
+  isMember,
   initialFeed,
   ranking,
+  members,
+  typeStats,
 }: DashboardClientProps) {
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false)
   const [feed, setFeed] = useState<Workout[]>(initialFeed)
@@ -59,7 +77,7 @@ export function DashboardClient({
     setCookie('club', club.slug)
   }, [club.slug])
 
-  const currentUserId = 'usr-1' // Idealmente viria do perfil, mas manteremos o mock por enquanto para o feed
+  const currentUserId = 'usr-1'
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
@@ -81,7 +99,7 @@ export function DashboardClient({
                 <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
                   {club.name}
                 </h1>
-                {userRole === 'OWNER' && (
+                {isMember && (userRole === 'OWNER' || userRole === 'ADMIN') && (
                   <Link
                     href={`/${club.slug}/settings`}
                     className="rounded-lg bg-gray-50 p-1.5 text-gray-400 transition-colors hover:text-gray-900"
@@ -116,12 +134,21 @@ export function DashboardClient({
               </span>
               <span className="text-sm font-bold text-orange-400">km</span>
             </div>
-            <button
-              onClick={() => setIsWorkoutModalOpen(true)}
-              className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 md:w-auto"
-            >
-              <Plus className="h-4 w-4" /> Registrar Treino
-            </button>
+            
+            {isMember ? (
+              <button
+                onClick={() => setIsWorkoutModalOpen(true)}
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 md:w-auto"
+              >
+                <Plus className="h-4 w-4" /> Registrar Treino
+              </button>
+            ) : (
+              <button
+                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 md:w-auto"
+              >
+                <UserPlus className="h-4 w-4" /> Juntar-se ao Clube
+              </button>
+            )}
           </div>
         </div>
 
@@ -166,6 +193,72 @@ export function DashboardClient({
 
           {/* COLUNA DIREITA: Sidebar (30%) */}
           <div className="space-y-6 lg:col-span-4">
+            
+            {/* NOVO: Resumo de Atividades por Tipo */}
+            <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm">
+              <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-blue-500/5 blur-2xl" />
+              <h3 className="relative z-10 mb-6 flex items-center gap-2 font-extrabold text-gray-900">
+                <BarChart3 className="h-5 w-5 text-orange-500" /> Resumo do Clube
+              </h3>
+              <div className="relative z-10 grid grid-cols-2 gap-3">
+                {typeStats.map((stat) => {
+                  const config = TYPE_CONFIG[stat.type as WorkoutType] || TYPE_CONFIG.EASY
+                  return (
+                    <div key={stat.type} className={`rounded-2xl border p-4 transition-all hover:scale-[1.02] ${config.borderColor} ${config.bgColor}`}>
+                      <span className={`block text-[10px] font-black uppercase tracking-wider ${config.color} mb-1`}>
+                        {config.label}
+                      </span>
+                      <div className="flex items-baseline gap-1">
+                        <span className={`text-2xl font-black ${config.color}`}>{stat.count}</span>
+                        <span className={`text-[10px] font-bold ${config.color} opacity-70`}>TREINOS</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+
+            {/* NOVO: Lista de Membros */}
+            <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm">
+              <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-emerald-500/5 blur-2xl" />
+              <div className="relative z-10 mb-6 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 font-extrabold text-gray-900">
+                  <Users className="h-5 w-5 text-orange-500" /> Membros do Clube
+                </h3>
+                <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                  {club.membersCount} TOTAL
+                </span>
+              </div>
+              <div className="relative z-10 space-y-3">
+                {members.slice(0, 5).map((member) => (
+                  <div key={member.id} className="flex items-center justify-between gap-3 rounded-xl p-2 transition-colors hover:bg-gray-50">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-9 w-9 border border-gray-100">
+                        <AvatarImage src={member.avatarUrl || ''} />
+                        <AvatarFallback className="text-xs font-bold text-gray-400">
+                          {member.name.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <span className="text-sm font-bold text-gray-900 line-clamp-1">{member.name}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                          {member.role === 'OWNER' ? 'Fundador' : member.role === 'MANAGER' ? 'Gestor' : 'Atleta'}
+                        </span>
+                      </div>
+                    </div>
+                    {member.role === 'OWNER' && (
+                      <Flame className="h-4 w-4 text-orange-500" fill="currentColor" />
+                    )}
+                  </div>
+                ))}
+                {members.length > 5 && (
+                  <button className="w-full mt-2 py-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">
+                    Ver todos os membros
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Widget: Mini Ranking */}
             <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm">
               <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-amber-500/5 blur-2xl" />
@@ -193,17 +286,12 @@ export function DashboardClient({
                     >
                       {index + 1}
                     </div>
-                    {athlete.avatarUrl ? (
-                      <img
-                        src={athlete.avatarUrl}
-                        alt={athlete.name}
-                        className="h-10 w-10 rounded-full border border-gray-200 bg-white"
-                      />
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-gray-50 font-bold text-gray-400">
+                    <Avatar className="h-10 w-10 border border-gray-200 bg-white">
+                      <AvatarImage src={athlete.avatarUrl || ''} />
+                      <AvatarFallback className="text-xs font-bold text-gray-400">
                         {athlete.name.charAt(0)}
-                      </div>
-                    )}
+                      </AvatarFallback>
+                    </Avatar>
                     <div className="min-w-0 flex-1">
                       <p
                         className={`truncate text-sm font-bold ${athlete.isMe ? 'text-orange-600' : 'text-gray-900'}`}
@@ -222,28 +310,6 @@ export function DashboardClient({
               </div>
             </div>
 
-            {/* Widget: Status Pessoal (Upsell/Engajamento) */}
-            <div className="relative overflow-hidden rounded-[2rem] bg-gray-900 p-6 text-white shadow-xl">
-              <div className="pointer-events-none absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-orange-500/20 blur-3xl" />
-              <h3 className="relative z-10 text-lg font-extrabold mb-2">
-                Sua Meta Pessoal
-              </h3>
-              <p className="relative z-10 mb-6 text-sm font-medium text-gray-400">
-                Você está a 15km de bater seu recorde do mês passado. Continue
-                acelerando!
-              </p>
-
-              <div className="relative z-10 mb-2 h-2 w-full rounded-full bg-gray-800">
-                <div
-                  className="h-2 rounded-full bg-orange-500"
-                  style={{ width: '85%' }}
-                ></div>
-              </div>
-              <div className="relative z-10 flex justify-between text-xs font-bold text-gray-400">
-                <span>85 km</span>
-                <span>Meta: 100 km</span>
-              </div>
-            </div>
           </div>
         </div>
       </main>

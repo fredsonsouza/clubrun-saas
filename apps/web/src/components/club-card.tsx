@@ -1,7 +1,14 @@
 'use client'
 
 import React from 'react'
-import { Users, MapPin, ArrowRight, CheckCircle2, Clock, LayoutDashboard } from 'lucide-react'
+import {
+  Users,
+  MapPin,
+  ArrowRight,
+  CheckCircle2,
+  Clock,
+  LayoutDashboard,
+} from 'lucide-react'
 import Link from 'next/link'
 
 export interface Club {
@@ -23,9 +30,10 @@ interface ClubCardProps {
 export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
   // Define o visual das ações baseado no status do usuário
   const renderActions = () => {
-    const isMember = club.membershipStatus === 'MEMBER' || club.membershipStatus === 'OWNER'
+    const isMember =
+      club.membershipStatus === 'MEMBER' || club.membershipStatus === 'OWNER'
     const isPending = club.membershipStatus === 'PENDING'
-    
+
     if (isMember) {
       return (
         <Link
@@ -70,10 +78,10 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
   }
 
   return (
-    <div className="group flex h-full flex-col rounded-[2rem] border border-gray-100 bg-white p-6 shadow-xs transition-all duration-300 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5">
+    <div className="group flex h-full flex-col rounded-4xl border border-gray-100 bg-white p-6 shadow-xs transition-all duration-300 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5">
       {/* Header do Cartão */}
       <div className="mb-5 flex items-start justify-between">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-xl font-black text-gray-400 transition-all duration-300 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-orange-50 group-hover:text-orange-500">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-xl font-black text-gray-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-orange-50 group-hover:text-orange-500">
           {club.name.charAt(0)}
         </div>
         {club.membershipStatus === 'MEMBER' && (
@@ -96,7 +104,7 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
         >
           {club.name}
         </h3>
-        <p className="mb-6 line-clamp-2 text-sm font-medium leading-relaxed text-gray-500">
+        <p className="mb-6 line-clamp-2 text-sm leading-relaxed font-medium text-gray-500">
           {club.description || 'Nenhuma descrição fornecida pela equipe.'}
         </p>
       </div>
@@ -105,7 +113,8 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
       <div className="mt-auto space-y-5">
         <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-gray-400">
           <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5 transition-colors group-hover:border-gray-200">
-            <Users className="h-3.5 w-3.5 text-gray-400" /> {club.membersCount} MEMBROS
+            <Users className="h-3.5 w-3.5 text-gray-400" /> {club.membersCount}{' '}
+            MEMBROS
           </span>
           <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5 transition-colors group-hover:border-gray-200">
             <MapPin className="h-3.5 w-3.5 text-gray-400" />{' '}

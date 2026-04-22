@@ -18,6 +18,7 @@ const MOCK_FEED: Workout[] = [
     description: 'Pernas pesadas, mas o pace encaixou.',
     distance: 8.5,
     durationInMinutes: 40,
+    type: 'INTERVAL',
     visibility: 'PUBLIC',
     createdAt: new Date().toISOString(),
     author: {
@@ -31,12 +32,56 @@ const MOCK_FEED: Workout[] = [
     title: 'Rodagem regenerativa',
     distance: 5.0,
     durationInMinutes: 32,
+    type: 'RECOVERY',
     visibility: 'PUBLIC',
     createdAt: new Date(Date.now() - 86400000).toISOString(),
     author: {
       id: 'usr-3',
       name: 'Ana Paula',
       avatarUrl: 'https://i.pravatar.cc/150?img=47',
+    },
+  },
+  {
+    id: 'wk-3',
+    title: 'Longão de Domingo',
+    description: 'Sol forte, mas a hidratação salvou.',
+    distance: 18.0,
+    durationInMinutes: 95,
+    type: 'LONG',
+    visibility: 'PUBLIC',
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+    author: {
+      id: 'usr-4',
+      name: 'Marcos Mendes',
+      avatarUrl: 'https://i.pravatar.cc/150?img=12',
+    },
+  },
+  {
+    id: 'wk-4',
+    title: 'Tempo Run Progressivo',
+    distance: 10.0,
+    durationInMinutes: 48,
+    type: 'TEMPO',
+    visibility: 'PUBLIC',
+    createdAt: new Date(Date.now() - 259200000).toISOString(),
+    author: {
+      id: 'usr-5',
+      name: 'Elena Costa',
+      avatarUrl: 'https://i.pravatar.cc/150?img=68',
+    },
+  },
+  {
+    id: 'wk-5',
+    title: 'Tiros de 400m',
+    distance: 6.4,
+    durationInMinutes: 35,
+    type: 'INTERVAL',
+    visibility: 'PUBLIC',
+    createdAt: new Date(Date.now() - 345600000).toISOString(),
+    author: {
+      id: 'usr-1',
+      name: 'Fredson Souza',
+      avatarUrl: 'https://i.pravatar.cc/150?img=11',
     },
   },
 ]
@@ -63,6 +108,22 @@ const MOCK_RANKING = [
   },
 ]
 
+const MOCK_MEMBERS = [
+  { id: 'usr-1', name: 'Fredson Souza', avatarUrl: 'https://i.pravatar.cc/150?img=11', role: 'OWNER' },
+  { id: 'usr-2', name: 'Carlos Silva', avatarUrl: 'https://i.pravatar.cc/150?img=33', role: 'MEMBER' },
+  { id: 'usr-3', name: 'Ana Paula', avatarUrl: 'https://i.pravatar.cc/150?img=47', role: 'MEMBER' },
+  { id: 'usr-4', name: 'Marcos Mendes', avatarUrl: 'https://i.pravatar.cc/150?img=12', role: 'MANAGER' },
+  { id: 'usr-5', name: 'Elena Costa', avatarUrl: 'https://i.pravatar.cc/150?img=68', role: 'MEMBER' },
+]
+
+const MOCK_TYPE_STATS = [
+  { type: 'RECOVERY', count: 20 },
+  { type: 'INTERVAL', count: 15 },
+  { type: 'EASY', count: 12 },
+  { type: 'LONG', count: 8 },
+  { type: 'TEMPO', count: 5 },
+]
+
 export default async function ClubDashboardPage({
   params,
 }: ClubDashboardPageProps) {
@@ -75,7 +136,6 @@ export default async function ClubDashboardPage({
 
   // Para fins de demonstração/MVP, permitiremos visualizar o dashboard 
   // mesmo que o usuário não seja membro ainda (ex: clicou em "Acessar Painel" no explorar)
-  // No futuro, isso seria validado por uma rota de getClub(slug) pública ou híbrida.
   const clubInfo = {
     id: userClub?.id || 'clb-mock',
     name: userClub?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
@@ -88,14 +148,18 @@ export default async function ClubDashboardPage({
   }
 
   const userRole = userClub?.role || 'MEMBER'
+  const isMember = !!userClub
 
   return (
     <DashboardClient
       user={user}
       club={clubInfo}
       userRole={userRole}
+      isMember={isMember}
       initialFeed={MOCK_FEED}
       ranking={MOCK_RANKING}
+      members={MOCK_MEMBERS}
+      typeStats={MOCK_TYPE_STATS}
     />
   )
 }

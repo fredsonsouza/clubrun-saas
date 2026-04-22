@@ -59,6 +59,17 @@ enum Gender {
   OTHER
 }
 
+enum WorkoutType {
+  EASY
+  INTERVAL
+  TEMPO
+  LONG
+  RECOVERY
+  RACE
+  STRENGTH
+  WALK
+}
+
 //
 // USER + AUTH
 //
@@ -211,7 +222,7 @@ model Workout {
   distance   Float // km
   duration   Int? // seconds
   pace       Float? // calculated or provided
-  type       String // long run, intervals, easy, etc.
+  type       WorkoutType
   slug       String?    @unique
   date       DateTime
   notes      String?

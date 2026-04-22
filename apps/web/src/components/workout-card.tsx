@@ -5,14 +5,22 @@ import {
   Activity,
   MapPin,
   MessageCircle,
-  MoreHorizontal,
   ThumbsUp,
-  Timer,
   Trash2,
   Edit2,
   Globe,
   Lock,
 } from 'lucide-react'
+
+export type WorkoutType =
+  | 'EASY'
+  | 'INTERVAL'
+  | 'TEMPO'
+  | 'LONG'
+  | 'RECOVERY'
+  | 'RACE'
+  | 'STRENGTH'
+  | 'WALK'
 
 // Tipagem baseada no seu Prisma Schema e retornos da API
 export interface Workout {
@@ -21,6 +29,7 @@ export interface Workout {
   description?: string | null
   distance: number // em km
   durationInMinutes: number
+  type: WorkoutType
   visibility: 'PUBLIC' | 'PRIVATE'
   createdAt: string
   author: {
@@ -38,6 +47,60 @@ interface WorkoutCardProps {
   onEdit?: (id: string) => void
 }
 
+export const TYPE_CONFIG: Record<
+  WorkoutType,
+  { label: string; color: string; bgColor: string; borderColor: string }
+> = {
+  EASY: {
+    label: 'Rodagem Leve',
+    color: 'text-emerald-600',
+    bgColor: 'bg-emerald-50',
+    borderColor: 'border-emerald-100',
+  },
+  INTERVAL: {
+    label: 'Intervalado',
+    color: 'text-rose-600',
+    bgColor: 'bg-rose-50',
+    borderColor: 'border-rose-100',
+  },
+  TEMPO: {
+    label: 'Ritmo / Tempo',
+    color: 'text-amber-600',
+    bgColor: 'bg-amber-50',
+    borderColor: 'border-amber-100',
+  },
+  LONG: {
+    label: 'Longão',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-100',
+  },
+  RECOVERY: {
+    label: 'Regenerativo',
+    color: 'text-teal-600',
+    bgColor: 'bg-teal-50',
+    borderColor: 'border-teal-100',
+  },
+  RACE: {
+    label: 'Prova / Race',
+    color: 'text-violet-600',
+    bgColor: 'bg-violet-50',
+    borderColor: 'border-violet-100',
+  },
+  STRENGTH: {
+    label: 'Fortalecimento',
+    color: 'text-slate-600',
+    bgColor: 'bg-slate-50',
+    borderColor: 'border-slate-100',
+  },
+  WALK: {
+    label: 'Caminhada',
+    color: 'text-stone-600',
+    bgColor: 'bg-stone-50',
+    borderColor: 'border-stone-100',
+  },
+}
+
 export function WorkoutCard({
   workout,
   currentUserId,
@@ -47,7 +110,11 @@ export function WorkoutCard({
 }: WorkoutCardProps) {
   // Lógica de Permissão (Espelhando o CASL do Back-end)
   const isAuthor = currentUserId === workout.author.id
-  const canModify = isAuthor || userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
+  const canModify =
+    isAuthor ||
+    userRole === 'OWNER' ||
+    userRole === 'MANAGER' ||
+    userRole === 'ADMIN'
 
   // Cálculo de Pace
   const calculatePace = (dist: number, mins: number) => {
@@ -64,8 +131,18 @@ export function WorkoutCard({
     return h > 0 ? `${h}h ${m}m` : `${m}m`
   }
 
+  const config = TYPE_CONFIG[workout.type] || TYPE_CONFIG.EASY
+
   return (
-    <article className="shadow-soft-card group overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white transition-colors hover:border-orange-200">
+    <article className="shadow-soft-card group relative overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white transition-colors hover:border-orange-200">
+      {/* BADGE DE TIPO DE TREINO (Canto superior direito) */}
+      <div
+        className={`absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black tracking-wider uppercase transition-all duration-300 group-hover:scale-105 ${config.bgColor} ${config.color} ${config.borderColor} shadow-sm`}
+      >
+        <Activity className="h-3 w-3" />
+        {config.label}
+      </div>
+
       {/* CABEÇALHO DO TREINO */}
       <div className="flex items-start justify-between p-5">
         <div className="flex items-center gap-3">
@@ -105,9 +182,9 @@ export function WorkoutCard({
           </div>
         </div>
 
-        {/* AÇÕES DE PERMISSÃO */}
+        {/* AÇÕES DE PERMISSÃO - Ajustado para não colidir com o badge */}
         {canModify && (
-          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+          <div className="mr-32 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             {isAuthor && onEdit && (
               <button
                 onClick={() => onEdit(workout.id)}
@@ -176,10 +253,10 @@ export function WorkoutCard({
 
       {/* FEEDBACK SOCIAL */}
       <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">
-        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500 cursor-pointer">
+        <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500">
           <ThumbsUp className="h-4 w-4" /> Dar Kudos
         </button>
-        <button className="flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900 cursor-pointer">
+        <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900">
           <MessageCircle className="h-4 w-4" /> Comentar
         </button>
       </div>

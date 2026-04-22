@@ -5,12 +5,11 @@ import {
   X,
   Activity,
   Timer,
-  Calendar,
   MapPin,
-  AlignLeft,
   Globe,
   Lock,
   Flame,
+  ChevronDown,
 } from 'lucide-react'
 
 interface CreateWorkoutModalProps {
@@ -24,8 +23,11 @@ export function CreateWorkoutModal({
   onClose,
   onSuccess,
 }: CreateWorkoutModalProps) {
+  const [title, setTitle] = useState('')
   const [distance, setDistance] = useState('')
   const [duration, setDuration] = useState('')
+  const [type, setType] = useState('EASY')
+  const [visibility, setVisibility] = useState('PUBLIC')
   const [isLoading, setIsLoading] = useState(false)
 
   // Reatividade em tempo real: Cálculo do pace enquanto o usuário digita
@@ -45,18 +47,24 @@ export function CreateWorkoutModal({
     e.preventDefault()
     setIsLoading(true)
 
-    // API Call: POST /workouts/create-workout
+    // Simulação de chamada de API
     setTimeout(() => {
       setIsLoading(false)
       onSuccess({
         id: Math.random().toString(),
-        title: 'Treino recém adicionado', // Viria dos inputs
+        title: title || 'Treino Sem Título',
         distance: parseFloat(distance),
         durationInMinutes: parseFloat(duration),
-        visibility: 'PUBLIC',
+        type,
+        visibility,
         createdAt: new Date().toISOString(),
         author: { id: 'usr-1', name: 'Fredson Souza' },
       })
+      // Reset form
+      setTitle('')
+      setDistance('')
+      setDuration('')
+      setType('EASY')
     }, 1000)
   }
 
@@ -77,7 +85,7 @@ export function CreateWorkoutModal({
           </h2>
           <button
             onClick={onClose}
-            className="rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
+            className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
           >
             <X className="h-5 w-5" />
           </button>
@@ -85,6 +93,7 @@ export function CreateWorkoutModal({
 
         <div className="overflow-y-auto bg-white p-6 md:p-8">
           <form id="workout-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* TÍTULO */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
                 <MapPin className="h-3.5 w-3.5 text-orange-500" /> Título
@@ -92,12 +101,41 @@ export function CreateWorkoutModal({
               </label>
               <input
                 type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Treino de velocidade na pista"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
               />
             </div>
 
+            {/* TIPO DE TREINO (Obrigatório) */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                <Activity className="h-3.5 w-3.5 text-orange-500" /> Tipo de
+                Treino
+              </label>
+              <div className="relative">
+                <select
+                  required
+                  value={type}
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                >
+                  <option value="EASY">Rodagem Leve / Easy Run</option>
+                  <option value="INTERVAL">Treino de Tiro / Intervalado</option>
+                  <option value="TEMPO">Ritmo / Tempo Run</option>
+                  <option value="LONG">Longão / Long Run</option>
+                  <option value="RECOVERY">Regenerativo / Recovery</option>
+                  <option value="RACE">Prova / Prova Oficial</option>
+                  <option value="STRENGTH">Fortalecimento / Strength</option>
+                  <option value="WALK">Caminhada / Walk</option>
+                </select>
+                <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
+              {/* DISTÂNCIA */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
                   <Activity className="h-3.5 w-3.5 text-orange-500" /> Distância
@@ -118,6 +156,7 @@ export function CreateWorkoutModal({
                 </div>
               </div>
 
+              {/* TEMPO */}
               <div className="space-y-1.5">
                 <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
                   <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo
@@ -138,7 +177,7 @@ export function CreateWorkoutModal({
               </div>
             </div>
 
-            {/* Quadro de Pace Reactivo */}
+            {/* QUADRO DE PACE REACTIVO */}
             <div className="relative flex items-center justify-between overflow-hidden rounded-xl border border-orange-100 bg-orange-50 p-4">
               <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-orange-500/10 blur-xl" />
               <span className="text-[10px] font-bold tracking-wider text-orange-600 uppercase">
@@ -154,6 +193,7 @@ export function CreateWorkoutModal({
               </div>
             </div>
 
+            {/* PRIVACIDADE */}
             <div className="space-y-3">
               <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
                 Privacidade
@@ -165,7 +205,8 @@ export function CreateWorkoutModal({
                     name="visibility"
                     value="PUBLIC"
                     className="peer sr-only"
-                    defaultChecked
+                    checked={visibility === 'PUBLIC'}
+                    onChange={(e) => setVisibility(e.target.value)}
                   />
                   <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:ring-1">
                     <Globe className="h-5 w-5 shrink-0 text-orange-500" />
@@ -182,6 +223,8 @@ export function CreateWorkoutModal({
                     name="visibility"
                     value="PRIVATE"
                     className="peer sr-only"
+                    checked={visibility === 'PRIVATE'}
+                    onChange={(e) => setVisibility(e.target.value)}
                   />
                   <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:ring-1">
                     <Lock className="h-5 w-5 shrink-0 text-gray-400 peer-checked:text-orange-500" />
@@ -201,7 +244,7 @@ export function CreateWorkoutModal({
           <button
             type="button"
             onClick={onClose}
-            className="h-11 rounded-xl px-5 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
+            className="cursor-pointer h-11 rounded-xl px-5 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
           >
             Cancelar
           </button>
@@ -209,7 +252,7 @@ export function CreateWorkoutModal({
             type="submit"
             form="workout-form"
             disabled={isLoading}
-            className="flex h-11 items-center gap-2 rounded-xl bg-orange-500 px-6 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="cursor-pointer flex h-11 items-center gap-2 rounded-xl bg-orange-500 px-6 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
             {isLoading ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
