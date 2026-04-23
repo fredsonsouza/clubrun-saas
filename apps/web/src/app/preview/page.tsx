@@ -1,273 +1,170 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Header } from '@/components/header'
-import {
-  Copy,
-  CheckCircle2,
-  Mail,
-  Send,
-  Link as LinkIcon,
-  Clock,
-  Trash2,
-  User,
-  UserPlus,
-} from 'lucide-react'
+import { Check, X, Flame, Users, MapPin, ShieldAlert } from 'lucide-react'
 
-type Role = 'OWNER' | 'MANAGER' | 'MEMBER'
-interface PendingInvite {
-  id: string
-  email: string
-  role: Role
-  createdAt: string
-}
+export default function AcceptInvitePreviewPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [inviteStatus, setInviteStatus] = useState('PENDING') // PENDING, ACCEPTED, REJECTED, REVOKED
 
-const MOCK_INVITES: PendingInvite[] = [
-  {
-    id: 'inv-1',
-    email: 'atleta.novo@exemplo.com',
+  const MOCK_INVITE_DETAILS = {
+    club: {
+      name: 'Macuxi Runner',
+      description:
+        'Treinos de alta performance no lavrado. Foco em maratonas e meia maratonas na região norte.',
+      location: 'Boa Vista, RR',
+      membersCount: 84,
+    },
+    inviter: {
+      name: 'Fredson Souza',
+      avatarUrl: 'https://i.pravatar.cc/150?img=11',
+    },
     role: 'MEMBER',
-    createdAt: 'Há 2 dias',
-  },
-  {
-    id: 'inv-2',
-    email: 'treinador.pro@exemplo.com',
-    role: 'MANAGER',
-    createdAt: 'Há 5 horas',
-  },
-]
-
-export default function InvitesPreviewPage() {
-  const [invites, setInvites] = useState<PendingInvite[]>(MOCK_INVITES)
-  const [emailToInvite, setEmailToInvite] = useState('')
-  const [roleToInvite, setRoleToInvite] = useState<Role>('MEMBER')
-  const [isCopied, setIsCopied] = useState(false)
-  const [isSending, setIsSending] = useState(false)
-
-  const clubInviteLink = 'https://clubrun.com/join/macuxi-runner-xyz987'
-
-  const handleCopyLink = async () => {
-    try {
-      await navigator.clipboard.writeText(clubInviteLink)
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    } catch (err) {
-      // Fallback fallback visual se clipboard falhar no preview
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    }
   }
 
-  const handleSendInvite = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!emailToInvite) return
-    setIsSending(true)
+  const handleAccept = () => {
+    setIsLoading(true)
     setTimeout(() => {
-      setIsSending(false)
-      setInvites([
-        {
-          id: Math.random().toString(),
-          email: emailToInvite,
-          role: roleToInvite,
-          createdAt: 'Agora mesmo',
-        },
-        ...invites,
-      ])
-      setEmailToInvite('')
-    }, 1000)
+      setIsLoading(false)
+      setInviteStatus('ACCEPTED')
+      alert('Convite Aceite! Redirecionando para o Dashboard...')
+    }, 1500)
   }
 
-  const handleRevokeInvite = (id: string) => {
-    if (confirm('Deseja cancelar este convite? O link deixará de funcionar.')) {
-      setInvites(invites.filter((inv) => inv.id !== id))
+  const handleReject = () => {
+    if (confirm('Tem a certeza que deseja recusar este convite?')) {
+      setIsLoading(true)
+      setTimeout(() => {
+        setIsLoading(false)
+        setInviteStatus('REJECTED')
+      }, 1000)
     }
   }
 
-  const RoleBadge = ({ role }: { role: Role }) => {
-    if (role === 'MANAGER')
-      return (
-        <span className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold tracking-wider text-blue-600 uppercase">
-          <User className="h-3 w-3" /> Administrador
-        </span>
-      )
+  if (inviteStatus === 'REVOKED' || inviteStatus === 'REJECTED') {
     return (
-      <span className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[10px] font-bold tracking-wider text-gray-500 uppercase">
-        <UserPlus className="h-3 w-3" /> Atleta
-      </span>
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4 font-sans selection:bg-orange-500 selection:text-white">
+        <div className="animate-in zoom-in-95 w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-50 text-red-500">
+            <ShieldAlert className="h-8 w-8" />
+          </div>
+          <h2 className="mb-2 text-xl font-extrabold text-gray-900">
+            Convite Inválido
+          </h2>
+          <p className="mb-6 text-sm font-medium text-gray-500">
+            Este convite expirou, foi revogado pelo administrador ou já foi
+            recusado.
+          </p>
+          <button
+            onClick={() => setInviteStatus('PENDING')}
+            className="w-full rounded-xl bg-gray-900 px-6 py-3 font-bold text-white transition-colors hover:bg-gray-800"
+          >
+            Voltar (Reset Simulação)
+          </button>
+        </div>
+      </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
-      {/* Importa o Header real do sistema (certifique-se de que o componente existe) */}
-      <Header />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gray-50 p-4 font-sans selection:bg-orange-500 selection:text-white sm:p-6">
+      <div className="pointer-events-none absolute top-1/2 left-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/5 blur-[100px]" />
 
-      <main className="animate-in fade-in mx-auto max-w-5xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
-            Convites do Clube
+      <div className="absolute top-0 left-0 flex w-full justify-center p-6 sm:justify-start">
+        <div className="flex items-center gap-2">
+          <Flame className="h-8 w-8 text-orange-500" fill="currentColor" />
+          <span className="text-2xl font-extrabold tracking-tight text-gray-900">
+            Club<span className="text-orange-500">Run</span>
+          </span>
+        </div>
+      </div>
+
+      <div className="animate-in zoom-in-95 relative z-10 w-full max-w-lg duration-500">
+        <div className="relative z-20 -mb-10 flex justify-center">
+          <div className="relative transition-transform hover:-translate-y-1">
+            <img
+              src={MOCK_INVITE_DETAILS.inviter.avatarUrl}
+              alt={MOCK_INVITE_DETAILS.inviter.name}
+              className="h-20 w-20 rounded-full border-4 border-white bg-white object-cover shadow-lg"
+            />
+            <div className="absolute -right-2 -bottom-2 rounded-full bg-white p-1 shadow-sm">
+              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 text-white">
+                <Flame className="h-3 w-3" fill="currentColor" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-gray-100 bg-white px-6 pt-16 pb-8 text-center shadow-xl sm:px-10">
+          <h1 className="mb-2 text-2xl font-extrabold text-gray-900">
+            {MOCK_INVITE_DETAILS.inviter.name} convidou-te!
           </h1>
-          <p className="text-sm font-medium text-gray-500">
-            Expanda a sua equipa partilhando o link ou enviando convites diretos
-            por e-mail.
+
+          <p className="mb-8 text-sm font-medium text-gray-500">
+            Foste convidado para te juntares à equipa como{' '}
+            <strong className="text-gray-900">
+              {MOCK_INVITE_DETAILS.role === 'MANAGER'
+                ? 'Administrador'
+                : 'Atleta'}
+            </strong>
+            .
           </p>
-        </div>
 
-        <div className="grid grid-cols-1 items-start gap-8 md:grid-cols-12">
-          <div className="space-y-6 md:col-span-5">
-            {/* CARD: Link Público */}
-            <div className="relative overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="pointer-events-none absolute top-0 right-0 h-32 w-32 rounded-full bg-orange-500/5 blur-2xl" />
-              <div className="relative z-10 mb-4 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-                  <LinkIcon className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-gray-900">
-                    Link de Convite
-                  </h3>
-                  <p className="text-xs font-medium text-gray-500">
-                    Apenas para Atletas (Members)
-                  </p>
-                </div>
+          <div className="mb-8 rounded-2xl border border-gray-100 bg-gray-50 p-5 text-left">
+            <div className="mb-3 flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-white text-xl font-black text-gray-400 shadow-sm">
+                {MOCK_INVITE_DETAILS.club.name.charAt(0)}
               </div>
-              <div className="relative z-10 flex items-center rounded-xl border border-gray-200 bg-gray-50 p-1.5 transition-all focus-within:ring-2 focus-within:ring-orange-500/50">
-                <input
-                  type="text"
-                  readOnly
-                  value={clubInviteLink}
-                  className="flex-1 truncate bg-transparent px-3 text-sm font-medium text-gray-600 outline-none"
-                />
-                <button
-                  onClick={handleCopyLink}
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50 hover:text-orange-500'}`}
-                  title="Copiar Link"
-                >
-                  {isCopied ? (
-                    <CheckCircle2 className="h-4 w-4" />
-                  ) : (
-                    <Copy className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* CARD: Convite Direto */}
-            <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-              <div className="mb-6 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-500">
-                  <Mail className="h-5 w-5" />
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-gray-900">
-                    Convite por E-mail
-                  </h3>
-                  <p className="text-xs font-medium text-gray-500">
-                    Defina o nível de acesso
-                  </p>
-                </div>
-              </div>
-              <form onSubmit={handleSendInvite} className="space-y-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
-                    E-mail do Atleta
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={emailToInvite}
-                    onChange={(e) => setEmailToInvite(e.target.value)}
-                    placeholder="atleta@exemplo.com"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
-                    Cargo
-                  </label>
-                  <select
-                    value={roleToInvite}
-                    onChange={(e) => setRoleToInvite(e.target.value as Role)}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                  >
-                    <option value="MEMBER">Atleta (Membro Comum)</option>
-                    <option value="MANAGER">Administrador (Staff)</option>
-                  </select>
-                </div>
-                <button
-                  type="submit"
-                  disabled={isSending || !emailToInvite}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white transition-colors hover:bg-gray-800 active:scale-95 disabled:opacity-70"
-                >
-                  {isSending ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-400 border-t-white" />
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4" /> Enviar Convite
-                    </>
-                  )}
-                </button>
-              </form>
-            </div>
-          </div>
-
-          {/* COLUNA DIREITA: Pendentes */}
-          <div className="h-full md:col-span-7">
-            <div className="flex h-full min-h-[400px] flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-5">
-                <h3 className="flex items-center gap-2 font-extrabold text-gray-900">
-                  <Clock className="h-5 w-5 text-orange-500" /> Pendentes
+              <div>
+                <h3 className="font-extrabold text-gray-900">
+                  {MOCK_INVITE_DETAILS.club.name}
                 </h3>
-                <span className="rounded-lg bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-600">
-                  {invites.length}
-                </span>
+                <div className="mt-1 flex items-center gap-3 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />{' '}
+                    {MOCK_INVITE_DETAILS.club.location}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />{' '}
+                    {MOCK_INVITE_DETAILS.club.membersCount}
+                  </span>
+                </div>
               </div>
-              {invites.length > 0 ? (
-                <div className="flex-1 divide-y divide-gray-50 overflow-y-auto">
-                  {invites.map((invite) => (
-                    <div
-                      key={invite.id}
-                      className="group flex items-center justify-between p-5 transition-colors hover:bg-gray-50"
-                    >
-                      <div>
-                        <p className="mb-1 text-sm font-bold text-gray-900">
-                          {invite.email}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <RoleBadge role={invite.role} />
-                          <span className="text-xs font-medium text-gray-400">
-                            {invite.createdAt}
-                          </span>
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRevokeInvite(invite.id)}
-                        className="rounded-lg p-2 text-gray-400 opacity-100 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 md:opacity-0"
-                        title="Revogar Convite"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex flex-1 flex-col items-center justify-center p-8 text-center">
-                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-50 text-gray-400">
-                    <CheckCircle2 className="h-8 w-8" />
-                  </div>
-                  <h3 className="mb-1 text-lg font-extrabold text-gray-900">
-                    Nenhum convite pendente
-                  </h3>
-                  <p className="text-sm font-medium text-gray-500">
-                    Todos os atletas convidados já aceitaram e entraram no
-                    clube.
-                  </p>
-                </div>
-              )}
             </div>
+            <p className="line-clamp-2 text-xs leading-relaxed font-medium text-gray-500">
+              {MOCK_INVITE_DETAILS.club.description}
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <button
+              onClick={handleAccept}
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            >
+              {isLoading ? (
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              ) : (
+                <>
+                  <Check className="h-5 w-5" /> Aceitar Convite
+                </>
+              )}
+            </button>
+
+            <button
+              onClick={handleReject}
+              disabled={isLoading}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white py-3.5 font-bold text-gray-600 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 active:scale-95 disabled:opacity-70"
+            >
+              <X className="h-5 w-5" /> Recusar
+            </button>
           </div>
         </div>
-      </main>
+
+        <p className="mt-6 text-center text-xs font-bold tracking-widest text-gray-400 uppercase">
+          O teu perfil será associado a este clube
+        </p>
+      </div>
     </div>
   )
 }

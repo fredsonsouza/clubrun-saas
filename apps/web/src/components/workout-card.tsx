@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Link from 'next/link'
 import {
   Activity,
   MapPin,
@@ -11,6 +12,7 @@ import {
   Globe,
   Lock,
 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export type WorkoutType =
   | 'EASY'
@@ -145,22 +147,18 @@ export function WorkoutCard({
 
       {/* CABEÇALHO DO TREINO */}
       <div className="flex items-start justify-between p-5">
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border border-gray-200 bg-gray-100">
-            {workout.author.avatarUrl ? (
-              <img
-                src={workout.author.avatarUrl}
-                alt={workout.author.name}
-                className="h-full w-full object-cover"
-              />
-            ) : (
-              <div className="flex h-full w-full items-center justify-center font-bold text-gray-400">
-                {workout.author.name.charAt(0)}
-              </div>
-            )}
-          </div>
+        <Link 
+          href={`/profile/${workout.author.id}`}
+          className="cursor-pointer group/author flex items-center gap-3"
+        >
+          <Avatar className="h-10 w-10 shrink-0 border border-gray-200 transition-transform group-hover/author:scale-105">
+            <AvatarImage src={workout.author.avatarUrl || ''} className="object-cover" />
+            <AvatarFallback className="text-sm font-bold text-gray-400">
+              {workout.author.name.charAt(0)}
+            </AvatarFallback>
+          </Avatar>
           <div>
-            <h3 className="text-sm font-bold text-gray-900">
+            <h3 className="text-sm font-bold text-gray-900 group-hover/author:text-orange-500 transition-colors">
               {workout.author.name}
             </h3>
             <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-gray-500">
@@ -180,7 +178,7 @@ export function WorkoutCard({
               )}
             </div>
           </div>
-        </div>
+        </Link>
 
         {/* AÇÕES DE PERMISSÃO - Ajustado para não colidir com o badge */}
         {canModify && (
@@ -188,7 +186,7 @@ export function WorkoutCard({
             {isAuthor && onEdit && (
               <button
                 onClick={() => onEdit(workout.id)}
-                className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-orange-50 hover:text-orange-500"
+                className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-orange-50 hover:text-orange-500"
               >
                 <Edit2 className="h-4 w-4" />
               </button>
@@ -196,7 +194,7 @@ export function WorkoutCard({
             {onDelete && (
               <button
                 onClick={() => onDelete(workout.id)}
-                className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
               >
                 <Trash2 className="h-4 w-4" />
               </button>

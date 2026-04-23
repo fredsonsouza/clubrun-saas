@@ -3,31 +3,34 @@ import { getClubs } from '@/http/get-clubs'
 import { redirect } from 'next/navigation'
 import { LandingPage } from '@/components/landing-page'
 
-export default async function RootPage() {
+/**
+ * Esta página atua como o roteador principal da aplicação.
+ * Se o usuário não estiver autenticado, mostramos a Landing Page.
+ * Se estiver autenticado, redirecionamos para o dashboard do seu primeiro clube
+ * ou para a página de exploração caso não tenha clubes.
+ */
+export default async function IndexPage() {
   const isAuth = await isAuthenticated()
 
   if (!isAuth) {
     return <LandingPage />
   }
 
-  // Usuário está logado, vamos decidir para onde mandá-lo
-  let clubsData = null
-
+  // Usuário autenticado: buscar clubes
+  let clubs = []
+  
   try {
-    clubsData = await getClubs()
+    const data = await getClubs()
+    clubs = data.clubs
   } catch (error) {
-    // Se falhar ao buscar clubes (token inválido/expirado), mandamos para o logout
-    // para limpar a sessão e evitar loops de redirecionamento.
+    // Falha na autenticação ou erro de rede -> Logout
     redirect('/api/auth/sign-out')
   }
 
-  if (clubsData && clubsData.clubs.length === 0) {
-    redirect('/explore')
+  if (clubs.length > 0) {
+    redirect(`/${clubs[0].slug}/dashboard`)
   }
 
-  if (clubsData && clubsData.clubs.length > 0) {
-    redirect(`/${clubsData.clubs[0].slug}/dashboard`)
-  }
-
-  return <LandingPage />
+  // Se não tem clubes, vai para o explorar
+  redirect('/explore')
 }

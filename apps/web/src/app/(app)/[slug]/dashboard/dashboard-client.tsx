@@ -152,13 +152,13 @@ export function DashboardClient({
             {isMember ? (
               <button
                 onClick={() => setIsWorkoutModalOpen(true)}
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 md:w-auto"
+                className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 md:w-auto"
               >
                 <Plus className="h-4 w-4" /> Registrar Treino
               </button>
             ) : (
               <button
-                className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 md:w-auto"
+                className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 md:w-auto"
               >
                 <UserPlus className="h-4 w-4" /> Juntar-se ao Clube
               </button>
@@ -245,16 +245,20 @@ export function DashboardClient({
               </div>
               <div className="relative z-10 space-y-3">
                 {members.slice(0, 5).map((member) => (
-                  <div key={member.id} className="flex items-center justify-between gap-3 rounded-xl p-2 transition-colors hover:bg-gray-50">
+                  <Link 
+                    key={member.id} 
+                    href={`/profile/${member.id}`}
+                    className="cursor-pointer group/member flex items-center justify-between gap-3 rounded-xl p-2 transition-colors hover:bg-gray-50"
+                  >
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9 border border-gray-100">
+                      <Avatar className="h-9 w-9 border border-gray-100 transition-transform group-hover/member:scale-105">
                         <AvatarImage src={member.avatarUrl || ''} />
                         <AvatarFallback className="text-xs font-bold text-gray-400">
                           {member.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="text-sm font-bold text-gray-900 line-clamp-1">{member.name}</span>
+                        <span className="text-sm font-bold text-gray-900 line-clamp-1 group-hover/member:text-orange-500 transition-colors">{member.name}</span>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
                           {member.role === 'OWNER' ? 'Fundador' : member.role === 'MANAGER' ? 'Gestor' : 'Atleta'}
                         </span>
@@ -263,10 +267,10 @@ export function DashboardClient({
                     {member.role === 'OWNER' && (
                       <Flame className="h-4 w-4 text-orange-500" fill="currentColor" />
                     )}
-                  </div>
+                  </Link>
                 ))}
                 {members.length > 5 && (
-                  <button className="w-full mt-2 py-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">
+                  <button className="cursor-pointer w-full mt-2 py-2 text-xs font-bold text-gray-400 hover:text-gray-600 transition-colors">
                     Ver todos os membros
                   </button>
                 )}
@@ -283,7 +287,7 @@ export function DashboardClient({
                 </h3>
                 <Link
                   href={`/${club.slug}/ranking`}
-                  className="flex items-center text-xs font-bold text-orange-500 hover:text-orange-600"
+                  className="cursor-pointer flex items-center text-xs font-bold text-orange-500 hover:text-orange-600"
                 >
                   Ver todo <ChevronRight className="h-3 w-3" />
                 </Link>
@@ -291,16 +295,17 @@ export function DashboardClient({
 
               <div className="relative z-10 space-y-4">
                 {ranking.map((athlete, index) => (
-                  <div
+                  <Link
                     key={athlete.id}
-                    className={`flex items-center gap-3 rounded-xl p-3 transition-colors ${athlete.isMe ? 'border border-orange-100/50 bg-orange-50/50' : 'hover:bg-gray-50'}`}
+                    href={`/profile/${athlete.id}`}
+                    className={`cursor-pointer group/ranking flex items-center gap-3 rounded-xl p-3 transition-colors ${athlete.isMe ? 'border border-orange-100/50 bg-orange-50/50' : 'hover:bg-gray-50'}`}
                   >
                     <div
                       className={`w-5 text-center font-black italic ${index === 0 ? 'text-lg text-amber-500' : index === 1 ? 'text-gray-400' : index === 2 ? 'text-amber-700' : 'text-gray-300'}`}
                     >
                       {index + 1}
                     </div>
-                    <Avatar className="h-10 w-10 border border-gray-200 bg-white">
+                    <Avatar className="h-10 w-10 border border-gray-200 bg-white transition-transform group-hover/ranking:scale-105">
                       <AvatarImage src={athlete.avatarUrl || ''} />
                       <AvatarFallback className="text-xs font-bold text-gray-400">
                         {athlete.name.charAt(0)}
@@ -308,7 +313,7 @@ export function DashboardClient({
                     </Avatar>
                     <div className="min-w-0 flex-1">
                       <p
-                        className={`truncate text-sm font-bold ${athlete.isMe ? 'text-orange-600' : 'text-gray-900'}`}
+                        className={`truncate text-sm font-bold group-hover/ranking:text-orange-500 transition-colors ${athlete.isMe ? 'text-orange-600' : 'text-gray-900'}`}
                       >
                         {athlete.name}{' '}
                         {athlete.isMe && (
@@ -319,7 +324,7 @@ export function DashboardClient({
                         {athlete.distance.toFixed(1)} km
                       </p>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             </div>

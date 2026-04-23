@@ -1,0 +1,407 @@
+'use client'
+
+import React, { useState } from 'react'
+import { Header } from '@/components/header'
+import {
+  Settings,
+  CreditCard,
+  ShieldAlert,
+  AlertTriangle,
+  Save,
+  Globe,
+  AlignLeft,
+  Trophy,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Download,
+  Zap,
+} from 'lucide-react'
+
+interface SettingsClientProps {
+  user: {
+    id: string
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  }
+  club: {
+    name: string
+    slug: string
+    description: string | null
+  }
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+}
+
+// --- MOCKS DE FATURAÇÃO ---
+const BILLING_INFO = {
+  plan: 'Plano Pro',
+  price: 'R$ 99,00',
+  cycle: 'mensal',
+  nextBillingDate: '01 de Maio de 2026',
+  membersUsed: 84,
+  membersLimit: 100,
+  paymentMethod: { brand: 'Visa', last4: '4242', expiry: '12/28' },
+}
+
+const INVOICES = [
+  { id: 'inv-002', date: '01 Abr 2026', amount: 'R$ 99,00', status: 'PAID' },
+  { id: 'inv-001', date: '01 Mar 2026', amount: 'R$ 99,00', status: 'PAID' },
+]
+
+export function SettingsClient({
+  user,
+  club,
+  userRole,
+}: SettingsClientProps) {
+  const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'danger'>(
+    'general'
+  )
+  const [name, setName] = useState(club.name)
+  const [description, setDescription] = useState(club.description || '')
+  const [isSaving, setIsSaving] = useState(false)
+
+  const handleSaveChanges = (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSaving(true)
+    // API Call: PUT /clubs/:slug
+    setTimeout(() => {
+      setIsSaving(false)
+      alert('Definições guardadas com sucesso!')
+    }, 1000)
+  }
+
+  const handleTransferOwnership = () => {
+    const email = prompt(
+      'Introduza o e-mail do administrador para quem deseja transferir o clube:'
+    )
+    if (email) {
+      alert(`Pedido de transferência enviado para ${email}.`)
+    }
+  }
+
+  const handleDeleteClub = () => {
+    const confirmName = prompt(
+      `ZONA DE PERIGO: Digite "${club.name}" para confirmar a exclusão do clube e de todos os dados:`
+    )
+    if (confirmName === club.name) {
+      alert('Clube encerrado com sucesso.')
+    }
+  }
+
+  const isOwner = userRole === 'OWNER'
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
+      <Header user={user} />
+
+      <main className="animate-in fade-in mx-auto max-w-6xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+          <div>
+            <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
+              Definições do Clube
+            </h1>
+            <p className="text-sm font-medium text-gray-500">
+              Faça a gestão da identidade, faturação e segurança da sua equipa.
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 text-xs font-bold text-orange-600">
+            <ShieldCheck className="h-4 w-4" />
+            NÍVEL DE ACESSO: <span className="uppercase">{userRole === 'OWNER' ? 'Proprietário' : 'Gestor'}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-start gap-8 md:flex-row">
+          {/* NAVEGAÇÃO LATERAL (Tabs) */}
+          <aside className="w-full shrink-0 space-y-1 md:w-72">
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`cursor-pointer flex w-full items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+            >
+              <Settings className={`h-4 w-4 ${activeTab === 'general' ? 'text-orange-500' : ''}`} /> 
+              Geral
+              {activeTab === 'general' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
+            </button>
+            <button
+              onClick={() => setActiveTab('billing')}
+              className={`cursor-pointer flex w-full items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'billing' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+            >
+              <CreditCard className={`h-4 w-4 ${activeTab === 'billing' ? 'text-orange-500' : ''}`} /> 
+              Faturação e Plano
+              {activeTab === 'billing' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
+            </button>
+
+            {/* Zona de perigo visível apenas para o OWNER */}
+            {isOwner && (
+              <>
+                <div className="mx-4 my-4 h-px bg-gray-200" />
+                <button
+                  onClick={() => setActiveTab('danger')}
+                  className={`cursor-pointer flex w-full items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
+                >
+                  <ShieldAlert className="h-4 w-4" /> 
+                  Zona de Perigo
+                  {activeTab === 'danger' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
+                </button>
+              </>
+            )}
+          </aside>
+
+          {/* ÁREA DE CONTEÚDO */}
+          <div className="w-full flex-1">
+            {/* ABA: GERAL */}
+            {activeTab === 'general' && (
+              <div className="animate-in fade-in slide-in-from-right-4 rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm duration-300 sm:p-10">
+                <div className="mb-8">
+                  <h2 className="text-xl font-extrabold text-gray-900">
+                    Informações do Clube
+                  </h2>
+                  <p className="text-sm font-medium text-gray-400">Edite os detalhes básicos que todos os atletas veem.</p>
+                </div>
+
+                <form onSubmit={handleSaveChanges} className="space-y-8">
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <Trophy className="h-3.5 w-3.5 text-orange-500" /> Nome do Clube
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      placeholder="Ex: Macuxi Runners"
+                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <Globe className="h-3.5 w-3.5 text-orange-500" /> Link Público do Clube
+                    </label>
+                    <div className="flex items-stretch overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-200 transition-all focus-within:ring-2 focus-within:ring-orange-500/50">
+                      <span className="flex items-center border-r border-gray-200 bg-gray-100 px-5 text-sm font-bold text-gray-500">
+                        clubrun.com/
+                      </span>
+                      <input
+                        type="text"
+                        disabled
+                        value={club.slug}
+                        className="w-full flex-1 cursor-not-allowed bg-gray-50 px-5 py-4 font-bold text-gray-400"
+                      />
+                    </div>
+                    <p className="mt-2 text-xs font-medium text-gray-400">
+                      A URL é permanente para garantir que os links de convite nunca quebrem.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <AlignLeft className="h-3.5 w-3.5 text-orange-500" /> Descrição Curta
+                    </label>
+                    <textarea
+                      rows={4}
+                      value={description}
+                      onChange={(e) => setDescription(e.target.value)}
+                      placeholder="O que torna seu clube único?"
+                      className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="flex justify-end pt-4">
+                    <button
+                      type="submit"
+                      disabled={isSaving || !name}
+                      className="cursor-pointer flex h-14 items-center gap-2 rounded-2xl bg-gray-900 px-8 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-70"
+                    >
+                      {isSaving ? (
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                      ) : (
+                        <>
+                          <Save className="h-4 w-4" /> Salvar Alterações
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* ABA: FATURAÇÃO (Atualizada com conteúdo da Preview) */}
+            {activeTab === 'billing' && (
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+                {/* Resumo do Plano */}
+                <div className="relative overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
+                  <div className="pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-orange-500/5 blur-3xl" />
+                  <div className="flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center sm:p-10">
+                    <div className="relative z-10">
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2.5 py-1 text-[10px] font-black tracking-widest text-orange-600 uppercase">
+                          <Zap className="h-3 w-3" /> {BILLING_INFO.plan}
+                        </span>
+                        <span className="flex items-center gap-1 text-xs font-bold text-green-500">
+                          <CheckCircle2 className="h-3 w-3" /> Ativo
+                        </span>
+                      </div>
+                      <h2 className="text-4xl font-black tracking-tight text-gray-900">
+                        {BILLING_INFO.price}{' '}
+                        <span className="text-base font-bold tracking-normal text-gray-400">
+                          / {BILLING_INFO.cycle}
+                        </span>
+                      </h2>
+                      <p className="mt-2 text-sm font-medium text-gray-500">
+                        Próxima fatura em {BILLING_INFO.nextBillingDate}
+                      </p>
+                    </div>
+                    <div className="relative z-10 w-full sm:w-auto">
+                      <button className="cursor-pointer w-full rounded-2xl bg-gray-900 px-8 py-4 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 sm:w-auto">
+                        Alterar Plano
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Barra de Uso */}
+                  <div className="border-t border-gray-100 bg-gray-50 p-6 sm:px-10">
+                    <div className="mb-3 flex items-end justify-between">
+                      <span className="text-sm font-bold text-gray-700 uppercase tracking-wide">
+                        Atletas no Clube
+                      </span>
+                      <span className="text-sm font-black text-gray-900">
+                        {BILLING_INFO.membersUsed}{' '}
+                        <span className="font-bold text-gray-400">
+                          / {BILLING_INFO.membersLimit}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="mb-3 h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                      <div
+                        className="h-full rounded-full bg-orange-500 shadow-sm"
+                        style={{
+                          width: `${(BILLING_INFO.membersUsed / BILLING_INFO.membersLimit) * 100}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <p className="text-xs font-medium text-gray-500 leading-relaxed">
+                      Está a utilizar {(BILLING_INFO.membersUsed / BILLING_INFO.membersLimit) * 100}% do limite do seu plano atual.{' '}
+                      <a
+                        href="#"
+                        className="cursor-pointer font-bold text-orange-500 hover:underline"
+                      >
+                        Aumentar limite
+                      </a>
+                      .
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                  {/* Cartão de Crédito */}
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+                    <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
+                      <CreditCard className="h-5 w-5 text-gray-400" /> Método de
+                      Pagamento
+                    </h3>
+                    <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-5">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-blue-900 text-[10px] font-black text-white italic shadow-sm">
+                          VISA
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-gray-900 uppercase">
+                            Termina em {BILLING_INFO.paymentMethod.last4}
+                          </p>
+                          <p className="text-xs font-medium text-gray-400">
+                            Expira a {BILLING_INFO.paymentMethod.expiry}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <button className="cursor-pointer text-sm font-bold text-orange-500 transition-colors hover:text-orange-600">
+                      Atualizar cartão de crédito
+                    </button>
+                  </div>
+
+                  {/* Faturas */}
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+                    <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
+                      <AlignLeft className="h-5 w-5 text-gray-400" /> Histórico
+                      de Faturas
+                    </h3>
+                    <div className="space-y-3">
+                      {INVOICES.map((invoice) => (
+                        <div
+                          key={invoice.id}
+                          className="group flex items-center justify-between rounded-2xl p-4 transition-colors hover:bg-gray-50"
+                        >
+                          <div>
+                            <p className="mb-1 text-sm font-bold text-gray-900">
+                              {invoice.amount}
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                              <span>{invoice.date}</span>
+                              <span>•</span>
+                              <span className="flex items-center gap-1 rounded bg-green-50 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-green-600">
+                                <CheckCircle2 className="h-3 w-3" /> PAGO
+                              </span>
+                            </div>
+                          </div>
+                          <button className="cursor-pointer rounded-xl p-3 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-orange-50 hover:text-orange-500">
+                            <Download className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ABA: ZONA DE PERIGO */}
+            {activeTab === 'danger' && isOwner && (
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+                {/* Transferir Clube */}
+                <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-10">
+                  <h2 className="mb-2 text-xl font-extrabold text-gray-900">
+                    Transferir Propriedade
+                  </h2>
+                  <p className="mb-8 max-w-xl text-sm font-medium leading-relaxed text-gray-500">
+                    Ao transferir a propriedade, deixará de ter controlo total sobre o clube. 
+                    O novo proprietário terá permissão total para gerir membros e definições.
+                  </p>
+                  <button
+                    onClick={handleTransferOwnership}
+                    className="cursor-pointer rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-95"
+                  >
+                    Transferir para Administrador
+                  </button>
+                </div>
+
+                {/* Apagar Clube */}
+                <div className="rounded-[2rem] border border-red-100 bg-red-50/50 p-6 shadow-sm sm:p-10">
+                  <div className="mb-4 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                      <AlertTriangle className="h-6 w-6" />
+                    </div>
+                    <h2 className="text-xl font-extrabold text-red-900">
+                      Encerrar Clube Permanentemente
+                    </h2>
+                  </div>
+                  <p className="mb-8 max-w-xl text-sm font-medium leading-relaxed text-red-700/80">
+                    Esta ação é irreversível. Todos os treinos registrados, classificações mensais, 
+                    histórico de membros e configurações serão apagados para sempre.
+                  </p>
+                  <button
+                    onClick={handleDeleteClub}
+                    className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95"
+                  >
+                    Apagar Tudo Agora
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}
