@@ -16,7 +16,20 @@ import {
   CheckCircle2,
   Download,
   Zap,
+  Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { updateClubAction, shutdownClubAction } from './actions'
+import { useRouter } from 'next/navigation'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 interface SettingsClientProps {
   user: {
@@ -54,38 +67,57 @@ export function SettingsClient({
   club,
   userRole,
 }: SettingsClientProps) {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'danger'>(
     'general'
   )
   const [name, setName] = useState(club.name)
   const [description, setDescription] = useState(club.description || '')
   const [isSaving, setIsSaving] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [deleteConfirmName, setDeleteConfirmName] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleSaveChanges = (e: React.FormEvent) => {
+  const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    // API Call: PUT /clubs/:slug
-    setTimeout(() => {
-      setIsSaving(false)
-      alert('Definições guardadas com sucesso!')
-    }, 1000)
+
+    const formData = new FormData()
+    formData.append('name', name)
+    formData.append('slug', club.slug)
+    formData.append('description', description)
+
+    const result = await updateClubAction(formData)
+
+    if (result.success) {
+      toast.success(result.message)
+    } else {
+      toast.error(result.message)
+    }
+
+    setIsSaving(false)
   }
 
   const handleTransferOwnership = () => {
-    const email = prompt(
-      'Introduza o e-mail do administrador para quem deseja transferir o clube:'
-    )
-    if (email) {
-      alert(`Pedido de transferência enviado para ${email}.`)
-    }
+    toast.info('Funcionalidade de transferência em desenvolvimento.')
   }
 
-  const handleDeleteClub = () => {
-    const confirmName = prompt(
-      `ZONA DE PERIGO: Digite "${club.name}" para confirmar a exclusão do clube e de todos os dados:`
-    )
-    if (confirmName === club.name) {
-      alert('Clube encerrado com sucesso.')
+  const handleDeleteClub = async () => {
+    if (deleteConfirmName !== club.name) {
+      toast.error('O nome do clube digitado está incorreto.')
+      return
+    }
+
+    setIsDeleting(true)
+    const result = await shutdownClubAction(club.slug)
+
+    if (result.success) {
+      toast.success(result.message)
+      router.push('/explore')
+    } else {
+      toast.error(result.message)
+      setIsDeleting(false)
+      setIsDeleteDialogOpen(false)
     }
   }
 
@@ -391,12 +423,64 @@ export function SettingsClient({
                     histórico de membros e configurações serão apagados para sempre.
                   </p>
                   <button
-                    onClick={handleDeleteClub}
+                    onClick={() => setIsDeleteDialogOpen(true)}
                     className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95"
                   >
                     Apagar Tudo Agora
                   </button>
                 </div>
+
+                {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+                <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                  <DialogContent className="sm:max-w-[480px]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-3 text-red-600">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                          <AlertTriangle className="h-6 w-6" />
+                        </div>
+                        Confirmar Exclusão
+                      </DialogTitle>
+                      <DialogDescription className="pt-4 text-base">
+                        Esta ação é <span className="font-black text-red-600 underline decoration-2 underline-offset-4">permanente</span> e não pode ser desfeita. Todos os dados do clube serão perdidos.
+                      </DialogDescription>
+                      <p className="mt-4 text-sm font-bold text-gray-500">
+                        Para confirmar, digite o nome do clube abaixo:
+                        <span className="block mt-1 text-gray-900 font-black">"{club.name}"</span>
+                      </p>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <input
+                        type="text"
+                        value={deleteConfirmName}
+                        onChange={(e) => setDeleteConfirmName(e.target.value)}
+                        placeholder="Digite o nome do clube aqui..."
+                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+                      />
+                    </div>
+                    <DialogFooter className="mt-6 gap-3">
+                      <button
+                        onClick={() => setIsDeleteDialogOpen(false)}
+                        className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleDeleteClub}
+                        disabled={deleteConfirmName !== club.name || isDeleting}
+                        className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:shadow-none"
+                      >
+                        {isDeleting ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            A PROCESSAR...
+                          </div>
+                        ) : (
+                          'CONFIRMAR EXCLUSÃO PERMANENTE'
+                        )}
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             )}
           </div>

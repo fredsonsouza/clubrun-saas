@@ -2,6 +2,7 @@ import '@/app/globals.css'
 import type { Metadata } from 'next'
 import { inter, spaceGrotesk, publicSans } from './fonts'
 import { ThemeProvider } from '@/components/theme/theme-provider'
+import { Toaster } from 'sonner'
 
 export const metadata: Metadata = {
   title: 'ClubRun | ClubRun',
@@ -25,6 +26,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>
       </body>
     </html>

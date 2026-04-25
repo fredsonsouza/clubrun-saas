@@ -7,18 +7,24 @@ import {
   Shield,
   ShieldAlert,
   Trash2,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  MoreHorizontal,
-  Mail,
-  Calendar,
   Search,
   ArrowUpDown,
   Zap,
+  Loader2,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { toast } from 'sonner'
+import { updateMemberAction, removeMemberAction } from './actions'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -61,6 +67,8 @@ export function MembersClient({
 }: MembersClientProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState('')
+  const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
+  const [isRemoving, setIsRemoving] = useState(false)
 
   const filteredMembers = members.filter(
     (m) =>
@@ -68,14 +76,40 @@ export function MembersClient({
       m.email.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleUpdateRole = (memberId: string, newRole: Member['role']) => {
-    setMembers(
-      members.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
-    )
+  const handleUpdateRole = async (memberId: string, newRole: Member['role']) => {
+    const result = await updateMemberAction({
+      slug: club.slug,
+      memberId,
+      role: newRole,
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+      setMembers(
+        members.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
+      )
+    } else {
+      toast.error(result.message)
+    }
   }
 
-  const handleRemoveMember = (memberId: string) => {
-    setMembers(members.filter((m) => m.id !== memberId))
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) return
+
+    setIsRemoving(true)
+    const result = await removeMemberAction({
+      slug: club.slug,
+      memberId: memberToRemove.id,
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+      setMembers(members.filter((m) => m.id !== memberToRemove.id))
+      setMemberToRemove(null)
+    } else {
+      toast.error(result.message)
+    }
+    setIsRemoving(false)
   }
 
   const canEdit =
@@ -229,8 +263,8 @@ export function MembersClient({
                             <Users className="h-4 w-4" /> Tornar Atleta
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-gray-50" />
-                          <DropdownMenuItem 
-                            onClick={() => handleRemoveMember(member.id)}
+                           <DropdownMenuItem 
+                            onClick={() => setMemberToRemove(member)}
                             className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700 transition-colors"
                           >
                             <Trash2 className="h-4 w-4" /> Remover do Clube
@@ -254,6 +288,48 @@ export function MembersClient({
             )}
           </div>
         </div>
+
+        {/* MODAL DE CONFIRMAÇÃO DE REMOÇÃO */}
+        <Dialog open={!!memberToRemove} onOpenChange={(open) => !open && setMemberToRemove(null)}>
+          <DialogContent className="sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-red-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <Trash2 className="h-6 w-6" />
+                </div>
+                Remover Membro
+              </DialogTitle>
+              <DialogDescription className="pt-4 text-base">
+                Tem certeza que deseja remover <span className="font-black text-gray-900">{memberToRemove?.name}</span> do pelotão?
+              </DialogDescription>
+              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+                O atleta perderá acesso imediato aos treinos privados, rankings mensais e histórico de atividades do clube. Esta ação pode ser revertida apenas com um novo convite.
+              </p>
+            </DialogHeader>
+            <DialogFooter className="mt-8 gap-3">
+              <button
+                onClick={() => setMemberToRemove(null)}
+                className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleRemoveMember}
+                disabled={isRemoving}
+                className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+              >
+                {isRemoving ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    REMOVENDO...
+                  </div>
+                ) : (
+                  'CONFIRMAR REMOÇÃO'
+                )}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )

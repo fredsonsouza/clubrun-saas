@@ -13,6 +13,8 @@ import {
   ArrowLeft,
 } from 'lucide-react'
 import { Header } from '@/components/header'
+import { toast } from 'sonner'
+import { createClubAction } from './actions'
 
 const generateSlug = (text: string) => {
   return text
@@ -55,10 +57,23 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
+
+    const formData = new FormData()
+    formData.append('name', name)
+    formData.append('slug', slug)
+    formData.append('description', description)
+
+    const result = await createClubAction(formData)
+
+    if (result.success) {
+      toast.success(result.message)
+      // Redireciona para o novo slug (embora a API gere o slug, assumimos que segue o padrão ou usamos o slug digitado se a API permitisse)
+      // Por agora, redirecionamos para o dashboard do novo clube
       router.push(`/${slug}/dashboard`)
-    }, 1500)
+    } else {
+      toast.error(result.message)
+      setIsLoading(false)
+    }
   }
 
   const handleGoBack = () => {

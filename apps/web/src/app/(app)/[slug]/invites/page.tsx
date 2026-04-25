@@ -1,6 +1,7 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
+import { getInvites } from '@/http/get-invites'
 import { redirect } from 'next/navigation'
 import { InvitesClient } from './invites-client'
 
@@ -10,45 +11,39 @@ interface InvitesPageProps {
   }>
 }
 
-// --- MOCKS ---
-const MOCK_INVITES = [
-  {
-    id: 'inv-1',
-    email: 'atleta.novo@exemplo.com',
-    role: 'MEMBER' as const,
-    createdAt: 'Há 2 dias',
-  },
-  {
-    id: 'inv-2',
-    email: 'treinador.pro@exemplo.com',
-    role: 'MANAGER' as const,
-    createdAt: 'Há 5 horas',
-  },
-]
-
 export default async function InvitesPage({ params }: InvitesPageProps) {
   const { slug } = await params
   const { user } = await auth()
   const { clubs } = await getClubs()
 
-  // Procura o clube atual e o papel do usuário nele
   const currentClub = clubs.find((c) => c.slug === slug)
 
   if (!currentClub) {
     redirect('/')
   }
 
-  // Controle de Acesso: Somente OWNER e MANAGER podem acessar esta página
-  const allowedRoles = ['OWNER', 'MANAGER', 'ADMIN']
-  if (!allowedRoles.includes(currentClub.role)) {
-    redirect(`/${slug}/dashboard`)
+  // BUSCA CONVITES REAIS DA API
+  const { invites } = await getInvites({ slug })
+
+  const formattedInvites = invites.map((invite) => ({
+    id: invite.id,
+    email: invite.email,
+    role: invite.role,
+    createdAt: invite.createdAt,
+    author: invite.author?.name || 'Sistema',
+  }))
+
+  const clubInfo = {
+    name: currentClub.name,
+    slug: currentClub.slug,
   }
 
   return (
     <InvitesClient
       user={user}
-      slug={slug}
-      initialInvites={MOCK_INVITES}
+      club={clubInfo}
+      initialInvites={formattedInvites}
+      userRole={currentClub.role as any}
     />
   )
 }
