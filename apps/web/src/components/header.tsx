@@ -12,9 +12,9 @@ import {
   Compass, 
   Flag,
   ChevronDown,
-  ShieldCheck,
   Zap,
   BarChart,
+  ShieldCheck,
 } from 'lucide-react'
 import { ProfileButton } from './profile-button'
 import { ClubSwitcher } from './club-switcher'
@@ -120,10 +120,10 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
-        <div className="hidden items-center gap-1 text-sm font-bold text-gray-500 lg:flex">
+        <div className="hidden items-center gap-0.5 text-[13px] font-bold text-gray-500 xl:flex">
           <Link
             href="/explore"
-            className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <Compass className="h-4 w-4" />
             Explorar
@@ -131,7 +131,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
           <Link
             href={dashboardHref}
-            className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <LayoutDashboard className="h-4 w-4" />
             Painel
@@ -139,7 +139,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
           <Link
             href={rankingHref}
-            className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${isActive('/ranking') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/ranking') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <Trophy className="h-4 w-4" />
             Ranking
@@ -147,7 +147,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
           <Link
             href={racesHref}
-            className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${isActive('/races') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/races') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <Flag className="h-4 w-4" />
             Provas
@@ -155,7 +155,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
           <Link
             href={membersHref}
-            className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${isActive('/members') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/members') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <UsersIcon className="h-4 w-4" />
             Pelotão
@@ -164,7 +164,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
           {canManage && (
             <Link
               href={settingsHref}
-              className={`flex h-20 items-center gap-2 px-3 border-b-2 transition-all cursor-pointer ${isActive('/settings') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+              className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/settings') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
             >
               <Settings className="h-4 w-4" />
               Gestão
@@ -178,11 +178,11 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             <div className="relative" ref={systemMenuRef}>
               <button 
                 onClick={() => setIsSystemMenuOpen(!isSystemMenuOpen)}
-                className="flex items-center gap-2 rounded-xl bg-gray-900 px-4 py-2.5 text-xs font-black tracking-widest text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
+                className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3 py-2 text-[10px] font-black tracking-widest text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
               >
-                <Zap className="h-3.5 w-3.5 text-orange-500" fill="currentColor" />
+                <Zap className="h-3 w-3 text-orange-500" fill="currentColor" />
                 SYSTEM
-                <ChevronDown className={`h-3 w-3 transition-transform ${isSystemMenuOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-2.5 w-2.5 transition-transform ${isSystemMenuOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {isSystemMenuOpen && (
@@ -207,7 +207,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
           {canManage && (
             <Link 
               href={invitesHref}
-              className="hidden cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 sm:flex"
+              className="hidden cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 text-[13px] font-bold text-white shadow-md shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 sm:flex"
             >
               <UserPlus className="h-4 w-4" /> Convidar
             </Link>

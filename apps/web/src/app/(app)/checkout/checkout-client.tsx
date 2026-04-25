@@ -90,7 +90,7 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
       {/* Header Estilo Checkout (sem distrações) */}
       <Header user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-6xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
+      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
         
         <div className="mb-12">
           <button 

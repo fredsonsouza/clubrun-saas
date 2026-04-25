@@ -69,7 +69,7 @@ export function ProfileClient({
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-5xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         
         {/* BARRA DE PROGRESSO DO PERFIL (Apenas se próprio e incompleto) */}
         {isOwnProfile && (
