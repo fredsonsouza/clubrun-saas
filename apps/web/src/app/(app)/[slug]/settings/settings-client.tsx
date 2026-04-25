@@ -108,7 +108,7 @@ export function SettingsClient({
           
           <div className="flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 text-xs font-bold text-orange-600">
             <ShieldCheck className="h-4 w-4" />
-            NÍVEL DE ACESSO: <span className="uppercase">{userRole === 'OWNER' ? 'Proprietário' : 'Gestor'}</span>
+            NÍVEL DE ACESSO: <span className="uppercase">{userRole === 'OWNER' ? 'Proprietário' : userRole === 'ADMIN' ? 'Administrador' : 'Gestor'}</span>
           </div>
         </div>
 
@@ -132,8 +132,8 @@ export function SettingsClient({
               {activeTab === 'billing' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
             </button>
 
-            {/* Zona de perigo visível apenas para o OWNER */}
-            {isOwner && (
+            {/* Zona de perigo visível para OWNER e ADMIN */}
+            {(isOwner || userRole === 'ADMIN') && (
               <>
                 <div className="mx-4 my-4 h-px bg-gray-200" />
                 <button
@@ -357,7 +357,7 @@ export function SettingsClient({
             )}
 
             {/* ABA: ZONA DE PERIGO */}
-            {activeTab === 'danger' && isOwner && (
+            {activeTab === 'danger' && (isOwner || userRole === 'ADMIN') && (
               <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
                 {/* Transferir Clube */}
                 <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-10">

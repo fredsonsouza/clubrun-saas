@@ -10,48 +10,47 @@ interface ClubRacesPageProps {
   }>
 }
 
-// --- MOCK DATA ---
-const UPCOMING_RACES = [
-  {
-    id: 'rc-1',
-    name: 'Meia Maratona do Rio 2026',
-    date: '15 Ago 2026',
-    location: 'Rio de Janeiro, RJ',
-    distances: ['5k', '10k', '21k'],
-    registeredCount: 14,
-    status: 'UPCOMING' as const,
-  },
-  {
-    id: 'rc-2',
-    name: 'Desafio das Serras',
-    date: '12 Set 2026',
-    location: 'Petrópolis, RJ',
-    distances: ['10k', '21k', '42k'],
-    registeredCount: 5,
-    status: 'UPCOMING' as const,
-  },
-]
+/**
+ * Gera provas mockadas dinâmicas baseadas no slug.
+ */
+function generateDynamicRaces(slug: string) {
+  const seed = slug.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+  
+  const upcoming = [
+    {
+      id: `rc-1-${slug}`,
+      name: seed % 2 === 0 ? 'Meia Maratona do Rio 2026' : 'Circuito das Estações',
+      date: '15 Ago 2026',
+      location: seed % 2 === 0 ? 'Rio de Janeiro, RJ' : 'Boa Vista, RR',
+      distances: ['5k', '10k', '21k'],
+      registeredCount: 10 + (seed % 20),
+      status: 'UPCOMING' as const,
+    },
+    {
+      id: `rc-2-${slug}`,
+      name: seed % 2 === 0 ? 'Desafio das Serras' : 'Maratona de Manaus',
+      date: '12 Set 2026',
+      location: seed % 2 === 0 ? 'Petrópolis, RJ' : 'Manaus, AM',
+      distances: ['10k', '21k', '42k'],
+      registeredCount: 5 + (seed % 10),
+      status: 'UPCOMING' as const,
+    },
+  ]
 
-const PAST_RACES = [
-  {
-    id: 'rc-3',
-    name: 'Maratona Internacional de São Paulo',
-    date: '05 Abr 2026',
-    location: 'São Paulo, SP',
-    distances: ['21k', '42k'],
-    registeredCount: 8,
-    status: 'COMPLETED' as const,
-  },
-  {
-    id: 'rc-4',
-    name: 'Corrida de Reis',
-    date: '06 Jan 2026',
-    location: 'Brasília, DF',
-    distances: ['10k'],
-    registeredCount: 22,
-    status: 'COMPLETED' as const,
-  },
-]
+  const past = [
+    {
+      id: `rc-3-${slug}`,
+      name: 'Maratona Internacional de São Paulo',
+      date: '05 Abr 2026',
+      location: 'São Paulo, SP',
+      distances: ['21k', '42k'],
+      registeredCount: 8 + (seed % 5),
+      status: 'COMPLETED' as const,
+    },
+  ]
+
+  return { upcoming, past }
+}
 
 export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
   const { slug } = await params
@@ -69,13 +68,15 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
     slug: currentClub.slug,
   }
 
+  const { upcoming, past } = generateDynamicRaces(slug)
+
   return (
     <RacesClient
       user={user}
       club={clubInfo}
       userRole={currentClub.role as any}
-      upcomingRaces={UPCOMING_RACES}
-      pastRaces={PAST_RACES}
+      upcomingRaces={upcoming}
+      pastRaces={past}
     />
   )
 }
