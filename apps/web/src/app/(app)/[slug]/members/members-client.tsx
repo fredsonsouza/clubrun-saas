@@ -11,6 +11,13 @@ import {
   ArrowUpDown,
   Zap,
   Loader2,
+  Mail,
+  Calendar,
+  ShieldCheck,
+  CheckCircle2,
+  AlertCircle,
+  MoreHorizontal,
+  Activity,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -36,12 +43,14 @@ import {
 
 interface Member {
   id: string
+  userId: string
   name: string
   email: string
   avatarUrl: string | null
   role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
   joinedAt: string
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'TRIAL'
+  overdue: boolean
 }
 
 interface MembersClientProps {
@@ -50,6 +59,7 @@ interface MembersClientProps {
     name: string | null
     email: string
     avatarUrl: string | null
+    isSystemAdmin?: boolean
   }
   club: {
     name: string
@@ -67,14 +77,19 @@ export function MembersClient({
 }: MembersClientProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState('')
+  const [tab, setTab] = useState<'all' | 'active' | 'overdue'>('all')
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
 
-  const filteredMembers = members.filter(
-    (m) =>
+  const filteredMembers = members.filter((m) => {
+    const matchesSearch =
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.email.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+    
+    if (tab === 'active') return matchesSearch && !m.overdue
+    if (tab === 'overdue') return matchesSearch && m.overdue
+    return matchesSearch
+  })
 
   const handleUpdateRole = async (memberId: string, newRole: Member['role']) => {
     const result = await updateMemberAction({
@@ -85,8 +100,18 @@ export function MembersClient({
 
     if (result.success) {
       toast.success(result.message)
+      // Since backend might have demoted someone else (one-of-each rule),
+      // for simplicity we could refetch, or just update the local state.
+      // But user said "troca", so let's assume we need to refresh or handle the demote.
       setMembers(
-        members.map((m) => (m.id === memberId ? { ...m, role: newRole } : m))
+        members.map((m) => {
+          if (m.id === memberId) return { ...m, role: newRole }
+          // If we assigned a unique role, demote whoever had it
+          if (['MANAGER', 'COACH', 'BILLING'].includes(newRole) && m.role === newRole) {
+            return { ...m, role: 'MEMBER' }
+          }
+          return m
+        })
       )
     } else {
       toast.error(result.message)
@@ -137,6 +162,27 @@ export function MembersClient({
           </div>
 
           <div className="flex items-center gap-3">
+            <div className="flex rounded-2xl bg-gray-100 p-1">
+              <button
+                onClick={() => setTab('all')}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'all' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Todos
+              </button>
+              <button
+                onClick={() => setTab('active')}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'active' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Adimplentes
+              </button>
+              <button
+                onClick={() => setTab('overdue')}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'overdue' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Inadimplentes
+              </button>
+            </div>
+
             <div className="relative">
               <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <input
@@ -157,7 +203,7 @@ export function MembersClient({
               Atleta <ArrowUpDown className="h-3 w-3" />
             </div>
             <div className="col-span-2">Cargo</div>
-            <div className="col-span-2">Status</div>
+            <div className="col-span-2">Pagamento</div>
             <div className="col-span-2">Membro desde</div>
             <div className="col-span-1 text-right">Ações</div>
           </div>
@@ -179,7 +225,7 @@ export function MembersClient({
                     </Avatar>
                     <div className="min-w-0">
                       <Link 
-                        href={`/profile/${member.id}`}
+                        href={`/profile/${member.userId}`}
                         className="truncate text-base font-black text-gray-900 hover:text-orange-500 transition-colors"
                       >
                         {member.name}
@@ -206,6 +252,14 @@ export function MembersClient({
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
                           <Shield className="h-3.5 w-3.5" /> Gestor
                         </span>
+                      ) : member.role === 'COACH' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                          <Activity className="h-3.5 w-3.5" /> Coach
+                        </span>
+                      ) : member.role === 'BILLING' ? (
+                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-600">
+                          <Zap className="h-3.5 w-3.5" /> Financeiro
+                        </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500">
                           <Users className="h-3.5 w-3.5" /> Atleta
@@ -214,17 +268,17 @@ export function MembersClient({
                     </div>
                   </div>
 
-                  {/* Status */}
+                  {/* Status de Pagamento */}
                   <div className="col-span-2">
                     <div className="flex md:block">
-                      <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Status:</span>
-                      {member.subscriptionStatus === 'ACTIVE' ? (
+                      <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Pagamento:</span>
+                      {!member.overdue ? (
                         <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                          <CheckCircle2 className="h-4 w-4" /> Ativo
+                          <CheckCircle2 className="h-4 w-4" /> Em dia
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          <AlertCircle className="h-4 w-4" /> Pendente
+                        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
+                          <AlertCircle className="h-4 w-4" /> Inadimplente
                         </span>
                       )}
                     </div>
@@ -247,20 +301,35 @@ export function MembersClient({
                         <DropdownMenuTrigger className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm ring-1 ring-transparent hover:ring-gray-100 transition-all focus:outline-none">
                           <MoreHorizontal className="h-5 w-5" />
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-56 rounded-2xl border-gray-100 p-2 shadow-xl">
+                        <DropdownMenuContent 
+                          align="end" 
+                          className="w-56 rounded-2xl border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md"
+                        >
                           <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Gerenciar Membro</DropdownMenuLabel>
                           <DropdownMenuSeparator className="bg-gray-50" />
                           <DropdownMenuItem 
                             onClick={() => handleUpdateRole(member.id, 'MANAGER')}
                             className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                           >
-                            <Shield className="h-4 w-4" /> Tornar Gestor
+                            <Shield className="h-4 w-4 text-indigo-500" /> Tornar Gestor
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateRole(member.id, 'COACH')}
+                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                          >
+                            <Activity className="h-4 w-4 text-emerald-500" /> Tornar Treinador
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => handleUpdateRole(member.id, 'BILLING')}
+                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                          >
+                            <Zap className="h-4 w-4 text-amber-500" /> Tornar Financeiro
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             onClick={() => handleUpdateRole(member.id, 'MEMBER')}
                             className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                           >
-                            <Users className="h-4 w-4" /> Tornar Atleta
+                            <Users className="h-4 w-4 text-gray-400" /> Tornar Atleta
                           </DropdownMenuItem>
                           <DropdownMenuSeparator className="bg-gray-50" />
                            <DropdownMenuItem 

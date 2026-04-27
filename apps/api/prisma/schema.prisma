@@ -80,6 +80,7 @@ model User {
   email        String   @unique
   passwordHash String?  @map("password_hash")
   avatarUrl    String?  @map("avatar_url")
+  isSystemAdmin Boolean @default(false) @map("is_system_admin")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
@@ -92,6 +93,7 @@ model User {
   athleteProfile AthleteProfile?
   raceResults    RaceResult[]
   rankings       Ranking[]
+  auditLogs      AuditLog[]
 
   @@map("users")
 }
@@ -276,6 +278,20 @@ model RaceResult {
 
   @@unique([raceId, athleteId]) // an athlete can only have one result per race
   @@map("race_results")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   // e.g., 'CLUB_CREATED', 'MEMBER_REMOVED', 'USER_BANNED'
+  entity    String   // e.g., 'CLUB', 'USER', 'WORKOUT'
+  entityId  String   @map("entity_id")
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId String? @map("user_id")
+
+  @@map("audit_logs")
 }
 
 //

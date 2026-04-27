@@ -1,6 +1,8 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
+import { getMembers } from '@/http/get-members'
+import { getClubBilling } from '@/http/get-club-billing'
 import { redirect } from 'next/navigation'
 import { SettingsClient } from './settings-client'
 
@@ -28,6 +30,11 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
     redirect(`/${slug}/dashboard`)
   }
 
+  const [{ members }, { billing }] = await Promise.all([
+    getMembers({ slug }),
+    getClubBilling(slug)
+  ])
+
   const clubInfo = {
     name: currentClub.name,
     slug: currentClub.slug,
@@ -39,6 +46,8 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
       user={user}
       club={clubInfo}
       userRole={currentClub.role as any}
+      members={members}
+      billing={billing}
     />
   )
 }

@@ -70,7 +70,7 @@ export function ProfileButton({ user }: ProfileButtonProps) {
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl duration-100">
+        <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-48 rounded-2xl border border-gray-100 bg-white/95 py-2 shadow-2xl backdrop-blur-md duration-100">
           <div className="space-y-1 px-2">
             <Link
               href="/profile"

@@ -7,6 +7,10 @@ vi.mock('@/lib/prisma', () => ({
     member: {
       findFirst: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    auditLog: {
+      create: vi.fn(),
     },
   },
 }))
@@ -21,7 +25,7 @@ describe('Update Member (Unit)', () => {
   })
 
   it('should be able to update a member as owner', async () => {
-    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const userId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
     const memberIdToUpdate = '81f02179-8d75-474c-8975-c54d8b965c4d'
     const token = app.jwt.sign({ sub: userId })
 
@@ -30,6 +34,7 @@ describe('Update Member (Unit)', () => {
       userId,
       role: 'OWNER',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
     } as any)
 
     const response = await app.inject({
@@ -54,16 +59,18 @@ describe('Update Member (Unit)', () => {
     })
   })
 
-  it('should not be able to update a member if user is not authorized', async () => {
-    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+  it('should demote existing MANAGER when a new one is assigned', async () => {
+    const userId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
     const memberIdToUpdate = '81f02179-8d75-474c-8975-c54d8b965c4d'
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
-      id: 'member-id',
+      id: 'owner-member-id',
       userId,
-      role: 'MEMBER',
+      role: 'OWNER',
+      clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
     } as any)
 
     const response = await app.inject({
@@ -73,7 +80,44 @@ describe('Update Member (Unit)', () => {
         authorization: `Bearer ${token}`,
       },
       body: {
-        role: 'ADMIN',
+        role: 'MANAGER',
+      },
+    })
+
+    expect(response.statusCode).toBe(204)
+    expect(prisma.member.updateMany).toHaveBeenCalledWith({
+      where: {
+        clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        role: 'MANAGER',
+        id: { not: memberIdToUpdate }
+      },
+      data: {
+        role: 'MEMBER'
+      }
+    })
+  })
+
+  it('should not be able to update a member if user is not authorized', async () => {
+    const userId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
+    const memberIdToUpdate = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'member-id',
+      userId,
+      role: 'MEMBER',
+      club: { id: 'club-id', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
+    } as any)
+
+    const response = await app.inject({
+      method: 'PUT',
+      url: `/clubs/acme-club/members/${memberIdToUpdate}`,
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        role: 'MANAGER',
       },
     })
 

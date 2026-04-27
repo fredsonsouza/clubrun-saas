@@ -26,14 +26,15 @@ interface RankingClientProps {
     name: string
     slug: string
   }
-  ranking: RankingAthlete[]
+  initialRankings: (RankingAthlete & { points: number, isMe: boolean, position: number })[]
 }
 
 export function RankingClient({
   user,
   club,
-  ranking,
+  initialRankings,
 }: RankingClientProps) {
+  const [ranking, setRanking] = useState(initialRankings)
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month')
 
   const top3 = ranking.slice(0, 3)

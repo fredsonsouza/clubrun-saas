@@ -47,7 +47,7 @@ export async function getInvites(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('get', 'Invite')) {
           throw new UnauthorizedError(`You're not allowed to get club invites.`)

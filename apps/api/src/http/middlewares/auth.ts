@@ -27,17 +27,25 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
         },
         include: {
           club: true,
+          user: {
+            select: {
+              isSystemAdmin: true,
+            }
+          }
         },
       })
       if (!member) {
         throw new UnauthorizedError(`You're not a member of this club`)
       }
 
-      const { club, ...memberShip } = member
-
+      const { club, user, ...memberShip } = member
+      
       return {
         club,
-        memberShip,
+        memberShip: {
+          ...memberShip,
+          isSystemAdmin: user?.isSystemAdmin ?? false,
+        }
       }
     }
   })

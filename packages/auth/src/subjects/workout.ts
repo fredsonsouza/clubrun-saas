@@ -8,6 +8,7 @@ export const workoutSubject = z.tuple([
     z.literal('get'),
     z.literal('update'),
     z.literal('delete'),
+    z.literal('prescribe'),
   ]),
   z.union([z.literal('Workout'), workoutSchema]),
 ])

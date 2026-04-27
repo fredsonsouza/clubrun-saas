@@ -372,9 +372,11 @@ export function DashboardClient({
       {/* MODAL DE TREINO */}
       <CreateWorkoutModal
         isOpen={isWorkoutModalOpen}
+        slug={club.slug}
+        userRole={userRole}
+        members={members}
         onClose={() => setIsWorkoutModalOpen(false)}
-        onSuccess={(newWorkout) => {
-          setFeed([newWorkout, ...feed])
+        onSuccess={() => {
           setIsWorkoutModalOpen(false)
         }}
       />

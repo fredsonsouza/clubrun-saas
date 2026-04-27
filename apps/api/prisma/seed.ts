@@ -27,6 +27,7 @@ async function seed() {
       email: 'admin@clubrun.com',
       avatarUrl: 'https://github.com/fredsonsouza.png',
       passwordHash,
+      isSystemAdmin: true,
     },
   })
 
@@ -62,28 +63,50 @@ async function seed() {
   ]
 
   console.log('Creating clubs and assignments...')
-  // --- FIX: Usar for...of simples para evitar erro de iteração entries() ---
   let index = 0
   for (const clubData of clubNames) {
     const clubUsers = users.slice(index * 10, (index + 1) * 10)
+    
+    // Choose one user to be the REAL owner (not just admin)
+    const clubOwner = clubUsers[0]
     
     const club = await prisma.club.create({
       data: {
         name: clubData.name,
         slug: clubData.slug,
         avatarUrl: `https://api.dicebear.com/7.x/identicon/svg?seed=${clubData.slug}`,
-        ownerId: adminUser.id,
+        ownerId: clubOwner.id,
         members: {
           create: [
-            // Admin Master é ADMIN em todos os clubes
+            // Admin Master é ADMIN em todos os clubes para gerência
             {
               userId: adminUser.id,
-              role: 'ADMIN' as any,
+              role: 'ADMIN',
             },
-            // 10 participantes por clube
-            ...clubUsers.map((u, idx) => ({
+            // Dono oficial
+            {
+              userId: clubOwner.id,
+              role: 'OWNER',
+            },
+            // Manager dedicado
+            {
+              userId: clubUsers[1].id,
+              role: 'MANAGER',
+            },
+            // Coach dedicado
+            {
+              userId: clubUsers[2].id,
+              role: 'COACH',
+            },
+            // Billing dedicado
+            {
+              userId: clubUsers[3].id,
+              role: 'BILLING',
+            },
+            // Restantes são MEMBERS
+            ...clubUsers.slice(4).map((u) => ({
               userId: u.id,
-              role: (idx === 0 ? 'COACH' : idx === 1 ? 'MANAGER' : 'MEMBER') as any,
+              role: 'MEMBER' as any,
             })),
           ],
         },

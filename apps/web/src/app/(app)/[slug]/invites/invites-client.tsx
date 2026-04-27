@@ -12,7 +12,20 @@ import {
   Trash2,
   User,
   UserPlus,
+  Loader2,
+  AlertTriangle,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { createInviteAction, revokeInviteAction } from './actions'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
 
 // --- TIPOS ---
 type Role = 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
@@ -44,6 +57,8 @@ export function InvitesClient({
   const [roleToInvite, setRoleToInvite] = useState<Role>('MEMBER')
   const [isCopied, setIsCopied] = useState(false)
   const [isSending, setIsSending] = useState(false)
+  const [inviteToRevoke, setInviteToRevoke] = useState<PendingInvite | null>(null)
+  const [isRevoking, setIsRevoking] = useState(false)
 
   // URL mockada do clube atual
   const clubInviteLink = `https://clubrun.com/join/${slug}-xyz987`
@@ -60,34 +75,59 @@ export function InvitesClient({
   }
 
   // Função para enviar convite por e-mail (POST /invites/create-invite)
-  const handleSendInvite = (e: React.FormEvent) => {
+  const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!emailToInvite) return
 
     setIsSending(true)
-    setTimeout(() => {
-      setIsSending(false)
-      const newInvite: PendingInvite = {
-        id: Math.random().toString(),
-        email: emailToInvite,
-        role: roleToInvite,
-        createdAt: 'Agora mesmo',
-      }
-      setInvites([newInvite, ...invites])
+
+    const formData = new FormData()
+    formData.append('slug', slug)
+    formData.append('email', emailToInvite)
+    formData.append('role', roleToInvite)
+
+    const result = await createInviteAction(formData)
+
+    if (result.success) {
+      toast.success(result.message)
+      // Nota: O revalidateTag cuidará de atualizar a lista se recarregarmos, 
+      // mas para UX imediata podemos adicionar localmente ou forçar refresh
+      setInvites([
+        {
+          id: Math.random().toString(),
+          email: emailToInvite,
+          role: roleToInvite,
+          createdAt: 'Agora mesmo',
+        },
+        ...invites,
+      ])
       setEmailToInvite('')
-      alert('Convite enviado com sucesso!')
-    }, 1000)
+    } else {
+      toast.error(result.message)
+    }
+
+    setIsSending(false)
   }
 
   // Função para revogar convite (DELETE /invites/revoke-invite)
-  const handleRevokeInvite = (id: string) => {
-    if (
-      confirm(
-        'Deseja cancelar este convite? O link enviado deixará de funcionar.'
-      )
-    ) {
-      setInvites(invites.filter((inv) => inv.id !== id))
+  const handleRevokeInvite = async () => {
+    if (!inviteToRevoke) return
+
+    setIsRevoking(true)
+    const result = await revokeInviteAction({
+      slug,
+      inviteId: inviteToRevoke.id,
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+      setInvites(invites.filter((inv) => inv.id !== inviteToRevoke.id))
+      setInviteToRevoke(null)
+    } else {
+      toast.error(result.message)
     }
+
+    setIsRevoking(false)
   }
 
   // Componente visual para o Cargo no Convite
@@ -262,7 +302,7 @@ export function InvitesClient({
 
                       {/* Botão de Revogar (Revela-se no hover em desktop) */}
                       <button
-                        onClick={() => handleRevokeInvite(invite.id)}
+                        onClick={() => setInviteToRevoke(invite)}
                         className="cursor-pointer rounded-lg p-2 text-gray-400 opacity-100 transition-all group-hover:opacity-100 hover:bg-red-50 hover:text-red-600 md:opacity-0"
                         title="Revogar Convite"
                       >
@@ -288,6 +328,48 @@ export function InvitesClient({
             </div>
           </div>
         </div>
+
+        {/* MODAL DE CONFIRMAÇÃO DE REVOGAÇÃO */}
+        <Dialog open={!!inviteToRevoke} onOpenChange={(open) => !open && setInviteToRevoke(null)}>
+          <DialogContent className="sm:max-w-[480px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-3 text-red-600">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                  <AlertTriangle className="h-6 w-6" />
+                </div>
+                Revogar Convite
+              </DialogTitle>
+              <DialogDescription className="pt-4 text-base">
+                Tem certeza que deseja cancelar o convite para <span className="font-black text-gray-900">{inviteToRevoke?.email}</span>?
+              </DialogDescription>
+              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+                O link enviado por e-mail deixará de funcionar imediatamente. O atleta precisará de um novo convite para se juntar ao clube.
+              </p>
+            </DialogHeader>
+            <DialogFooter className="mt-8 gap-3">
+              <button
+                onClick={() => setInviteToRevoke(null)}
+                className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleRevokeInvite}
+                disabled={isRevoking}
+                className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+              >
+                {isRevoking ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    CANCELANDO...
+                  </div>
+                ) : (
+                  'CONFIRMAR CANCELAMENTO'
+                )}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   )

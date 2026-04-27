@@ -33,7 +33,7 @@ export async function shutdownClub(app: FastifyInstance) {
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('delete', authClub)) {
           throw new UnauthorizedError(

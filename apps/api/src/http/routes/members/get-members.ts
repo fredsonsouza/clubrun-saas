@@ -29,8 +29,9 @@ export async function getMembers(app: FastifyInstance) {
                   userId: z.uuid(),
                   role: roleSchema,
                   name: z.string().nullable(),
-                  email: z.email(),
+                  email: z.string().email(),
                   avatarUrl: z.string().nullable(),
+                  overdue: z.boolean(),
                 })
               ),
             }),
@@ -42,7 +43,7 @@ export async function getMembers(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('get', 'User')) {
           throw new UnauthorizedError(`You're not allowed to see club members`)
@@ -60,6 +61,11 @@ export async function getMembers(app: FastifyInstance) {
                 avatarUrl: true,
               },
             },
+            invoices: {
+              select: {
+                status: true,
+              }
+            },
           },
           where: {
             clubId: club.id,
@@ -69,11 +75,12 @@ export async function getMembers(app: FastifyInstance) {
           },
         })
         const membersWithRoles = members.map(
-          ({ user: { id: userId, ...user }, ...member }) => {
+          ({ user: { id: userId, ...user }, invoices, ...member }) => {
             return {
               ...user,
               ...member,
               userId,
+              overdue: invoices.some(i => i.status === 'OVERDUE'),
             }
           }
         )

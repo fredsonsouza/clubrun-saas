@@ -37,7 +37,7 @@ export async function transferClub(app: FastifyInstance) {
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('transfer_ownership', authClub)) {
           throw new UnauthorizedError(

@@ -6,6 +6,7 @@ import { auth } from '@/http/middlewares/auth'
 import { UnauthorizedError } from '@/http/routes/_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function removeMember(app: FastifyInstance) {
   app
@@ -33,7 +34,7 @@ export async function removeMember(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('delete', 'User')) {
           throw new UnauthorizedError(
@@ -41,11 +42,35 @@ export async function removeMember(app: FastifyInstance) {
           )
         }
 
+        // Rule: Only allow removal if member has overdue invoices (unless system admin)
+        if (!memberShip.isSystemAdmin) {
+          const overdueInvoice = await prisma.invoice.findFirst({
+            where: {
+              memberId,
+              status: 'OVERDUE',
+            }
+          })
+
+          if (!overdueInvoice) {
+            throw new UnauthorizedError(
+              'Members can only be removed if they have overdue payments.'
+            )
+          }
+        }
+
         await prisma.member.delete({
           where: {
             id: memberId,
             clubId: club.id,
           },
+        })
+
+        await createAuditLog({
+          action: 'MEMBER_REMOVED',
+          entity: 'MEMBER',
+          entityId: memberId,
+          userId,
+          payload: { clubId: club.id, slug: club.slug },
         })
 
         return reply.status(204).send()

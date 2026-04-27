@@ -17,9 +17,16 @@ import {
   Download,
   Zap,
   Loader2,
+  ChevronDown,
+  UserCog,
+  RefreshCcw,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import { updateClubAction, shutdownClubAction } from './actions'
+import { 
+  updateClubAction, 
+  shutdownClubAction, 
+  transferOwnershipAction 
+} from './actions'
 import { useRouter } from 'next/navigation'
 import { 
   Dialog, 
@@ -30,6 +37,15 @@ import {
   DialogTitle 
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
+
+interface Member {
+  id: string
+  userId: string
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  name: string | null
+  email: string
+  avatarUrl: string | null
+}
 
 interface SettingsClientProps {
   user: {
@@ -44,6 +60,14 @@ interface SettingsClientProps {
     description: string | null
   }
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  billing: {
+    seats: {
+      amount: number
+      unit: number
+      price: number
+    }
+    total: number
+  }
 }
 
 // --- MOCKS DE FATURAÇÃO ---
@@ -66,6 +90,8 @@ export function SettingsClient({
   user,
   club,
   userRole,
+  members,
+  billing,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'danger'>(
@@ -77,6 +103,13 @@ export function SettingsClient({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
+  const [transferTargetId, setTransferTargetId] = useState('')
+  const [isTransferring, setIsTransferring] = useState(false)
+
+  const admins = members.filter(
+    (m) => (m.role === 'ADMIN' || m.role === 'MANAGER') && m.email !== user.email
+  )
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -98,8 +131,23 @@ export function SettingsClient({
     setIsSaving(false)
   }
 
-  const handleTransferOwnership = () => {
-    toast.info('Funcionalidade de transferência em desenvolvimento.')
+  const handleTransferOwnership = async () => {
+    if (!transferTargetId) return
+
+    setIsTransferring(true)
+    const result = await transferOwnershipAction({
+      slug: club.slug,
+      transferToUserId: transferTargetId,
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+      setIsTransferModalOpen(false)
+      window.location.reload()
+    } else {
+      toast.error(result.message)
+    }
+    setIsTransferring(false)
   }
 
   const handleDeleteClub = async () => {
@@ -145,7 +193,6 @@ export function SettingsClient({
         </div>
 
         <div className="flex flex-col items-start gap-8 md:flex-row">
-          {/* NAVEGAÇÃO LATERAL (Tabs) */}
           <aside className="w-full shrink-0 space-y-1 md:w-72">
             <button
               onClick={() => setActiveTab('general')}
@@ -164,7 +211,6 @@ export function SettingsClient({
               {activeTab === 'billing' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
             </button>
 
-            {/* Zona de perigo visível para OWNER e ADMIN */}
             {(isOwner || userRole === 'ADMIN') && (
               <>
                 <div className="mx-4 my-4 h-px bg-gray-200" />
@@ -180,9 +226,7 @@ export function SettingsClient({
             )}
           </aside>
 
-          {/* ÁREA DE CONTEÚDO */}
           <div className="w-full flex-1">
-            {/* ABA: GERAL */}
             {activeTab === 'general' && (
               <div className="animate-in fade-in slide-in-from-right-4 rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm duration-300 sm:p-10">
                 <div className="mb-8">
@@ -259,7 +303,6 @@ export function SettingsClient({
               </div>
             )}
 
-            {/* ABA: FATURAÇÃO (Atualizada com conteúdo da Preview) */}
             {activeTab === 'billing' && (
               <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
                 {/* Resumo do Plano */}
@@ -269,65 +312,48 @@ export function SettingsClient({
                     <div className="relative z-10">
                       <div className="mb-2 flex items-center gap-2">
                         <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2.5 py-1 text-[10px] font-black tracking-widest text-orange-600 uppercase">
-                          <Zap className="h-3 w-3" /> {BILLING_INFO.plan}
+                          <Zap className="h-3 w-3" /> Plano Pro
                         </span>
                         <span className="flex items-center gap-1 text-xs font-bold text-green-500">
                           <CheckCircle2 className="h-3 w-3" /> Ativo
                         </span>
                       </div>
                       <h2 className="text-4xl font-black tracking-tight text-gray-900">
-                        {BILLING_INFO.price}{' '}
+                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.total)}
                         <span className="text-base font-bold tracking-normal text-gray-400">
-                          / {BILLING_INFO.cycle}
+                          / mês
                         </span>
                       </h2>
-                      <p className="mt-2 text-sm font-medium text-gray-500">
-                        Próxima fatura em {BILLING_INFO.nextBillingDate}
-                      </p>
                     </div>
-                    <div className="relative z-10 w-full sm:w-auto">
-                      <button className="cursor-pointer w-full rounded-2xl bg-gray-900 px-8 py-4 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 sm:w-auto">
-                        Alterar Plano
+                    <div className="flex gap-3">
+                      <button className="cursor-pointer rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95">
+                        Gerenciar Assinatura
                       </button>
                     </div>
                   </div>
 
-                  {/* Barra de Uso */}
                   <div className="border-t border-gray-100 bg-gray-50 p-6 sm:px-10">
                     <div className="mb-3 flex items-end justify-between">
                       <span className="text-sm font-bold text-gray-700 uppercase tracking-wide">
-                        Atletas no Clube
+                        Membros no Pelotão
                       </span>
                       <span className="text-sm font-black text-gray-900">
-                        {BILLING_INFO.membersUsed}{' '}
-                        <span className="font-bold text-gray-400">
-                          / {BILLING_INFO.membersLimit}
-                        </span>
+                        {billing.seats.amount} <span className="font-bold text-gray-400">/ ∞</span>
                       </span>
                     </div>
                     <div className="mb-3 h-3 w-full overflow-hidden rounded-full bg-gray-200">
                       <div
-                        className="h-full rounded-full bg-orange-500 shadow-sm"
-                        style={{
-                          width: `${(BILLING_INFO.membersUsed / BILLING_INFO.membersLimit) * 100}%`,
-                        }}
+                        className="h-full rounded-full bg-orange-500 shadow-sm transition-all duration-1000"
+                        style={{ width: `${Math.min((billing.seats.amount / 50) * 100, 100)}%` }}
                       ></div>
                     </div>
-                    <p className="text-xs font-medium text-gray-500 leading-relaxed">
-                      Está a utilizar {(BILLING_INFO.membersUsed / BILLING_INFO.membersLimit) * 100}% do limite do seu plano atual.{' '}
-                      <a
-                        href="#"
-                        className="cursor-pointer font-bold text-orange-500 hover:underline"
-                      >
-                        Aumentar limite
-                      </a>
-                      .
+                    <p className="mt-3 text-xs font-medium text-gray-500 leading-relaxed">
+                      Sua assinatura cobre {billing.seats.amount} membros ativos. O valor unitário é de {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.seats.unit)} por vaga.
                     </p>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  {/* Cartão de Crédito */}
                   <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
                     <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
                       <CreditCard className="h-5 w-5 text-gray-400" /> Método de
@@ -353,7 +379,6 @@ export function SettingsClient({
                     </button>
                   </div>
 
-                  {/* Faturas */}
                   <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
                     <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
                       <AlignLeft className="h-5 w-5 text-gray-400" /> Histórico
@@ -388,27 +413,113 @@ export function SettingsClient({
               </div>
             )}
 
-            {/* ABA: ZONA DE PERIGO */}
             {activeTab === 'danger' && (isOwner || userRole === 'ADMIN') && (
               <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
-                {/* Transferir Clube */}
-                <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-10">
-                  <h2 className="mb-2 text-xl font-extrabold text-gray-900">
-                    Transferir Propriedade
-                  </h2>
-                  <p className="mb-8 max-w-xl text-sm font-medium leading-relaxed text-gray-500">
-                    Ao transferir a propriedade, deixará de ter controlo total sobre o clube. 
-                    O novo proprietário terá permissão total para gerir membros e definições.
-                  </p>
-                  <button
-                    onClick={handleTransferOwnership}
-                    className="cursor-pointer rounded-xl border border-gray-200 bg-white px-6 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all hover:border-gray-300 hover:bg-gray-50 active:scale-95"
+                <div className="flex flex-col justify-between gap-4 rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:p-10">
+                  <div className="max-w-md">
+                    <h3 className="font-extrabold text-gray-900">
+                      Transferir Propriedade
+                    </h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      Ao transferir a propriedade, deixará de ter controlo total sobre o clube. O novo proprietário terá permissão total para gerir membros e definições.
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsTransferModalOpen(true)}
+                    className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
                   >
-                    Transferir para Administrador
+                    <RefreshCcw className="h-4 w-4" /> Transferir para Administrador
                   </button>
                 </div>
 
-                {/* Apagar Clube */}
+                <Dialog open={isTransferModalOpen} onOpenChange={setIsTransferModalOpen}>
+                  <DialogContent className="sm:max-w-[480px]">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-3 text-orange-600">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+                          <ShieldCheck className="h-6 w-6" />
+                        </div>
+                        Transferir Propriedade
+                      </DialogTitle>
+                      <DialogDescription className="pt-4 text-base">
+                        Escolha um administrador para assumir o controle total do <span className="font-black text-gray-900">{club.name}</span>.
+                      </DialogDescription>
+                      <div className="mt-2 rounded-xl bg-amber-50 p-4 text-xs font-medium text-amber-800 border border-amber-100">
+                        <strong>Importante:</strong> Após a transferência, você passará a ter o cargo de Administrador e não poderá mais excluir o clube ou transferi-lo de volta sem a permissão do novo dono.
+                      </div>
+                    </DialogHeader>
+
+                    <div className="py-6">
+                      <label className="mb-2 block text-xs font-black uppercase tracking-widest text-gray-400">
+                        Selecionar Novo Proprietário
+                      </label>
+                      {admins.length > 0 ? (
+                        <div className="space-y-3">
+                          {admins.map((admin) => (
+                            <label key={admin.id} className="relative block cursor-pointer">
+                              <input
+                                type="radio"
+                                name="transferTarget"
+                                value={admin.userId}
+                                className="peer sr-only"
+                                onChange={(e) => setTransferTargetId(e.target.value)}
+                              />
+                              <div className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50 p-4 transition-all peer-checked:border-orange-500 peer-checked:bg-white peer-checked:ring-4 peer-checked:ring-orange-500/10">
+                                <div className="h-10 w-10 rounded-full bg-gray-200 overflow-hidden">
+                                  {admin.avatarUrl ? (
+                                    <img src={admin.avatarUrl} alt={admin.name || ''} className="h-full w-full object-cover" />
+                                  ) : (
+                                    <div className="flex h-full w-full items-center justify-center font-black text-gray-400">
+                                      {admin.name?.[0] || 'A'}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-black text-gray-900">{admin.name || admin.email}</p>
+                                  <p className="text-xs font-medium text-gray-500">{admin.role}</p>
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="rounded-2xl border-2 border-dashed border-gray-100 p-8 text-center">
+                          <UserCog className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                          <p className="text-sm font-medium text-gray-400">
+                            Nenhum outro administrador disponível para transferência.
+                          </p>
+                          <p className="mt-1 text-xs text-gray-400">
+                            Promova um membro a Administrador primeiro.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
+                    <DialogFooter className="mt-2 gap-3">
+                      <button
+                        onClick={() => setIsTransferModalOpen(false)}
+                        className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        onClick={handleTransferOwnership}
+                        disabled={!transferTargetId || isTransferring}
+                        className="cursor-pointer flex-[1.5] rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg shadow-gray-900/20 transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+                      >
+                        {isTransferring ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            A TRANSFERIR...
+                          </div>
+                        ) : (
+                          'CONFIRMAR TRANSFERÊNCIA'
+                        )}
+                      </button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
                 <div className="rounded-[2rem] border border-red-100 bg-red-50/50 p-6 shadow-sm sm:p-10">
                   <div className="mb-4 flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">

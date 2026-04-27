@@ -1,0 +1,42 @@
+import { api } from './api-client'
+
+interface GetUserProfileResponse {
+  user: {
+    id: string
+    name: string | null
+    email: string
+    avatarUrl: string | null
+    isSystemAdmin: boolean
+  }
+  athleteProfile: {
+    bio: string | null
+    city: string | null
+    paceAvg: number | null
+    weight: number | null
+    height: number | null
+    gender: string | null
+    instagramUrl: string | null
+    stravaUrl: string | null
+  } | null
+  workouts: {
+    id: string
+    title: string | null
+    distance: number
+    duration: number | null
+    type: string
+    date: string
+    visibility: string
+    club: {
+      name: string
+      slug: string
+    }
+  }[]
+}
+
+export async function getUserProfile(userId: string) {
+  const result = await api
+    .get(`users/${userId}/profile`)
+    .json<GetUserProfileResponse>()
+
+  return result
+}

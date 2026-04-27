@@ -45,9 +45,17 @@ import { getClubBilling } from './routes/billing/get-club-billing'
 import { getMyWorkouts } from './routes/workouts/get-my-workouts'
 import { payInvoice } from './routes/billing/pay-invoice'
 import { getClubeRanking } from './routes/rankings/get-club-ranking'
-import { register } from 'module'
+import { createRace } from './routes/races/create-race'
+import { getRaces } from './routes/races/get-races'
+import { getRace } from './routes/races/get-race'
+import { createRaceResult } from './routes/races/create-race-result'
+import { getRaceResults } from './routes/races/get-race-results'
 import { approveInvite } from './routes/invites/approve-invite'
 import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
+import { getSystemStats } from './routes/system/get-system-stats'
+import { getSystemClubs } from './routes/system/get-system-clubs'
+import { getSystemLogs } from './routes/system/get-system-logs'
+import { getUserProfile } from './routes/users/get-user-profile'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -127,6 +135,16 @@ app.register(payInvoice)
 
 app.register(getClubeRanking)
 app.register(getClubDashBoard)
+
+app.register(createRace)
+app.register(getRaces)
+app.register(getRace)
+app.register(createRaceResult)
+app.register(getRaceResults)
+app.register(getSystemStats)
+app.register(getSystemClubs)
+app.register(getSystemLogs)
+app.register(getUserProfile)
 
 // app.listen({ port: env.SERVER_PORT }).then(() => {
 //   console.log('HTTP server runnig ✅')

@@ -26,13 +26,15 @@ export default async function MembersPage({ params }: MembersPageProps) {
   const { members } = await getMembers({ slug })
 
   const formattedMembers = members.map((m) => ({
-    id: m.userId,
+    id: m.id,
+    userId: m.userId,
     name: m.name || 'Atleta',
     email: m.email,
     avatarUrl: m.avatarUrl,
     role: m.role,
-    joinedAt: 'Membro Ativo', // Poderia vir do created_at no futuro
-    subscriptionStatus: 'ACTIVE' as const, // Poderia vir de billing no futuro
+    joinedAt: 'Membro Ativo',
+    subscriptionStatus: 'ACTIVE' as const,
+    overdue: m.overdue,
   }))
 
   const clubInfo = {

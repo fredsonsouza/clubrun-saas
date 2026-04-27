@@ -22,9 +22,9 @@ describe('Create Workout (E2E)', () => {
     const duration = faker.number.int({ min: 300, max: 18000 })
     const pace = faker.number.float({ min: 3, max: 10, fractionDigits: 2 })
     const type = faker.helpers.arrayElement([
-      'EASY_RUN',
+      'EASY',
       'INTERVAL',
-      'LONG_RUN',
+      'LONG',
     ])
     const notes = faker.lorem.sentence()
     const date = new Date().toISOString()
@@ -76,7 +76,7 @@ describe('Create Workout (E2E)', () => {
         distance: 3000,
         duration: 900,
         pace: 5.0,
-        type: 'EASY_RUN',
+        type: 'EASY',
         date: new Date().toISOString(),
       })
 
@@ -111,7 +111,7 @@ describe('Create Workout (E2E)', () => {
         distance: 5,
         duration: 1500,
         pace: 5.0,
-        type: 'EASY_RUN',
+        type: 'EASY',
         date: new Date().toISOString(),
       })
 

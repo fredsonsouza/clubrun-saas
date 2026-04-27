@@ -16,6 +16,8 @@ import {
   Trophy,
 } from 'lucide-react'
 import { Header } from '@/components/header'
+import { CreateRaceModal } from '@/components/create-race-modal'
+import { AddResultModal } from '@/components/add-result-modal'
 
 interface Race {
   id: string
@@ -53,6 +55,9 @@ export function RacesClient({
 }: RacesClientProps) {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming')
   const [searchQuery, setSearchQuery] = useState('')
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isResultModalOpen, setIsResultModalOpen] = useState(false)
+  const [selectedRace, setSelectedRace] = useState<{ id: string, name: string } | null>(null)
 
   const displayedRaces = (activeTab === 'upcoming' ? upcomingRaces : pastRaces).filter(
     (race) => race.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,7 +87,10 @@ export function RacesClient({
 
           <div className="flex items-center gap-3">
             {canManage && (
-              <button className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95">
+              <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
+              >
                 <Plus className="h-5 w-5" /> Adicionar Prova
               </button>
             )}
@@ -183,9 +191,16 @@ export function RacesClient({
                       </div>
 
                       {activeTab === 'past' && (
-                        <div className="flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600">
-                          <Trophy className="h-3.5 w-3.5" /> Ver Resultados
-                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.preventDefault()
+                            setSelectedRace({ id: race.id, name: race.name })
+                            setIsResultModalOpen(true)
+                          }}
+                          className="cursor-pointer flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600 transition-colors hover:bg-amber-100"
+                        >
+                          <Trophy className="h-3.5 w-3.5" /> Registrar Meu Tempo
+                        </button>
                       )}
                     </div>
                   </div>
@@ -207,13 +222,35 @@ export function RacesClient({
                 : 'Ainda não temos resultados registrados no histórico deste clube.'}
             </p>
             {canManage && !searchQuery && (
-              <button className="mt-8 cursor-pointer flex items-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95">
+              <button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="mt-8 cursor-pointer flex items-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+              >
                 <Plus className="h-5 w-5" /> Cadastrar Primeira Prova
               </button>
             )}
           </div>
         )}
       </main>
+
+      <CreateRaceModal 
+        isOpen={isCreateModalOpen}
+        slug={club.slug}
+        onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      {selectedRace && (
+        <AddResultModal
+          isOpen={isResultModalOpen}
+          slug={club.slug}
+          raceId={selectedRace.id}
+          raceName={selectedRace.name}
+          onClose={() => {
+            setIsResultModalOpen(false)
+            setSelectedRace(null)
+          }}
+        />
+      )}
     </div>
   )
 }

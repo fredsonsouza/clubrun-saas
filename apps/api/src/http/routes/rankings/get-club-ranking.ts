@@ -52,7 +52,7 @@ export async function getClubeRanking(app: FastifyInstance) {
             break
         }
 
-        const rankings = await prisma.ranking.findMany({
+        const rankingsRaw = await prisma.ranking.findMany({
           where: whereClause,
           include: {
             athlete: {
@@ -67,6 +67,33 @@ export async function getClubeRanking(app: FastifyInstance) {
             points: 'desc',
           },
         })
+
+        // Enhance with real distance and workout count from workouts table
+        const rankings = await Promise.all(rankingsRaw.map(async (r) => {
+          const stats = await prisma.workout.aggregate({
+            where: {
+              athleteId: r.athlete.id,
+              clubId: club.id,
+              date: {
+                gte: new Date(year, (month || 1) - 1, 1),
+                lt: new Date(year, (month || 12), 1),
+              }
+            },
+            _sum: {
+              distance: true,
+            },
+            _count: {
+              id: true,
+            }
+          })
+
+          return {
+            ...r,
+            distance: stats._sum.distance || 0,
+            workoutsCount: stats._count.id || 0,
+          }
+        }))
+
         return reply.send({ rankings })
       }
     )

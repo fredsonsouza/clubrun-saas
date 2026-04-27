@@ -10,25 +10,43 @@ import {
   Lock,
   Flame,
   ChevronDown,
+  Calendar as CalendarIcon,
+  Loader2,
+  Users as UsersIcon,
 } from 'lucide-react'
+import { toast } from 'sonner'
+import { createWorkoutAction } from '@/app/(app)/[slug]/dashboard/actions'
 
 interface CreateWorkoutModalProps {
   isOpen: boolean
+  slug: string
   onClose: () => void
-  onSuccess: (workout: any) => void
+  onSuccess?: () => void
+  userRole?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  members?: Array<{ id: string, name: string, userId: string }>
 }
 
 export function CreateWorkoutModal({
   isOpen,
+  slug,
   onClose,
   onSuccess,
+  userRole,
+  members = [],
 }: CreateWorkoutModalProps) {
   const [title, setTitle] = useState('')
   const [distance, setDistance] = useState('')
   const [duration, setDuration] = useState('')
   const [type, setType] = useState('EASY')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [notes, setNotes] = useState('')
   const [visibility, setVisibility] = useState('PUBLIC')
+  const [athleteId, setAthleteId] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const isCoach = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER'
+  // Actually, user said COACH prescreve. Let's stick to what he said.
+  const canPrescribe = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN'
 
   // Reatividade em tempo real: Cálculo do pace enquanto o usuário digita
   const pace = useMemo(() => {
@@ -43,29 +61,49 @@ export function CreateWorkoutModal({
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulação de chamada de API
-    setTimeout(() => {
-      setIsLoading(false)
-      onSuccess({
-        id: Math.random().toString(),
-        title: title || 'Treino Sem Título',
-        distance: parseFloat(distance),
-        durationInMinutes: parseFloat(duration),
-        type,
-        visibility,
-        createdAt: new Date().toISOString(),
-        author: { id: 'usr-1', name: 'Fredson Souza' },
-      })
-      // Reset form
+    const formData = new FormData()
+    formData.append('slug', slug)
+    formData.append('title', title || `Treino de ${TYPE_CONFIG[type as any]?.label || 'Corrida'}`)
+    formData.append('distance', distance)
+    formData.append('duration', duration)
+    formData.append('type', type)
+    formData.append('date', date)
+    formData.append('notes', notes)
+    if (athleteId) {
+      formData.append('athleteId', athleteId)
+    }
+
+    const result = await createWorkoutAction(formData)
+
+    if (result.success) {
+      toast.success(result.message)
       setTitle('')
       setDistance('')
       setDuration('')
+      setNotes('')
       setType('EASY')
-    }, 1000)
+      onSuccess?.()
+      onClose()
+    } else {
+      toast.error(result.message)
+    }
+
+    setIsLoading(false)
+  }
+
+  const TYPE_CONFIG: any = {
+    EASY: { label: 'Rodagem Leve' },
+    INTERVAL: { label: 'Treino de Tiro' },
+    TEMPO: { label: 'Ritmo / Tempo' },
+    LONG: { label: 'Longão' },
+    RECOVERY: { label: 'Regenerativo' },
+    RACE: { label: 'Prova' },
+    STRENGTH: { label: 'Fortalecimento' },
+    WALK: { label: 'Caminhada' },
   }
 
   return (
@@ -104,6 +142,44 @@ export function CreateWorkoutModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ex: Treino de velocidade na pista"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+              />
+            </div>
+
+            {/* SELECIONAR ATLETA (Para Coaches/Owners) */}
+            {canPrescribe && (
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                  <UsersIcon className="h-3.5 w-3.5 text-orange-500" /> Prescrever Para
+                </label>
+                <div className="relative">
+                  <select
+                    value={athleteId}
+                    onChange={(e) => setAthleteId(e.target.value)}
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  >
+                    <option value="">Para mim mesmo</option>
+                    {members.map(member => (
+                      <option key={member.id} value={member.userId}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                </div>
+              </div>
+            )}
+
+            {/* DATA DO TREINO */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                <CalendarIcon className="h-3.5 w-3.5 text-orange-500" /> Data da Atividade
+              </label>
+              <input
+                type="date"
+                required
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
               />
             </div>
@@ -193,6 +269,20 @@ export function CreateWorkoutModal({
               </div>
             </div>
 
+            {/* NOTAS / DESCRIÇÃO */}
+            <div className="space-y-1.5">
+              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                <Flame className="h-3.5 w-3.5 text-orange-500" /> Notas (Opcional)
+              </label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Como se sentiu hoje?"
+                rows={3}
+                className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+              />
+            </div>
+
             {/* PRIVACIDADE */}
             <div className="space-y-3">
               <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
@@ -252,13 +342,13 @@ export function CreateWorkoutModal({
             type="submit"
             form="workout-form"
             disabled={isLoading}
-            className="cursor-pointer flex h-11 items-center gap-2 rounded-xl bg-orange-500 px-6 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
             {isLoading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <Loader2 className="h-5 w-5 animate-spin" />
             ) : (
               <>
-                <Flame className="h-4 w-4" /> Salvar Treino
+                <Flame className="h-4 w-4" /> Registrar no Pelotão
               </>
             )}
           </button>

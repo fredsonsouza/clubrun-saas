@@ -50,7 +50,7 @@ describe('Update Member (E2E)', () => {
   })
 
   it('should be able to update a member status', async () => {
-    const { token, club } = await createAndAuthenticateUser(app, 'MANAGER')
+    const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
 
     const secondUser = await prisma.user.create({
       data: {

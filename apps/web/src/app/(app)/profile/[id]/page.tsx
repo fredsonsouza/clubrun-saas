@@ -1,7 +1,7 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
 import { ProfileClient } from '../profile-client'
-import { Workout } from '@/components/workout-card'
+import { getUserProfile } from '@/http/get-user-profile'
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -9,56 +9,34 @@ interface UserProfilePageProps {
   }>
 }
 
-// --- MOCKS PARA OUTROS USUÁRIOS ---
-const MOCK_OTHER_USER = {
-  id: 'usr-2',
-  name: 'Carlos Silva',
-  email: 'carlos@exemplo.com',
-  avatarUrl: 'https://i.pravatar.cc/150?img=33',
-}
-
-const MOCK_OTHER_ATHLETE_PROFILE = {
-  bio: 'Corredor de montanha em busca de novos desafios. Focado em ultras.',
-  city: 'Belo Horizonte, MG',
-  weight: 68,
-  height: 175,
-  gender: 'MALE',
-  instagramUrl: 'https://instagram.com/carlos.ultra',
-  stravaUrl: 'https://strava.com/athletes/carlos',
-  isPublic: true,
-}
-
-const MOCK_OTHER_WORKOUTS: Workout[] = [
-  {
-    id: 'wk-101',
-    title: 'Subida da Serra',
-    description: 'Treino técnico de altimetria.',
-    distance: 12.0,
-    durationInMinutes: 90,
-    type: 'LONG',
-    visibility: 'PUBLIC',
-    createdAt: new Date().toISOString(),
-    author: {
-      id: 'usr-2',
-      name: 'Carlos Silva',
-      avatarUrl: 'https://i.pravatar.cc/150?img=33',
-    },
-  },
-]
-
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { id } = await params
   const { user: currentUser } = await auth()
 
-  // No futuro, aqui faríamos um fetch por ID: getProfileById(id)
-  // Por enquanto, usamos mocks
+  // Fetch real profile data
+  const { user, athleteProfile, workouts } = await getUserProfile(id)
+  
   const isOwnProfile = currentUser.id === id
+
+  // Map workouts to match expected format in ProfileClient
+  const formattedWorkouts = workouts.map(w => ({
+    ...w,
+    durationInMinutes: w.duration ? Math.floor(w.duration / 60) : 0,
+    author: {
+      id: user.id,
+      name: user.name || 'Atleta',
+      avatarUrl: user.avatarUrl,
+    },
+    type: w.type as any,
+    visibility: w.visibility as any,
+  }))
 
   return (
     <ProfileClient
-      user={isOwnProfile ? currentUser : MOCK_OTHER_USER}
-      athleteProfile={MOCK_OTHER_ATHLETE_PROFILE}
-      workouts={MOCK_OTHER_WORKOUTS}
+      currentUser={currentUser}
+      user={user}
+      athleteProfile={athleteProfile}
+      workouts={formattedWorkouts}
       isOwnProfile={isOwnProfile}
     />
   )

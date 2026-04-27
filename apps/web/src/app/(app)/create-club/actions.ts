@@ -18,6 +18,16 @@ export async function createClubAction(formData: FormData) {
     
     return { success: true, clubId, message: 'Seu clube foi criado com sucesso!' }
   } catch (err) {
-    return { success: false, message: 'Erro ao criar o clube. Verifique se o nome já está em uso.' }
+    if (err instanceof Error) {
+      try {
+        // @ts-ignore
+        const { message } = await err.response.json()
+        return { success: false, message }
+      } catch {
+        return { success: false, message: 'Erro ao criar o clube. Tente novamente mais tarde.' }
+      }
+    }
+
+    return { success: false, message: 'Erro ao criar o clube.' }
   }
 }

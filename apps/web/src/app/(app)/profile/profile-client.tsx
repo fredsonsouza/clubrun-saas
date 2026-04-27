@@ -20,6 +20,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { UpdateProfileModal } from '@/components/update-profile-modal'
 
 interface ProfileClientProps {
+  currentUser: {
+    id: string
+    name: string | null
+    email: string
+    avatarUrl: string | null
+  }
   user: {
     id: string
     name: string | null
@@ -41,6 +47,7 @@ interface ProfileClientProps {
 }
 
 export function ProfileClient({
+  currentUser,
   user,
   athleteProfile,
   workouts,
@@ -67,7 +74,7 @@ export function ProfileClient({
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
-      <Header user={user} />
+      <Header user={currentUser} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         
@@ -249,7 +256,7 @@ export function ProfileClient({
                 <WorkoutCard
                   key={workout.id}
                   workout={workout}
-                  currentUserId={user.id}
+                  currentUserId={currentUser.id}
                   userRole="MEMBER"
                 />
               ))

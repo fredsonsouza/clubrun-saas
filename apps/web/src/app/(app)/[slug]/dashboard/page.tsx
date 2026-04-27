@@ -79,7 +79,8 @@ export default async function ClubDashboardPage({
 
   // Formata a lista de membros
   const formattedMembers = members.map(m => ({
-    id: m.userId,
+    id: m.id,
+    userId: m.userId,
     name: m.name || 'Atleta',
     avatarUrl: m.avatarUrl,
     role: m.role

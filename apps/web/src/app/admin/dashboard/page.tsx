@@ -1,6 +1,8 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
 import { AdminHeader } from '@/components/admin-header'
+import { getSystemStats } from '@/http/get-system-stats'
+import { getSystemLogs } from '@/http/get-system-logs'
 import { 
   BarChart, 
   Users, 
@@ -9,10 +11,14 @@ import {
   ArrowUpRight,
   ShieldCheck,
   Zap,
+  Activity,
+  History,
 } from 'lucide-react'
 
 export default async function AdminDashboardPage() {
   const { user } = await auth()
+  const { stats } = await getSystemStats()
+  const { logs } = await getSystemLogs()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
@@ -38,7 +44,7 @@ export default async function AdminDashboardPage() {
               <Building2 className="h-6 w-6" />
             </div>
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Clubes</p>
-            <p className="mt-1 text-3xl font-black text-gray-900">124</p>
+            <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalClubs}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
               <TrendingUp className="h-3 w-3" /> +12% este mês
             </div>
@@ -48,8 +54,8 @@ export default async function AdminDashboardPage() {
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-500">
               <Users className="h-6 w-6" />
             </div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Atletas Ativos</p>
-            <p className="mt-1 text-3xl font-black text-gray-900">3.842</p>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Usuários Totais</p>
+            <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalUsers}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
               <TrendingUp className="h-3 w-3" /> +8% este mês
             </div>
@@ -59,8 +65,10 @@ export default async function AdminDashboardPage() {
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
               <Zap className="h-6 w-6" />
             </div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">MRR Total</p>
-            <p className="mt-1 text-3xl font-black text-gray-900">R$ 14.850</p>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Receita Est. (Mensal)</p>
+            <p className="mt-1 text-3xl font-black text-gray-900">
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue)}
+            </p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
               <TrendingUp className="h-3 w-3" /> +15% este mês
             </div>
@@ -70,33 +78,48 @@ export default async function AdminDashboardPage() {
             <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-500">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Taxa de Churn</p>
-            <p className="mt-1 text-3xl font-black text-gray-900">1.2%</p>
+            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Atividades</p>
+            <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalWorkouts}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
-              -0.5% vs mês ant.
+              Recorde histórico
             </div>
           </div>
         </div>
 
-        {/* RECENT ACTIVITY PLACEHOLDER */}
+        {/* RECENT ACTIVITY */}
         <div className="rounded-[2.5rem] border border-gray-100 bg-white p-10 shadow-sm">
           <div className="mb-8 flex items-center justify-between">
-            <h2 className="text-2xl font-black text-gray-900">Atividade Recente do Sistema</h2>
+            <h2 className="flex items-center gap-3 text-2xl font-black text-gray-900">
+              <History className="h-6 w-6 text-orange-500" />
+              Atividade Recente do Sistema
+            </h2>
             <button className="flex items-center gap-2 text-sm font-bold text-orange-500 hover:underline">
               Ver logs completos <ArrowUpRight className="h-4 w-4" />
             </button>
           </div>
           <div className="space-y-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center gap-4 rounded-2xl bg-gray-50 p-4">
-                <div className="h-10 w-10 rounded-full bg-gray-200" />
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-900">Novo clube registrado: <span className="text-orange-500">Pace Makers RR</span></p>
-                  <p className="text-xs font-medium text-gray-500">Há {i * 2} horas atrás</p>
+            {logs.length > 0 ? (
+              logs.slice(0, 5).map((log) => (
+                <div key={log.id} className="flex items-center gap-4 rounded-2xl bg-gray-50 p-4 transition-colors hover:bg-gray-100/50">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-sm font-black text-gray-400">
+                    <Activity className="h-5 w-5 text-gray-300" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-gray-900">
+                      {log.action.replace('_', ' ')}: <span className="text-orange-500">{log.entity}</span>
+                    </p>
+                    <p className="text-xs font-medium text-gray-500">
+                      {log.user?.name || log.user?.email || 'Sistema'} • {new Date(log.createdAt).toLocaleTimeString('pt-BR')}
+                    </p>
+                  </div>
+                  <span className="rounded-lg bg-gray-200 px-3 py-1 text-[10px] font-black uppercase text-gray-500">Info</span>
                 </div>
-                <span className="rounded-lg bg-emerald-100 px-3 py-1 text-[10px] font-black uppercase text-emerald-600">Sucesso</span>
+              ))
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-sm font-medium text-gray-400">Nenhuma atividade registrada ainda.</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </main>

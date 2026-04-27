@@ -10,6 +10,9 @@ vi.mock('@/lib/prisma', () => ({
     workout: {
       create: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }))
 
@@ -31,6 +34,7 @@ describe('Create Workout (Unit)', () => {
       userId,
       role: 'MEMBER',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
     } as any)
 
     vi.mocked(prisma.workout.create).mockResolvedValue({
@@ -61,6 +65,48 @@ describe('Create Workout (Unit)', () => {
         data: expect.objectContaining({
           title: 'Morning Run',
           athleteId: userId,
+        }),
+      })
+    )
+  })
+
+  it('should be able to prescribe a workout to another athlete as COACH', async () => {
+    const coachUserId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
+    const athleteUserId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: coachUserId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'coach-member-id',
+      userId: coachUserId,
+      role: 'COACH',
+      club: { id: 'club-id', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
+    } as any)
+
+    vi.mocked(prisma.workout.create).mockResolvedValue({ id: '81f02179-8d75-474c-8975-c54d8b965c4d' } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs/acme-club/workouts',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        title: 'Training Plan',
+        distance: 5,
+        duration: 1800,
+        pace: 6.0,
+        type: 'INTERVAL',
+        date: new Date().toISOString(),
+        athleteId: athleteUserId,
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(prisma.workout.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          athleteId: athleteUserId,
         }),
       })
     )

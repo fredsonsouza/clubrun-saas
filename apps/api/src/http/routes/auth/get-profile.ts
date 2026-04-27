@@ -21,8 +21,9 @@ export function getProfile(app: FastifyInstance) {
               user: z.object({
                 id: z.uuid(),
                 name: z.string().nullable(),
-                email: z.email(),
+                email: z.string().email(),
                 avatarUrl: z.string().nullable(),
+                isSystemAdmin: z.boolean(),
               }),
             }),
           },
@@ -37,6 +38,7 @@ export function getProfile(app: FastifyInstance) {
             name: true,
             email: true,
             avatarUrl: true,
+            isSystemAdmin: true,
           },
           where: {
             id: userId,

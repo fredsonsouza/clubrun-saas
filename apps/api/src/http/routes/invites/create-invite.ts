@@ -39,7 +39,7 @@ export async function createInvite(app: FastifyInstance) {
       const userId = await request.getCurrentUserId()
       const { club, memberShip } = await request.getUserMemberShip(slug)
 
-      const { cannot } = getUserPermissions(userId, memberShip.role)
+      const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
       if (cannot('create', 'Invite')) {
         throw new UnauthorizedError(`You're not allowed to create new invites`)

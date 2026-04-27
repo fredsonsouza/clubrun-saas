@@ -54,11 +54,13 @@ export const createAppAbility = createMongoAbility as CreateAbility<AppAbility>
 export function defineAbilityFor(user: User) {
   const builder = new AbilityBuilder(createAppAbility)
 
-  if (typeof permissions[user.role] !== 'function') {
+  if (user.isSystemAdmin) {
+    builder.can('manage', 'all')
+  } else if (typeof permissions[user.role] === 'function') {
+    permissions[user.role](user, builder)
+  } else {
     throw new Error(`Permissions for role ${user.role} not found`)
   }
-
-  permissions[user.role](user, builder)
 
   const ability = builder.build({
     detectSubjectType(subject) {

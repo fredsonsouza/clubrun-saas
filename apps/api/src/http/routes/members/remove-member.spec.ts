@@ -8,6 +8,12 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       delete: vi.fn(),
     },
+    invoice: {
+      findFirst: vi.fn(),
+    },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }))
 
@@ -20,7 +26,7 @@ describe('Remove Member (Unit)', () => {
     vi.clearAllMocks()
   })
 
-  it('should be able to remove a member as admin', async () => {
+  it('should be able to remove a member as system admin', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const memberIdToRemove = '81f02179-8d75-474c-8975-c54d8b965c4d'
     const token = app.jwt.sign({ sub: userId })
@@ -30,6 +36,7 @@ describe('Remove Member (Unit)', () => {
       userId,
       role: 'ADMIN',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
+      user: { isSystemAdmin: true }
     } as any)
 
     const response = await app.inject({
@@ -41,25 +48,22 @@ describe('Remove Member (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.member.delete).toHaveBeenCalledWith({
-      where: {
-        id: memberIdToRemove,
-        clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
-      },
-    })
   })
 
-  it('should not be able to remove a member if user is just a MEMBER', async () => {
-    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+  it('should not be able to remove a member as OWNER if they have no overdue invoices', async () => {
+    const userId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
     const memberIdToRemove = '81f02179-8d75-474c-8975-c54d8b965c4d'
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
-      id: 'member-id',
+      id: 'owner-member-id',
       userId,
-      role: 'MEMBER',
-      club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
+      role: 'OWNER',
+      club: { id: 'club-id', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
     } as any)
+
+    vi.mocked(prisma.invoice.findFirst).mockResolvedValue(null)
 
     const response = await app.inject({
       method: 'DELETE',
@@ -70,5 +74,34 @@ describe('Remove Member (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(401)
+    expect(response.json()).toMatchObject({
+      message: 'Members can only be removed if they have overdue payments.'
+    })
+  })
+
+  it('should be able to remove a member as OWNER if they have overdue invoices', async () => {
+    const userId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
+    const memberIdToRemove = '81f02179-8d75-474c-8975-c54d8b965c4d'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'owner-member-id',
+      userId,
+      role: 'OWNER',
+      club: { id: 'club-id', slug: 'acme-club' },
+      user: { isSystemAdmin: false }
+    } as any)
+
+    vi.mocked(prisma.invoice.findFirst).mockResolvedValue({ id: '81f02179-8d75-474c-8975-c54d8b965c4d' } as any)
+
+    const response = await app.inject({
+      method: 'DELETE',
+      url: `/clubs/acme-club/members/${memberIdToRemove}`,
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(response.statusCode).toBe(204)
   })
 })

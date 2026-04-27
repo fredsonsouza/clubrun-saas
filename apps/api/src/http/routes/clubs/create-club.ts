@@ -5,6 +5,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 import { createSlug } from '@/utils/create-slug'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function createClub(app: FastifyInstance) {
   app
@@ -33,18 +34,26 @@ export async function createClub(app: FastifyInstance) {
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
 
-        const { name, domain, shouldAttachUsersByDomain, cnpj } = request.body
-
-        const activeMemberShip = await prisma.member.findFirst({
+        const userMemberShips = await prisma.member.findMany({
           where: {
             userId,
             status: 'ACTIVE',
           },
         })
-        if (activeMemberShip) {
-          throw new BadRequestError('Member already belongs to an active club.')
+
+        const isOwnerOfAll = userMemberShips.every(m => m.role === 'OWNER')
+        const hasMemberShips = userMemberShips.length > 0
+        
+        const user = await prisma.user.findUnique({ where: { id: userId } })
+
+        // Super admins can create as many as they want
+        // Owners can create as many as they want
+        // Others (MEMBER, COACH, etc) can only create if they have no clubs yet
+        if (!user?.isSystemAdmin && hasMemberShips && !isOwnerOfAll) {
+          throw new BadRequestError('As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.')
         }
 
+        const { name, domain, shouldAttachUsersByDomain, cnpj } = request.body
         const slug = createSlug(name)
 
         const clubBySlug = await prisma.club.findUnique({
@@ -81,6 +90,14 @@ export async function createClub(app: FastifyInstance) {
               },
             },
           },
+        })
+
+        await createAuditLog({
+          action: 'CLUB_CREATED',
+          entity: 'CLUB',
+          entityId: club.id,
+          userId,
+          payload: { name: club.name, slug: club.slug },
         })
 
         return reply.status(201).send({

@@ -53,7 +53,7 @@ export async function updateWorkout(app: FastifyInstance) {
 
         const authWorkout = workoutSchema.parse(workout)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('update', authWorkout)) {
           throw new UnauthorizedError(

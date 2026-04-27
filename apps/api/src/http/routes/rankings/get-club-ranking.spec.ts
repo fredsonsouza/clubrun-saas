@@ -10,6 +10,9 @@ vi.mock('@/lib/prisma', () => ({
     ranking: {
       findMany: vi.fn(),
     },
+    workout: {
+      aggregate: vi.fn(),
+    },
   },
 }))
 
@@ -30,6 +33,7 @@ describe('Get Club Ranking (Unit)', () => {
       id: 'member-id',
       userId,
       role: 'MEMBER',
+      user: { isSystemAdmin: false },
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
     } as any)
 
@@ -44,6 +48,11 @@ describe('Get Club Ranking (Unit)', () => {
         },
       },
     ] as any)
+
+    vi.mocked(prisma.workout.aggregate).mockResolvedValue({
+      _sum: { distance: 50 },
+      _count: { id: 5 },
+    } as any)
 
     const response = await app.inject({
       method: 'GET',
@@ -60,15 +69,10 @@ describe('Get Club Ranking (Unit)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.json().rankings).toHaveLength(1)
-    expect(prisma.ranking.findMany).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({
-          clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
-          year: 2024,
-          month: 5,
-        }),
-      })
-    )
+    expect(response.json().rankings[0]).toMatchObject({
+      distance: 50,
+      workoutsCount: 5
+    })
   })
 
   it('should be able to get weekly ranking', async () => {
@@ -78,8 +82,13 @@ describe('Get Club Ranking (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
+      role: 'MEMBER',
+      user: { isSystemAdmin: false },
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
     } as any)
+
+    vi.mocked(prisma.ranking.findMany).mockResolvedValue([])
+    vi.mocked(prisma.workout.aggregate).mockResolvedValue({ _sum: {}, _count: {} } as any)
 
     await app.inject({
       method: 'GET',

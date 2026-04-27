@@ -32,7 +32,7 @@ export async function payInvoice(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('update', 'Invoice')) {
           throw new UnauthorizedError(

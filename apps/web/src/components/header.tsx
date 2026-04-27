@@ -27,6 +27,7 @@ interface HeaderProps {
     name: string | null
     email: string
     avatarUrl: string | null
+    isSystemAdmin?: boolean
   }
   variant?: 'default' | 'onboarding'
 }
@@ -38,7 +39,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false)
   const systemMenuRef = useRef<HTMLDivElement>(null)
 
-  const isSuperAdmin = user.email === 'admin@clubrun.com'
+  const isSuperAdmin = user.isSystemAdmin || user.email === 'admin@clubrun.com'
 
   useEffect(() => {
     async function loadHeaderData() {
@@ -92,7 +93,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
     )
   }
 
-  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
+  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN' || isSuperAdmin
   
   const dashboardHref = activeSlug ? `/${activeSlug}/dashboard` : '/'
   const rankingHref = activeSlug ? `/${activeSlug}/ranking` : '#'
@@ -100,6 +101,8 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   const invitesHref = activeSlug ? `/${activeSlug}/invites` : '#'
   const settingsHref = activeSlug ? `/${activeSlug}/settings` : '#'
   const racesHref = activeSlug ? `/${activeSlug}/races` : '#'
+
+  const showClubSwitcher = isSuperAdmin || userRole === 'OWNER'
 
   return (
     <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md">
@@ -114,9 +117,12 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             </span>
           </Link>
 
-          <div className="h-8 w-px bg-gray-200"></div>
-
-          <ClubSwitcher />
+          {showClubSwitcher && (
+            <>
+              <div className="h-8 w-px bg-gray-200"></div>
+              <ClubSwitcher />
+            </>
+          )}
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
@@ -186,7 +192,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
               </button>
 
               {isSystemMenuOpen && (
-                <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-gray-100 bg-white p-2 shadow-2xl duration-150">
+                <div className="animate-in fade-in zoom-in-95 absolute right-0 z-50 mt-2 w-56 rounded-2xl border border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md duration-150">
                   <div className="px-3 py-2 mb-1">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Administração Global</span>
                   </div>

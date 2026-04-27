@@ -37,20 +37,29 @@ export async function updateMember(app: FastifyInstance) {
 
         const { memberShip } = await request.getUserMemberShip(slug)
 
-        if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+
+        if (cannot('update_roles', 'User')) {
           throw new UnauthorizedError(
-            `You're not allowed to update this member`
+            `You're not allowed to update roles in this club.`
           )
         }
-        // const { cannot } = getUserPermissions(userId, memberShip.role)
-
-        // if (cannot('update', 'User')) {
-        //   throw new UnauthorizedError(
-        //     `You're not allowed to update this member`
-        //   )
-        // }
 
         const { role, status } = request.body
+
+        // If promoting to a unique role, demote existing one
+        if (role && ['MANAGER', 'COACH', 'BILLING'].includes(role)) {
+          await prisma.member.updateMany({
+            where: {
+              clubId: memberShip.clubId,
+              role,
+              id: { not: memberId }
+            },
+            data: {
+              role: 'MEMBER'
+            }
+          })
+        }
 
         await prisma.member.update({
           where: {

@@ -42,7 +42,7 @@ export async function updateClub(app: FastifyInstance) {
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot, can } = getUserPermissions(userId, memberShip.role)
+        const { cannot, can } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('update', authClub)) {
           throw new UnauthorizedError(`You're not allowed to update this club`)

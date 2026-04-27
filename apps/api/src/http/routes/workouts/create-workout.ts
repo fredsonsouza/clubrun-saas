@@ -23,6 +23,7 @@ export async function createWorkout(app: FastifyInstance) {
             distance: z.number(),
             duration: z.number().int(),
             pace: z.number(),
+            athleteId: z.string().uuid().optional(),
             type: z.enum([
               'EASY',
               'INTERVAL',
@@ -51,16 +52,26 @@ export async function createWorkout(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot, can } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
-        if (cannot('create', 'Workout')) {
+        const { title, distance, duration, date, pace, type, notes, athleteId } =
+          request.body
+
+        // If target athlete is different from creator, check if can prescribe
+        const targetAthleteId = athleteId || userId
+        const isPrescribing = targetAthleteId !== userId
+
+        if (isPrescribing && cannot('prescribe', 'Workout')) {
+          throw new UnauthorizedError(
+            `You're not allowed to prescribe workouts to other athletes`
+          )
+        }
+
+        if (!isPrescribing && cannot('create', 'Workout')) {
           throw new UnauthorizedError(
             `You're not allowed to create new workouts`
           )
         }
-
-        const { title, distance, duration, date, pace, type, notes } =
-          request.body
 
         const workout = await prisma.workout.create({
           data: {
@@ -73,7 +84,7 @@ export async function createWorkout(app: FastifyInstance) {
             notes,
             slug: `${createSlug(title)}-${Date.now()}`,
             clubId: club.id,
-            athleteId: userId,
+            athleteId: targetAthleteId,
           },
         })
 

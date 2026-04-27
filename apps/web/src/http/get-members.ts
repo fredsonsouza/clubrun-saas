@@ -12,6 +12,7 @@ interface GetMembersResponse {
     name: string | null
     email: string
     avatarUrl: string | null
+    overdue: boolean
   }>
 }
 

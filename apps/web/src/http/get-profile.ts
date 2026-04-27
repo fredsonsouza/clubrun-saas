@@ -6,6 +6,7 @@ interface getProfileResponse {
     name: string | null
     email: string
     avatarUrl: string | null
+    isSystemAdmin: boolean
   }
 }
 

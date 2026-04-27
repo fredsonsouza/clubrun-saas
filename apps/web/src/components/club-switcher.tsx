@@ -105,7 +105,7 @@ export function ClubSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-64 rounded-2xl border border-gray-100 bg-white py-2 shadow-xl duration-100">
+        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-64 rounded-2xl border border-gray-100 bg-white/95 py-2 shadow-2xl backdrop-blur-md duration-100">
           <div className="px-3 py-1.5">
             <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
               Seus Clubes

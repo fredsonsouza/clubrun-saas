@@ -13,35 +13,40 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can('manage', 'all')
   },
   OWNER(user, { can }) {
-    can('manage', 'all')
-
+    can('get', ['Club', 'User', 'AthleteProfile'])
+    can('manage', ['Workout', 'Race', 'RaceResult', 'Ranking', 'Invite', 'Billing', 'Invoice'])
+    
     can('update', 'Club')
-    can('transfer_ownership', 'Club', { ownerId: { $eq: user.id } })
+    can('delete', 'Club')
+    can('transfer_ownership', 'Club')
+    can('update_roles', 'User')
+    can('delete', 'User') // Removing members
   },
 
   MANAGER(_, { can, cannot }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
-
+    
     can(['create', 'update', 'delete'], ['Workout', 'Race', 'RaceResult'])
-
     can(['get', 'update'], 'Ranking')
-
-    cannot('transfer_ownership', 'Club')
+    can('manage', ['Invite', 'Billing', 'Invoice'])
 
     can('update', 'Club')
+    
+    // Restrictions
+    cannot('transfer_ownership', 'Club')
+    cannot('update_roles', 'User')
+    cannot('delete', 'User') // Cannot remove members
   },
 
   MEMBER(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
 
     can('create', 'Workout')
-
     can(['update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
-
+    
     can('get', ['Race', 'RaceResult', 'Ranking'])
-
+    
     can('create', 'Invite')
-
     can('get', 'Invite', { authorId: { $eq: user.id } })
 
     if (user.currentClubId) {
@@ -55,23 +60,33 @@ export const permissions: Record<Role, PermissionsByRole> = {
   COACH(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
 
-    can(['create', 'update'], 'Workout')
-
-    can(['get'], 'Race')
-
+    // Coach can prescribe workouts to anyone in the club
+    can('prescribe', 'Workout')
+    
+    // Coach can manage their own workouts
+    can(['create', 'update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
+    
+    // Coach can see all club workouts
     if (user.currentClubId) {
       can('get', 'Workout', {
         clubId: { $eq: user.currentClubId },
       })
     }
 
+    can(['get'], 'Race')
     can(['create', 'update'], 'RaceResult')
-
     can('get', 'Ranking')
   },
 
-  BILLING(_, { can }) {
-    can('manage', 'Billing')
-    can('manage', 'Invoice')
+  BILLING(user, { can, cannot }) {
+    // Basic member permissions
+    can('get', ['Club', 'User', 'AthleteProfile'])
+    can('get', ['Race', 'RaceResult', 'Ranking'])
+
+    // Billing specific
+    can('manage', ['Billing', 'Invoice'])
+
+    // Restrictions
+    cannot(['create', 'update', 'delete'], 'Workout')
   },
 }
