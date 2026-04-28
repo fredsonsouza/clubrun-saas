@@ -4,7 +4,7 @@ interface CreateWorkoutRequest {
   slug: string
   title: string
   distance: number
-  duration: number
+  duration: number | null
   pace: number
   type:
     | 'EASY'
@@ -17,6 +17,9 @@ interface CreateWorkoutRequest {
     | 'WALK'
   date: Date
   notes?: string | null
+  athleteId?: string | null
+  status?: 'PLANNED' | 'COMPLETED'
+  assignmentMode?: 'GOAL' | 'FREE' | null
 }
 
 export async function createWorkout({
@@ -28,6 +31,9 @@ export async function createWorkout({
   type,
   date,
   notes,
+  athleteId,
+  status,
+  assignmentMode,
 }: CreateWorkoutRequest) {
   const result = await api
     .post(`clubs/${slug}/workouts`, {
@@ -39,6 +45,9 @@ export async function createWorkout({
         type,
         date,
         notes,
+        athleteId,
+        status,
+        assignmentMode,
       },
     })
     .json<{ workoutId: string }>()

@@ -94,6 +94,8 @@ app.register(fastifyJwt, {
 
 app.register(fastifyCors)
 
+import { completeWorkout } from './routes/workouts/complete-workout'
+
 app.register(createAccount)
 app.register(authenticateWithPassword)
 app.register(getProfile)
@@ -116,6 +118,7 @@ app.register(getWorkout)
 app.register(getWorkouts)
 app.register(updateWorkout)
 app.register(getMyWorkouts)
+app.register(completeWorkout)
 
 app.register(getMembers)
 app.register(updateMember)

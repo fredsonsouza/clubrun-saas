@@ -23,6 +23,8 @@ export async function getWorkouts(app: FastifyInstance) {
           querystring: z.object({
             page: z.coerce.number().min(1).default(1),
             limit: z.coerce.number().min(1).max(50).default(20),
+            status: z.enum(['PLANNED', 'COMPLETED']).default('COMPLETED'),
+            athleteId: z.string().uuid().optional(),
           }),
           response: {
             200: z.object({
@@ -32,9 +34,11 @@ export async function getWorkouts(app: FastifyInstance) {
                   title: z.string().nullable(),
                   slug: z.string().nullable(),
                   distance: z.number(),
-                  duration: z.number().int().nullable(),
+                  duration: z.number().nullable(),
                   pace: z.number().nullable(),
                   type: z.string(),
+                  status: z.enum(['PLANNED', 'COMPLETED']),
+                  assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
                   date: z.coerce.date(),
                   notes: z.string().nullable(),
                   imageUrl: z.string().nullable(),
@@ -59,7 +63,7 @@ export async function getWorkouts(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
-        const { page, limit } = request.query
+        const { page, limit, status, athleteId } = request.query
         const skip = (page - 1) * limit
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
@@ -75,9 +79,15 @@ export async function getWorkouts(app: FastifyInstance) {
           throw new UnauthorizedError(`You're not allowed to list workouts`)
         }
 
+        const where = { 
+          clubId: club.id, 
+          status,
+          ...(athleteId ? { athleteId } : {}) 
+        }
+
         const [total, workouts] = await Promise.all([
           prisma.workout.count({
-            where: { clubId: club.id },
+            where,
           }),
           prisma.workout.findMany({
             select: {
@@ -90,6 +100,8 @@ export async function getWorkouts(app: FastifyInstance) {
               duration: true,
               pace: true,
               type: true,
+              status: true,
+              assignmentMode: true,
               date: true,
               notes: true,
               createdAt: true,
@@ -101,9 +113,7 @@ export async function getWorkouts(app: FastifyInstance) {
                 },
               },
             },
-            where: {
-              clubId: club.id,
-            },
+            where,
             orderBy: {
               createdAt: 'desc',
             },

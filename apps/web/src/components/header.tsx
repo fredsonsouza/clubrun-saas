@@ -15,6 +15,7 @@ import {
   Zap,
   BarChart,
   ShieldCheck,
+  Target,
 } from 'lucide-react'
 import { ProfileButton } from './profile-button'
 import { ClubSwitcher } from './club-switcher'
@@ -126,7 +127,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
-        <div className={`hidden items-center gap-0.5 ${userRole === 'MEMBER' || userRole === 'COACH' ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
+        <div className={`hidden items-center gap-0.5 ${userRole === 'MEMBER' || userRole === 'COACH' ? 'text-[16px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
           <Link
             href="/explore"
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
@@ -142,6 +143,16 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             <LayoutDashboard className="h-4 w-4" />
             {userRole === 'MEMBER' || userRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
           </Link>
+
+          {(userRole === 'MEMBER' || userRole === 'COACH') && (
+            <Link
+              href={`/profile/${user.id}`}
+              className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname?.startsWith('/profile') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
+            >
+              <Target className="h-4 w-4" />
+              Meus Treinos
+            </Link>
+          )}
 
           <Link
             href={rankingHref}

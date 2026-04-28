@@ -42,10 +42,12 @@ export function CreateWorkoutModal({
   const [notes, setNotes] = useState('')
   const [visibility, setVisibility] = useState('PUBLIC')
   const [athleteId, setAthleteId] = useState<string>('')
+  const [assignmentMode, setAssignmentMode] = useState<'GOAL' | 'FREE'>('GOAL')
   const [isLoading, setIsLoading] = useState(false)
 
   const isCoach = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER'
   const canPrescribe = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN'
+  const isPrescribing = !!athleteId && athleteId !== ''
 
   // Helper para converter HH:MM:SS ou MM:SS para segundos
   const timeToSeconds = (timeStr: string) => {
@@ -129,13 +131,18 @@ export function CreateWorkoutModal({
     formData.append('slug', slug)
     formData.append('title', title || `Treino de ${TYPE_CONFIG[type as any]?.label || 'Corrida'}`)
     formData.append('distance', distance)
-    formData.append('duration', totalSeconds.toString())
+    if (totalSeconds > 0) {
+      formData.append('duration', totalSeconds.toString())
+    }
     formData.append('pace', paceValue.toString())
     formData.append('type', type)
     formData.append('date', date)
     formData.append('notes', notes)
-    if (athleteId) {
+    formData.append('status', isPrescribing ? 'PLANNED' : 'COMPLETED')
+    
+    if (isPrescribing) {
       formData.append('athleteId', athleteId)
+      formData.append('assignmentMode', assignmentMode)
     }
 
     const result = await createWorkoutAction(formData)
@@ -147,6 +154,7 @@ export function CreateWorkoutModal({
       setDuration('')
       setNotes('')
       setType('EASY')
+      setAthleteId('')
       onSuccess?.()
       onClose()
     } else {
@@ -180,7 +188,7 @@ export function CreateWorkoutModal({
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
               <Activity className="h-4 w-4" />
             </div>
-            Registrar Novo Treino
+            {isPrescribing ? 'Prescrever Treino' : 'Registrar Novo Treino'}
           </h2>
           <button
             onClick={onClose}
@@ -192,6 +200,63 @@ export function CreateWorkoutModal({
 
         <div className="overflow-y-auto bg-white p-6 md:p-8">
           <form id="workout-form" onSubmit={handleSubmit} className="space-y-6">
+            {/* SELECIONAR ATLETA (Para Coaches/Owners) */}
+            {canPrescribe && (
+              <div className="space-y-4 rounded-2xl bg-orange-50/50 p-4 border border-orange-100">
+                <div className="space-y-1.5">
+                  <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-orange-600 uppercase">
+                    <UsersIcon className="h-3.5 w-3.5" /> Prescrever Para
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={athleteId}
+                      onChange={(e) => setAthleteId(e.target.value)}
+                      className="w-full cursor-pointer appearance-none rounded-xl border border-orange-100 bg-white px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    >
+                      <option value="">Para mim mesmo (Treino Concluído)</option>
+                      {members.map(member => (
+                        <option key={member.id} value={member.userId}>
+                          {member.name}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-orange-400" />
+                  </div>
+                </div>
+
+                {isPrescribing && (
+                  <div className="space-y-3 pt-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-orange-400">
+                      Tipo de Prescrição
+                    </label>
+                    <div className="flex p-1 bg-white rounded-xl border border-orange-100">
+                      <button
+                        type="button"
+                        onClick={() => setAssignmentMode('GOAL')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${assignmentMode === 'GOAL' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-orange-500'}`}
+                      >
+                        <Timer className="h-3.5 w-3.5" />
+                        Meta (Fixo)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAssignmentMode('FREE')}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${assignmentMode === 'FREE' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-orange-500'}`}
+                      >
+                        <Activity className="h-3.5 w-3.5" />
+                        Livre (Flexível)
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-orange-400 font-medium px-1 leading-relaxed">
+                      {assignmentMode === 'GOAL' 
+                        ? 'O atleta deverá tentar cumprir a distância e o tempo exatos sugeridos.' 
+                        : 'Apenas a distância é sugerida. O atleta registrará o tempo quando concluir.'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* TÍTULO */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
@@ -206,30 +271,6 @@ export function CreateWorkoutModal({
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
               />
             </div>
-
-            {/* SELECIONAR ATLETA (Para Coaches/Owners) */}
-            {canPrescribe && (
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                  <UsersIcon className="h-3.5 w-3.5 text-orange-500" /> Prescrever Para
-                </label>
-                <div className="relative">
-                  <select
-                    value={athleteId}
-                    onChange={(e) => setAthleteId(e.target.value)}
-                    className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                  >
-                    <option value="">Para mim mesmo</option>
-                    {members.map(member => (
-                      <option key={member.id} value={member.userId}>
-                        {member.name}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                </div>
-              </div>
-            )}
 
             {/* DATA DO TREINO */}
             <div className="space-y-1.5">
@@ -301,35 +342,38 @@ export function CreateWorkoutModal({
                 <div className="relative">
                   <input
                     type="text"
-                    required
+                    required={!isPrescribing || assignmentMode === 'GOAL'}
                     value={duration}
                     onChange={handleDurationChange}
                     onBlur={handleDurationBlur}
-                    placeholder="Ex: 15:25"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-20 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isPrescribing && assignmentMode === 'FREE' ? "Livre" : "Ex: 15:25"}
+                    disabled={isPrescribing && assignmentMode === 'FREE'}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-20 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50 disabled:bg-gray-100"
                   />
                   <span className="absolute top-1/2 right-4 -translate-y-1/2 font-bold text-gray-400">
-                    tempo
+                    {isPrescribing && assignmentMode === 'FREE' ? '' : 'tempo'}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* QUADRO DE PACE REACTIVO */}
-            <div className="relative flex items-center justify-between overflow-hidden rounded-xl border border-orange-100 bg-orange-50 p-4">
-              <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-orange-500/10 blur-xl" />
-              <span className="text-[10px] font-bold tracking-wider text-orange-600 uppercase">
-                Pace Médio Calculado
-              </span>
-              <div className="relative z-10 flex items-baseline gap-1">
-                <span className="font-mono text-3xl font-light tracking-tight text-orange-600">
-                  {pace}
+            {(!isPrescribing || assignmentMode === 'GOAL') && (
+              <div className="relative flex items-center justify-between overflow-hidden rounded-xl border border-orange-100 bg-orange-50 p-4">
+                <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-orange-500/10 blur-xl" />
+                <span className="text-[10px] font-bold tracking-wider text-orange-600 uppercase">
+                  {isPrescribing ? 'Ritmo Alvo (Pace)' : 'Pace Médio Calculado'}
                 </span>
-                <span className="text-sm font-bold text-orange-500/70">
-                  /km
-                </span>
+                <div className="relative z-10 flex items-baseline gap-1">
+                  <span className="font-mono text-3xl font-light tracking-tight text-orange-600">
+                    {pace}
+                  </span>
+                  <span className="text-sm font-bold text-orange-500/70">
+                    /km
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* NOTAS / DESCRIÇÃO */}
             <div className="space-y-1.5">

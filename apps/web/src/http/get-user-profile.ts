@@ -26,6 +26,23 @@ interface GetUserProfileResponse {
     type: string
     date: string
     visibility: string
+    status: 'PLANNED' | 'COMPLETED'
+    assignmentMode: 'GOAL' | 'FREE' | null
+    club: {
+      name: string
+      slug: string
+    }
+  }[]
+  plannedWorkouts: {
+    id: string
+    title: string | null
+    distance: number
+    duration: number | null
+    type: string
+    date: string
+    visibility: string
+    status: 'PLANNED' | 'COMPLETED'
+    assignmentMode: 'GOAL' | 'FREE' | null
     club: {
       name: string
       slug: string

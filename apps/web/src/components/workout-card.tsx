@@ -33,6 +33,8 @@ export interface Workout {
   durationInSeconds: number
   type: WorkoutType
   visibility: 'PUBLIC' | 'PRIVATE'
+  status: 'PLANNED' | 'COMPLETED'
+  assignmentMode?: 'GOAL' | 'FREE' | null
   createdAt: string
   author: {
     id: string
@@ -47,6 +49,7 @@ interface WorkoutCardProps {
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
   onDelete?: (id: string) => void
   onEdit?: (id: string) => void
+  onComplete?: (workout: Workout) => void
 }
 
 export const TYPE_CONFIG: Record<
@@ -103,12 +106,15 @@ export const TYPE_CONFIG: Record<
   },
 }
 
+import { CheckCircle2, Target } from 'lucide-react'
+
 export function WorkoutCard({
   workout,
   currentUserId,
   userRole,
   onDelete,
   onEdit,
+  onComplete,
 }: WorkoutCardProps) {
   // Lógica de Permissão (Espelhando o CASL do Back-end)
   const isAuthor = currentUserId === workout.author.id
@@ -117,6 +123,8 @@ export function WorkoutCard({
     userRole === 'OWNER' ||
     userRole === 'MANAGER' ||
     userRole === 'ADMIN'
+
+  const isPlanned = workout.status === 'PLANNED'
 
   // Cálculo de Pace (dist em km, secs em segundos)
   const calculatePace = (dist: number, totalSeconds: number) => {
@@ -135,6 +143,8 @@ export function WorkoutCard({
 
   const formatDuration = (totalSeconds: number) => {
     const sRaw = Number(totalSeconds) || 0
+    if (sRaw === 0 && isPlanned) return 'Livre'
+
     const h = Math.floor(sRaw / 3600)
     const m = Math.floor((sRaw % 3600) / 60)
     const s = Math.floor(sRaw % 60)
@@ -153,13 +163,21 @@ export function WorkoutCard({
   const config = TYPE_CONFIG[workout.type] || TYPE_CONFIG.EASY
 
   return (
-    <article className="shadow-soft-card group relative overflow-hidden rounded-[1.5rem] border border-gray-100 bg-white transition-colors hover:border-orange-200">
-      {/* BADGE DE TIPO DE TREINO (Canto superior direito) */}
-      <div
-        className={`absolute top-4 right-4 z-10 flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black tracking-wider uppercase transition-all duration-300 group-hover:scale-105 ${config.bgColor} ${config.color} ${config.borderColor} shadow-sm`}
-      >
-        <Activity className="h-3 w-3" />
-        {config.label}
+    <article className={`shadow-soft-card group relative overflow-hidden rounded-[1.5rem] border transition-colors ${isPlanned ? 'border-orange-200 bg-orange-50/10' : 'border-gray-100 bg-white hover:border-orange-200'}`}>
+      {/* BADGES DE STATUS (Canto superior direito) */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+        {isPlanned && (
+          <div className="flex items-center gap-1.5 rounded-full bg-orange-500 px-2.5 py-1 text-[10px] font-black tracking-wider uppercase text-white shadow-lg shadow-orange-500/20">
+            <Target className="h-3 w-3" />
+            Prescrito
+          </div>
+        )}
+        <div
+          className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-black tracking-wider uppercase transition-all duration-300 group-hover:scale-105 ${config.bgColor} ${config.color} ${config.borderColor} shadow-sm`}
+        >
+          <Activity className="h-3 w-3" />
+          {config.label}
+        </div>
       </div>
 
       {/* CABEÇALHO DO TREINO */}
@@ -197,8 +215,8 @@ export function WorkoutCard({
           </div>
         </Link>
 
-        {/* AÇÕES DE PERMISSÃO - Ajustado para não colidir com o badge */}
-        {canModify && (
+        {/* AÇÕES DE PERMISSÃO */}
+        {canModify && !isPlanned && (
           <div className="mr-32 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             {isAuthor && onEdit && (
               <button
@@ -225,18 +243,18 @@ export function WorkoutCard({
         <h4 className="mb-1 text-lg font-extrabold text-gray-900">
           {workout.title}
         </h4>
-        {workout.description && (
+        {(workout.description || (workout as any).notes) && (
           <p className="text-sm leading-relaxed text-gray-600">
-            {workout.description}
+            {workout.description || (workout as any).notes}
           </p>
         )}
       </div>
 
-      {/* MÉTRICAS (Métricas com fonte tabular para não tremer) */}
+      {/* MÉTRICAS */}
       <div className="grid grid-cols-3 gap-4 px-5 pb-6">
         <div className="border-l-2 border-orange-500 pl-3">
           <span className="block text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-            Distância
+            {isPlanned ? 'Distância Sugerida' : 'Distância'}
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-mono text-3xl font-light tracking-tight text-gray-900">
@@ -247,7 +265,7 @@ export function WorkoutCard({
         </div>
         <div className="border-l-2 border-gray-100 pl-3">
           <span className="block text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-            Pace Médio
+            {isPlanned ? 'Pace Alvo' : 'Pace Médio'}
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-mono text-2xl font-light tracking-tight text-gray-900">
@@ -258,7 +276,7 @@ export function WorkoutCard({
         </div>
         <div className="border-l-2 border-gray-100 pl-3">
           <span className="block text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-            Tempo
+            {isPlanned ? 'Tempo Alvo' : 'Tempo'}
           </span>
           <span className="font-mono text-xl font-light tracking-tight text-gray-900">
             {formatDuration(duration)}
@@ -266,15 +284,27 @@ export function WorkoutCard({
         </div>
       </div>
 
-      {/* FEEDBACK SOCIAL */}
-      <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">
-        <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500">
-          <ThumbsUp className="h-4 w-4" /> Dar Kudos
-        </button>
-        <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900">
-          <MessageCircle className="h-4 w-4" /> Comentar
-        </button>
-      </div>
+      {/* FEEDBACK SOCIAL OU BOTÃO DE FINALIZAR */}
+      {isPlanned && isAuthor ? (
+        <div className="flex items-center gap-3 border-t border-orange-100 bg-orange-50 px-5 py-4">
+          <button 
+            onClick={() => onComplete?.(workout)}
+            className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            FINALIZAR TREINO
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">
+          <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500">
+            <ThumbsUp className="h-4 w-4" /> Dar Kudos
+          </button>
+          <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900">
+            <MessageCircle className="h-4 w-4" /> Comentar
+          </button>
+        </div>
+      )}
     </article>
   )
 }

@@ -125,25 +125,37 @@ model AthleteProfile {
 }
 
 model Workout {
-  id         String      @id @default(uuid())
-  title      String?
-  distance   Float
-  duration   Float?
-  pace       Float?
-  type       WorkoutType
-  slug       String?     @unique
-  date       DateTime
-  notes      String?
-  visibility Visibility  @default(PUBLIC)
-  imageUrl   String?
-  createdAt  DateTime    @default(now()) @map("created_at")
-  clubId     String      @map("club_id")
-  athleteId  String      @map("athlete_id")
-  athlete    User        @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  club       Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  id             String         @id @default(uuid())
+  title          String?
+  distance       Float
+  duration       Float?
+  pace           Float?
+  type           WorkoutType
+  status         WorkoutStatus @default(COMPLETED)
+  assignmentMode WorkoutMode?  @map("assignment_mode")
+  slug           String?        @unique
+  date           DateTime
+  notes          String?
+  visibility     Visibility     @default(PUBLIC)
+  imageUrl       String?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  clubId         String         @map("club_id")
+  athleteId      String         @map("athlete_id")
+  athlete        User           @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  club           Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@index([clubId])
   @@map("workouts")
+}
+
+enum WorkoutStatus {
+  PLANNED
+  COMPLETED
+}
+
+enum WorkoutMode {
+  GOAL
+  FREE
 }
 
 model Race {

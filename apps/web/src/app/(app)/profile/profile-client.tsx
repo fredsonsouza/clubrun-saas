@@ -18,6 +18,7 @@ import { Header } from '@/components/header'
 import { WorkoutCard, Workout } from '@/components/workout-card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { UpdateProfileModal } from '@/components/update-profile-modal'
+import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
 
 interface ProfileClientProps {
   currentUser: {
@@ -43,6 +44,7 @@ interface ProfileClientProps {
     isPublic: boolean
   } | null
   workouts: Workout[]
+  plannedWorkouts: Workout[]
   isOwnProfile: boolean
 }
 
@@ -51,9 +53,13 @@ export function ProfileClient({
   user,
   athleteProfile,
   workouts,
+  plannedWorkouts,
   isOwnProfile,
 }: ProfileClientProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
+  const [activeTab, setActiveTab] = useState<'activities' | 'planned'>('activities')
 
   // Cálculo de Progresso do Perfil
   const profileProgress = useMemo(() => {
@@ -70,6 +76,11 @@ export function ProfileClient({
   }, [user, athleteProfile])
 
   const isProfileIncomplete = isOwnProfile && profileProgress < 100
+
+  const handleOpenCompleteModal = (workout: Workout) => {
+    setSelectedWorkout(workout)
+    setIsCompleteModalOpen(true)
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
@@ -243,44 +254,94 @@ export function ProfileClient({
           {/* COLUNA DIREITA: Feed Pessoal */}
           <div className="space-y-6 lg:col-span-8">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-                <Calendar className="h-6 w-6 text-orange-500" /> Atividades Recentes
-              </h2>
+              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl">
+                <button
+                  onClick={() => setActiveTab('activities')}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'activities' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  <Calendar className="h-4 w-4" /> ATIVIDADES
+                </button>
+                {isOwnProfile && (
+                  <button
+                    onClick={() => setActiveTab('planned')}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'planned' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  >
+                    <Target className="h-4 w-4" /> MEUS TREINOS
+                  </button>
+                )}
+              </div>
             </div>
 
-            {workouts.length > 0 ? (
-              workouts.map((workout) => (
-                <WorkoutCard
-                  key={workout.id}
-                  workout={workout}
-                  currentUserId={currentUser.id}
-                  userRole="MEMBER"
-                />
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
-                <Activity className="mb-4 h-10 w-10 text-gray-300" />
-                <h3 className="mb-1 text-lg font-extrabold text-gray-900">Sem atividades recentes</h3>
-                <p className="text-sm font-medium text-gray-500">
-                  {isOwnProfile ? 'Você ainda não registrou nenhum treino. Vamos começar?' : 'Este atleta ainda não registrou atividades no clube.'}
-                </p>
-              </div>
-            )}
+            {activeTab === 'activities' ? (
+              <>
+                {workouts.length > 0 ? (
+                  workouts.map((workout) => (
+                    <WorkoutCard
+                      key={workout.id}
+                      workout={workout}
+                      currentUserId={currentUser.id}
+                      userRole="MEMBER"
+                    />
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
+                    <Activity className="mb-4 h-10 w-10 text-gray-300" />
+                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">Sem atividades recentes</h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      {isOwnProfile ? 'Você ainda não registrou nenhum treino. Vamos começar?' : 'Este atleta ainda não registrou atividades no clube.'}
+                    </p>
+                  </div>
+                )}
 
-            {workouts.length > 0 && (
-              <button className="cursor-pointer w-full rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600 focus:ring-2 focus:ring-orange-500/50 focus:outline-none">
-                Ver histórico completo
-              </button>
+                {workouts.length > 0 && (
+                  <button className="cursor-pointer w-full rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600 focus:ring-2 focus:ring-orange-500/50 focus:outline-none">
+                    Ver histórico completo
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                {plannedWorkouts.length > 0 ? (
+                  plannedWorkouts.map((workout) => (
+                    <div key={workout.id} className="relative">
+                      <div className="absolute -left-2 top-4 bottom-4 w-1 bg-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
+                      <WorkoutCard
+                        workout={workout}
+                        currentUserId={currentUser.id}
+                        userRole="MEMBER"
+                        onComplete={handleOpenCompleteModal}
+                      />
+                    </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
+                    <Target className="mb-4 h-10 w-10 text-gray-300" />
+                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">Nenhum treino prescrito</h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      Fale com seu treinador para receber planilhas e metas personalizadas.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
       </main>
 
-      {/* MODAL DE EDIÇÃO */}
+      {/* MODAIS */}
       <UpdateProfileModal 
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         initialData={athleteProfile}
+      />
+
+      <CompleteWorkoutModal
+        isOpen={isCompleteModalOpen}
+        workout={selectedWorkout}
+        onClose={() => setIsCompleteModalOpen(false)}
+        onSuccess={() => {
+          // Revalidação já é feita na action
+        }}
       />
     </div>
   )

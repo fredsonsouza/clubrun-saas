@@ -8,13 +8,17 @@ export async function createWorkoutAction(formData: FormData) {
   const slug = formData.get('slug') as string
   const title = formData.get('title') as string
   const distance = Number(formData.get('distance'))
-  const duration = Number(formData.get('duration'))
+  const durationRaw = formData.get('duration')
+  const duration = durationRaw ? Number(durationRaw) : null
   const type = formData.get('type') as any
   const dateStr = formData.get('date') as string
   const notes = formData.get('notes') as string
+  const athleteId = formData.get('athleteId') as string
+  const status = formData.get('status') as any
+  const assignmentMode = formData.get('assignmentMode') as any
 
   // Cálculo simples de pace para a API (min/km)
-  const pace = distance > 0 ? duration / distance : 0
+  const pace = (distance > 0 && duration) ? duration / distance : 0
 
   try {
     await createWorkout({
@@ -26,6 +30,9 @@ export async function createWorkoutAction(formData: FormData) {
       type,
       date: new Date(dateStr),
       notes,
+      athleteId,
+      status,
+      assignmentMode,
     })
 
     revalidateTag('workouts')

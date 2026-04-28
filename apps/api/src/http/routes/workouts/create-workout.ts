@@ -21,9 +21,11 @@ export async function createWorkout(app: FastifyInstance) {
           body: z.object({
             title: z.string(),
             distance: z.number(),
-            duration: z.number().nullable(),
-            pace: z.number(),
+            duration: z.number().nullable().optional(),
+            pace: z.number().optional(),
             athleteId: z.string().uuid().optional(),
+            status: z.enum(['PLANNED', 'COMPLETED']).default('COMPLETED'),
+            assignmentMode: z.enum(['GOAL', 'FREE']).optional(),
             type: z.enum([
               'EASY',
               'INTERVAL',
@@ -52,14 +54,14 @@ export async function createWorkout(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot, can } = getUserPermissions(
+        const { cannot } = getUserPermissions(
           userId, 
           memberShip.role, 
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
 
-        const { title, distance, duration, date, pace, type, notes, athleteId } =
+        const { title, distance, duration, date, pace, type, notes, athleteId, status, assignmentMode } =
           request.body
 
         // If target athlete is different from creator, check if can prescribe
@@ -87,39 +89,44 @@ export async function createWorkout(app: FastifyInstance) {
             pace,
             type,
             notes,
+            status: isPrescribing ? 'PLANNED' : status,
+            assignmentMode: isPrescribing ? (assignmentMode || 'FREE') : null,
             slug: `${createSlug(title)}-${Date.now()}`,
             clubId: club.id,
             athleteId: targetAthleteId,
           },
         })
 
-        // Update AthleteProfile paceAvg
-        const athleteStats = await prisma.workout.aggregate({
-          where: {
-            athleteId: targetAthleteId,
-            clubId: club.id,
-          },
-          _sum: {
-            distance: true,
-            duration: true,
-          },
-        })
-
-        if (athleteStats._sum.distance && athleteStats._sum.duration) {
-          const totalDistance = athleteStats._sum.distance
-          const totalSeconds = athleteStats._sum.duration
-          const newPaceAvg = (totalSeconds / 60) / totalDistance
-
-          await prisma.athleteProfile.upsert({
-            where: { userId: targetAthleteId },
-            create: {
-              userId: targetAthleteId,
-              paceAvg: newPaceAvg,
+        // Update AthleteProfile paceAvg ONLY if workout is COMPLETED
+        if (workout.status === 'COMPLETED') {
+          const athleteStats = await prisma.workout.aggregate({
+            where: {
+              athleteId: targetAthleteId,
+              clubId: club.id,
+              status: 'COMPLETED',
             },
-            update: {
-              paceAvg: newPaceAvg,
+            _sum: {
+              distance: true,
+              duration: true,
             },
           })
+
+          if (athleteStats._sum.distance && athleteStats._sum.duration) {
+            const totalDistance = athleteStats._sum.distance
+            const totalSeconds = athleteStats._sum.duration
+            const newPaceAvg = (totalSeconds / 60) / totalDistance
+
+            await prisma.athleteProfile.upsert({
+              where: { userId: targetAthleteId },
+              create: {
+                userId: targetAthleteId,
+                paceAvg: newPaceAvg,
+              },
+              update: {
+                paceAvg: newPaceAvg,
+              },
+            })
+          }
         }
 
         return reply.status(201).send({

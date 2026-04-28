@@ -46,6 +46,23 @@ export async function getUserProfile(app: FastifyInstance) {
                 type: z.string(),
                 date: z.date(),
                 visibility: z.string(),
+                status: z.enum(['PLANNED', 'COMPLETED']),
+                assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
+                club: z.object({
+                  name: z.string(),
+                  slug: z.string(),
+                })
+              })),
+              plannedWorkouts: z.array(z.object({
+                id: z.string().uuid(),
+                title: z.string().nullable(),
+                distance: z.number(),
+                duration: z.number().nullable(),
+                type: z.string(),
+                date: z.date(),
+                visibility: z.string(),
+                status: z.enum(['PLANNED', 'COMPLETED']),
+                assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
                 club: z.object({
                   name: z.string(),
                   slug: z.string(),
@@ -56,10 +73,12 @@ export async function getUserProfile(app: FastifyInstance) {
         },
       },
       async (request, reply) => {
-        const { userId } = request.params
+        const { userId: profileUserId } = request.params
+        const currentUserId = await request.getCurrentUserId()
+        const isOwner = currentUserId === profileUserId
 
         const user = await prisma.user.findUnique({
-          where: { id: userId },
+          where: { id: profileUserId },
           select: {
             id: true,
             name: true,
@@ -67,20 +86,6 @@ export async function getUserProfile(app: FastifyInstance) {
             avatarUrl: true,
             isSystemAdmin: true,
             athleteProfile: true,
-            workouts: {
-              include: {
-                club: {
-                  select: {
-                    name: true,
-                    slug: true,
-                  }
-                }
-              },
-              orderBy: {
-                date: 'desc',
-              },
-              take: 20,
-            }
           },
         })
 
@@ -88,12 +93,48 @@ export async function getUserProfile(app: FastifyInstance) {
           throw new BadRequestError('User not found')
         }
 
-        const { athleteProfile, workouts, ...userData } = user
+        const workouts = await prisma.workout.findMany({
+          where: {
+            athleteId: profileUserId,
+            status: 'COMPLETED',
+          },
+          include: {
+            club: {
+              select: {
+                name: true,
+                slug: true,
+              }
+            }
+          },
+          orderBy: {
+            date: 'desc',
+          },
+          take: 20,
+        })
+
+        const plannedWorkouts = isOwner ? await prisma.workout.findMany({
+          where: {
+            athleteId: profileUserId,
+            status: 'PLANNED',
+          },
+          include: {
+            club: {
+              select: {
+                name: true,
+                slug: true,
+              }
+            }
+          },
+          orderBy: {
+            date: 'asc',
+          },
+        }) : []
 
         return reply.send({
-          user: userData,
-          athleteProfile,
+          user,
+          athleteProfile: user.athleteProfile,
           workouts,
+          plannedWorkouts,
         })
       }
     )
