@@ -179,7 +179,7 @@ export function DashboardClient({
             </span>
             <div className="mb-4 flex items-baseline gap-1">
               <span className="font-mono text-4xl font-black tracking-tight text-orange-500">
-                {club.monthlyDistance}
+                {club.monthlyDistance.toFixed(1)}
               </span>
               <span className="text-sm font-bold text-orange-400">km</span>
             </div>

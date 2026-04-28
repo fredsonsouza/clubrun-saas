@@ -25,6 +25,12 @@ export default async function MembersPage({ params }: MembersPageProps) {
   // BUSCA MEMBROS REAIS DA API
   const { members } = await getMembers({ slug })
 
+  const clubInfo = {
+    name: currentClub.name,
+    slug: currentClub.slug,
+    description: (currentClub as any).description,
+  }
+
   const formattedMembers = members.map((m) => ({
     id: m.id,
     userId: m.userId,
@@ -35,12 +41,8 @@ export default async function MembersPage({ params }: MembersPageProps) {
     joinedAt: 'Membro Ativo',
     subscriptionStatus: 'ACTIVE' as const,
     overdue: m.overdue,
+    paceAvg: (m as any).paceAvg,
   }))
-
-  const clubInfo = {
-    name: currentClub.name,
-    slug: currentClub.slug,
-  }
 
   return (
     <MembersClient

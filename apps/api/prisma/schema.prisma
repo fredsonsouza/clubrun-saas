@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -13,9 +7,221 @@ datasource db {
   provider = "postgresql"
 }
 
-//
-// ENUMS
-//
+model User {
+  id             String          @id @default(uuid())
+  name           String?
+  email          String          @unique
+  passwordHash   String?         @map("password_hash")
+  avatarUrl      String?         @map("avatar_url")
+  isSystemAdmin  Boolean         @default(false) @map("is_system_admin")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  accounts       Account[]
+  athleteProfile AthleteProfile?
+  auditLogs      AuditLog[]
+  clubsOwned     Club[]          @relation("ClubOwner")
+  invites        Invite[]        @relation("InviteAuthor")
+  members_on     Member[]
+  raceResults    RaceResult[]
+  rankings       Ranking[]
+  tokens         Token[]
+  workouts       Workout[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String        @id @default(uuid())
+  provider          OAuthProvider
+  providerAccountId String        @map("provider_account_id")
+  userId            String        @map("user_id")
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Token {
+  id        String    @id @default(uuid())
+  type      TokenType
+  createdAt DateTime  @default(now()) @map("created_at")
+  userId    String    @map("user_id")
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("tokens")
+}
+
+model Club {
+  id                        String    @id @default(uuid())
+  name                      String
+  slug                      String    @unique
+  domain                    String?   @unique
+  cnpj                      String?   @unique
+  shouldAttachUsersByDomain Boolean   @default(false) @map("should_attach_users_by_domain")
+  avatarUrl                 String?   @map("avatar_url")
+  stripeCustomerId          String?   @unique @map("stripe_customer_id")
+  stripeSubscriptionId      String?   @unique @map("stripe_subscription_id")
+  subscriptionStatus        String?   @map("subscription_status")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+  ownerId                   String    @map("owner_id")
+  owner                     User      @relation("ClubOwner", fields: [ownerId], references: [id])
+  invites                   Invite[]
+  invoices                  Invoice[]
+  members                   Member[]
+  races                     Race[]
+  rankings                  Ranking[]
+  workouts                  Workout[]
+
+  @@map("clubs")
+}
+
+model Invite {
+  id        String   @id @default(uuid())
+  email     String
+  role      Role
+  createdAt DateTime @default(now()) @map("created_at")
+  authorId  String?  @map("author_id")
+  clubId    String   @map("club_id")
+  author    User?    @relation("InviteAuthor", fields: [authorId], references: [id])
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([email, clubId])
+  @@index([email])
+  @@map("invites")
+}
+
+model Member {
+  id       String       @id @default(uuid())
+  role     Role         @default(MEMBER)
+  status   MemberStatus @default(ACTIVE)
+  clubId   String       @map("club_id")
+  userId   String       @map("user_id")
+  invoices Invoice[]
+  club     Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, userId])
+  @@map("members")
+}
+
+model AthleteProfile {
+  id           String    @id @default(uuid())
+  paceAvg      Float?
+  weight       Float?
+  height       Int?
+  gender       Gender?
+  birthDate    DateTime?
+  bio          String?
+  city         String?
+  instagramUrl String?   @map("instagram_url")
+  youtubeUrl   String?   @map("youtube_url")
+  stravaUrl    String?   @map("strava_url")
+  isPublic     Boolean   @default(true) @map("is_public")
+  userId       String    @unique @map("user_id")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("athlete_profiles")
+}
+
+model Workout {
+  id         String      @id @default(uuid())
+  title      String?
+  distance   Float
+  duration   Float?
+  pace       Float?
+  type       WorkoutType
+  slug       String?     @unique
+  date       DateTime
+  notes      String?
+  visibility Visibility  @default(PUBLIC)
+  imageUrl   String?
+  createdAt  DateTime    @default(now()) @map("created_at")
+  clubId     String      @map("club_id")
+  athleteId  String      @map("athlete_id")
+  athlete    User        @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  club       Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@index([clubId])
+  @@map("workouts")
+}
+
+model Race {
+  id        String       @id @default(uuid())
+  name      String
+  distance  Float
+  city      String
+  date      DateTime
+  imageUrl  String?
+  createdAt DateTime     @default(now()) @map("created_at")
+  clubId    String       @map("club_id")
+  results   RaceResult[]
+  club      Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@map("races")
+}
+
+model RaceResult {
+  id        String   @id @default(uuid())
+  time      Int
+  position  Int?
+  pace      Float?
+  createdAt DateTime @default(now()) @map("created_at")
+  raceId    String   @map("race_id")
+  athleteId String   @map("athlete_id")
+  athlete   User     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  race      Race     @relation(fields: [raceId], references: [id], onDelete: Cascade)
+
+  @@unique([raceId, athleteId])
+  @@map("race_results")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String
+  entity    String
+  entityId  String   @map("entity_id")
+  payload   Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String?  @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Ranking {
+  id        String   @id @default(uuid())
+  year      Int
+  month     Int?
+  week      Int?
+  points    Int      @default(0)
+  createdAt DateTime @default(now()) @map("created_at")
+  clubId    String   @map("club_id")
+  athleteId String   @map("athlete_id")
+  athlete   User     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
+
+  @@unique([clubId, athleteId, year, month, week])
+  @@index([clubId])
+  @@map("rankings")
+}
+
+model Invoice {
+  id          String        @id @default(uuid())
+  amount      Float
+  description String
+  status      InvoiceStatus @default(PENDING)
+  dueDate     DateTime      @map("due_date")
+  paidAt      DateTime?     @map("paid_at")
+  clubId      String        @map("club_id")
+  memberId    String        @map("member_id")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  club        Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  member      Member        @relation(fields: [memberId], references: [id])
+
+  @@map("invoices")
+}
 
 enum TokenType {
   PASSWORD_RECOVER
@@ -68,275 +274,4 @@ enum WorkoutType {
   RACE
   STRENGTH
   WALK
-}
-
-//
-// USER + AUTH
-//
-
-model User {
-  id           String   @id @default(uuid())
-  name         String?
-  email        String   @unique
-  passwordHash String?  @map("password_hash")
-  avatarUrl    String?  @map("avatar_url")
-  isSystemAdmin Boolean @default(false) @map("is_system_admin")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  tokens         Token[]
-  accounts       Account[]
-  invites        Invite[]        @relation("InviteAuthor")
-  members_on     Member[]
-  clubsOwned     Club[]          @relation("ClubOwner")
-  workouts       Workout[]
-  athleteProfile AthleteProfile?
-  raceResults    RaceResult[]
-  rankings       Ranking[]
-  auditLogs      AuditLog[]
-
-  @@map("users")
-}
-
-model Account {
-  id                String        @id @default(uuid())
-  provider          OAuthProvider
-  providerAccountId String        @map("provider_account_id")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @map("user_id")
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
-}
-
-model Token {
-  id        String    @id @default(uuid())
-  type      TokenType
-  createdAt DateTime  @default(now()) @map("created_at")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @map("user_id")
-
-  @@map("tokens")
-}
-
-//
-// MULTI-TENANCY — CLUBS 
-//
-// Each user belongs to a club through the Member table.
-//
-
-model Club {
-  id                        String  @id @default(uuid())
-  name                      String
-  slug                      String  @unique
-  domain                    String? @unique
-  cnpj                      String? @unique
-  shouldAttachUsersByDomain Boolean @default(false) @map("should_attach_users_by_domain")
-  avatarUrl                 String? @map("avatar_url")
-
-  stripeCustomerId     String? @unique @map("stripe_customer_id")
-  stripeSubscriptionId String? @unique @map("stripe_subscription_id")
-  subscriptionStatus   String? @map("subscription_status")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  owner   User   @relation("ClubOwner", fields: [ownerId], references: [id])
-  ownerId String @map("owner_id")
-
-  members  Member[]
-  invites  Invite[]
-  workouts Workout[]
-  races    Race[]
-  rankings Ranking[]
-  invoices Invoice[]
-
-  @@map("clubs")
-}
-
-model Invite {
-  id        String   @id @default(uuid())
-  email     String
-  role      Role
-  createdAt DateTime @default(now()) @map("created_at")
-
-  author   User?   @relation("InviteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
-  authorId String? @map("author_id")
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  @@unique([email, clubId])
-  @@index([email])
-  @@map("invites")
-}
-
-model Member {
-  id     String       @id @default(uuid())
-  role   Role         @default(MEMBER)
-  status MemberStatus @default(ACTIVE)
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId   String    @map("user_id")
-  invoices Invoice[]
-
-  @@unique([clubId, userId])
-  @@map("members")
-}
-
-//
-// ATHLETE PROFILE
-//
-
-model AthleteProfile {
-  id        String    @id @default(uuid())
-  paceAvg   Float? // average pace
-  weight    Float?
-  height    Int?
-  gender    Gender?
-  birthDate DateTime?
-  bio       String?   @db.Text
-  city      String?
-
-  instagramUrl String? @map("instagram_url")
-  youtubeUrl   String? @map("youtube_url")
-  stravaUrl    String? @map("strava_url")
-  isPublic     Boolean @default(true) @map("is_public")
-
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique @map("user_id")
-
-  @@map("athlete_profiles")
-}
-
-//
-// WORKOUTS
-//
-
-model Workout {
-  id         String     @id @default(uuid())
-  title      String?
-  distance   Float // km
-  duration   Int? // seconds
-  pace       Float? // calculated or provided
-  type       WorkoutType
-  slug       String?    @unique
-  date       DateTime
-  notes      String?
-  visibility Visibility @default(PUBLIC)
-  imageUrl   String? // workout screenshot upload (Strava type)
-  createdAt  DateTime   @default(now()) @map("created_at")
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  athleteId String @map("athlete_id")
-
-  @@index([clubId])
-  @@map("workouts")
-}
-
-//
-// RACES
-//
-
-model Race {
-  id        String   @id @default(uuid())
-  name      String
-  distance  Float
-  city      String
-  date      DateTime
-  imageUrl  String?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  results RaceResult[]
-
-  @@map("races")
-}
-
-model RaceResult {
-  id        String   @id @default(uuid())
-  time      Int // total time in seconds
-  position  Int?
-  pace      Float?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  race   Race   @relation(fields: [raceId], references: [id], onDelete: Cascade)
-  raceId String @map("race_id")
-
-  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  athleteId String @map("athlete_id")
-
-  @@unique([raceId, athleteId]) // an athlete can only have one result per race
-  @@map("race_results")
-}
-
-model AuditLog {
-  id        String   @id @default(uuid())
-  action    String   // e.g., 'CLUB_CREATED', 'MEMBER_REMOVED', 'USER_BANNED'
-  entity    String   // e.g., 'CLUB', 'USER', 'WORKOUT'
-  entityId  String   @map("entity_id")
-  payload   Json?
-  createdAt DateTime @default(now()) @map("created_at")
-
-  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
-  userId String? @map("user_id")
-
-  @@map("audit_logs")
-}
-
-//
-// RANKING
-//
-
-model Ranking {
-  id        String   @id @default(uuid())
-  year      Int
-  month     Int?
-  week      Int?
-  points    Int      @default(0)
-  createdAt DateTime @default(now()) @map("created_at")
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  athlete   User   @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  athleteId String @map("athlete_id")
-
-  @@unique([clubId, athleteId, year, month, week])
-  @@index([clubId])
-  @@map("rankings")
-}
-
-//
-// INVOICE
-//
-
-model Invoice {
-  id          String        @id @default(uuid())
-  amount      Float
-  description String
-  status      InvoiceStatus @default(PENDING)
-  dueDate     DateTime      @map("due_date")
-  paidAt      DateTime?     @map("paid_at")
-
-  club   Club   @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  clubId String @map("club_id")
-
-  member   Member @relation(fields: [memberId], references: [id])
-  memberId String @map("member_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("invoices")
 }

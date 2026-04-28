@@ -46,7 +46,12 @@ export async function deleteWorkout(app: FastifyInstance) {
 
         const authWorkout = workoutSchema.parse(workout)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId, 
+          memberShip.role, 
+          memberShip.isSystemAdmin,
+          memberShip.clubId
+        )
 
         if (cannot('delete', authWorkout)) {
           throw new UnauthorizedError(

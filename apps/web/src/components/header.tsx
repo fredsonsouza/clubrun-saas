@@ -126,7 +126,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
-        <div className="hidden items-center gap-0.5 text-[13px] font-bold text-gray-500 xl:flex">
+        <div className={`hidden items-center gap-0.5 ${userRole === 'MEMBER' || userRole === 'COACH' ? 'text-[15px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
           <Link
             href="/explore"
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
@@ -140,7 +140,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <LayoutDashboard className="h-4 w-4" />
-            Painel
+            {userRole === 'MEMBER' || userRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
           </Link>
 
           <Link

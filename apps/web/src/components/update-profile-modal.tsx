@@ -14,6 +14,9 @@ import {
   Lock,
 } from 'lucide-react'
 
+import { toast } from 'sonner'
+import { updateProfileAction } from '@/app/(app)/profile/actions'
+
 interface UpdateProfileModalProps {
   isOpen: boolean
   onClose: () => void
@@ -37,8 +40,8 @@ export function UpdateProfileModal({
   const [formData, setFormData] = useState({
     bio: initialData?.bio || '',
     city: initialData?.city || '',
-    weight: initialData?.weight || '',
-    height: initialData?.height || '',
+    weight: initialData?.weight?.toString() || '',
+    height: initialData?.height?.toString() || '',
     gender: initialData?.gender || 'MALE',
     instagramUrl: initialData?.instagramUrl || '',
     stravaUrl: initialData?.stravaUrl || '',
@@ -48,15 +51,27 @@ export function UpdateProfileModal({
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    // Simulação de chamada: PUT /profile/athlete
-    setTimeout(() => {
-      setIsSaving(false)
-      alert('Perfil atualizado com sucesso!')
+    
+    const result = await updateProfileAction({
+      ...formData,
+      weight: formData.weight ? parseFloat(formData.weight) : undefined,
+      height: formData.height ? parseInt(formData.height) : undefined,
+      gender: formData.gender as any,
+      instagramUrl: formData.instagramUrl || null,
+      stravaUrl: formData.stravaUrl || null,
+    })
+
+    setIsSaving(false)
+    
+    if (result.success) {
+      toast.success(result.message)
       onClose()
-    }, 1000)
+    } else {
+      toast.error(result.message)
+    }
   }
 
   return (

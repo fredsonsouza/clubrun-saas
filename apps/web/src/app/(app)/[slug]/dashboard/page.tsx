@@ -57,7 +57,7 @@ export default async function ClubDashboardPage({
     title: w.title || (w.type === 'EASY' ? 'Rodagem Leve' : 'Treino de Corrida'),
     description: w.notes || '',
     distance: w.distance,
-    durationInMinutes: w.duration || 0,
+    durationInSeconds: w.duration || 0,
     type: w.type as any,
     visibility: 'PUBLIC' as const,
     createdAt: w.date,

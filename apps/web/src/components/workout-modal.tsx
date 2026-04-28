@@ -36,7 +36,7 @@ export function CreateWorkoutModal({
 }: CreateWorkoutModalProps) {
   const [title, setTitle] = useState('')
   const [distance, setDistance] = useState('')
-  const [duration, setDuration] = useState('')
+  const [duration, setDuration] = useState('') // Agora aceita MM:SS ou HH:MM:SS
   const [type, setType] = useState('EASY')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState('')
@@ -45,19 +45,75 @@ export function CreateWorkoutModal({
   const [isLoading, setIsLoading] = useState(false)
 
   const isCoach = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER'
-  // Actually, user said COACH prescreve. Let's stick to what he said.
   const canPrescribe = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN'
+
+  // Helper para converter HH:MM:SS ou MM:SS para segundos
+  const timeToSeconds = (timeStr: string) => {
+    if (!timeStr) return 0
+    const parts = timeStr.split(':').map(Number)
+    if (parts.length === 3) {
+      // MM:SS:CC (centésimos de segundo)
+      return (parts[0] || 0) * 60 + (parts[1] || 0) + ((parts[2] || 0) / 100)
+    }
+    if (parts.length === 2) {
+      return (parts[0] || 0) * 60 + (parts[1] || 0)
+    }
+    return (parts[0] || 0) * 60
+  }
 
   // Reatividade em tempo real: Cálculo do pace enquanto o usuário digita
   const pace = useMemo(() => {
     const d = parseFloat(distance) || 0
-    const t = parseFloat(duration) || 0
-    if (d <= 0 || t <= 0) return '0:00'
-    const paceDecimal = t / d
-    const mins = Math.floor(paceDecimal)
-    const secs = Math.floor((paceDecimal - mins) * 60)
+    const totalSeconds = timeToSeconds(duration)
+    
+    if (d <= 0 || totalSeconds <= 0) return '0:00'
+    
+    const paceInSecondsPerKm = totalSeconds / d
+    const mins = Math.floor(paceInSecondsPerKm / 60)
+    const secs = Math.floor(paceInSecondsPerKm % 60)
+    const millis = Math.round((paceInSecondsPerKm % 1) * 100)
+    
+    if (millis > 0) {
+      return `${mins}:${secs.toString().padStart(2, '0')}:${millis.toString().padStart(2, '0')}`
+    }
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }, [distance, duration])
+
+  const handleDurationBlur = () => {
+    if (!duration) return
+    
+    // Remove tudo que não for dígito
+    const digits = duration.replace(/\D/g, '')
+    
+    if (digits.length === 2) {
+      setDuration(`${digits}:00`)
+    } else if (digits.length === 3) {
+      setDuration(`${digits.slice(0, 2)}:${digits.slice(2)}0`)
+    } else if (digits.length === 4) {
+      setDuration(`${digits.slice(0, 2)}:${digits.slice(2)}`)
+    } else if (digits.length === 5) {
+      // 5 dígitos: MM:SS:C -> MM:SS:C0
+      setDuration(`${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4)}0`)
+    } else if (digits.length >= 6) {
+      setDuration(`${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`)
+    }
+  }
+
+  const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value
+    // Permite apenas números e dois pontos
+    val = val.replace(/[^0-9:]/g, '')
+    
+    // Auto-inserção do : após 2 dígitos e 4 dígitos
+    const digits = val.replace(/\D/g, '')
+    if (digits.length > 2 && digits.length <= 4) {
+      val = `${digits.slice(0, 2)}:${digits.slice(2)}`
+    } else if (digits.length > 4) {
+      val = `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`
+    }
+    
+    setDuration(val)
+  }
 
   if (!isOpen) return null
 
@@ -65,11 +121,16 @@ export function CreateWorkoutModal({
     e.preventDefault()
     setIsLoading(true)
 
+    const totalSeconds = timeToSeconds(duration)
+    const d = parseFloat(distance) || 0
+    const paceValue = d > 0 ? totalSeconds / d / 60 : 0 // pace em minutos decimais para o banco
+
     const formData = new FormData()
     formData.append('slug', slug)
     formData.append('title', title || `Treino de ${TYPE_CONFIG[type as any]?.label || 'Corrida'}`)
     formData.append('distance', distance)
-    formData.append('duration', duration)
+    formData.append('duration', totalSeconds.toString())
+    formData.append('pace', paceValue.toString())
     formData.append('type', type)
     formData.append('date', date)
     formData.append('notes', notes)
@@ -239,15 +300,16 @@ export function CreateWorkoutModal({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
                     required
                     value={duration}
-                    onChange={(e) => setDuration(e.target.value)}
-                    placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-14 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    onChange={handleDurationChange}
+                    onBlur={handleDurationBlur}
+                    placeholder="Ex: 15:25"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-20 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                   <span className="absolute top-1/2 right-4 -translate-y-1/2 font-bold text-gray-400">
-                    min
+                    tempo
                   </span>
                 </div>
               </div>

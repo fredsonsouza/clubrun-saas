@@ -30,7 +30,7 @@ export interface Workout {
   title: string
   description?: string | null
   distance: number // em km
-  durationInMinutes: number
+  durationInSeconds: number
   type: WorkoutType
   visibility: 'PUBLIC' | 'PRIVATE'
   createdAt: string
@@ -118,20 +118,37 @@ export function WorkoutCard({
     userRole === 'MANAGER' ||
     userRole === 'ADMIN'
 
-  // Cálculo de Pace
-  const calculatePace = (dist: number, mins: number) => {
-    if (dist <= 0) return '0:00'
-    const paceDecimal = mins / dist
-    const pMins = Math.floor(paceDecimal)
-    const pSecs = Math.floor((paceDecimal - pMins) * 60)
+  // Cálculo de Pace (dist em km, secs em segundos)
+  const calculatePace = (dist: number, totalSeconds: number) => {
+    const d = Number(dist) || 0
+    const s = Number(totalSeconds) || 0
+    
+    if (d <= 0 || s <= 0) return '0:00'
+    const paceInSeconds = s / d
+    
+    if (isNaN(paceInSeconds)) return '0:00'
+    
+    const pMins = Math.floor(paceInSeconds / 60)
+    const pSecs = Math.floor(paceInSeconds % 60)
     return `${pMins}:${pSecs.toString().padStart(2, '0')}`
   }
 
-  const formatDuration = (mins: number) => {
-    const h = Math.floor(mins / 60)
-    const m = mins % 60
-    return h > 0 ? `${h}h ${m}m` : `${m}m`
+  const formatDuration = (totalSeconds: number) => {
+    const sRaw = Number(totalSeconds) || 0
+    const h = Math.floor(sRaw / 3600)
+    const m = Math.floor((sRaw % 3600) / 60)
+    const s = Math.floor(sRaw % 60)
+    
+    if (h > 0) {
+      return `${h}h ${m}m ${s}s`
+    }
+    return `${m}m ${s}s`
   }
+
+  // Fallbacks defensivos para garantir que os dados existam mesmo se o mapeamento falhar
+  const distance = Number(workout.distance) || 0
+  const duration = Number(workout.durationInSeconds ?? (workout as any).duration) || 0
+  const dateStr = workout.createdAt ?? (workout as any).date ?? new Date().toISOString()
 
   const config = TYPE_CONFIG[workout.type] || TYPE_CONFIG.EASY
 
@@ -154,7 +171,7 @@ export function WorkoutCard({
           <Avatar className="h-10 w-10 shrink-0 border border-gray-200 transition-transform group-hover/author:scale-105">
             <AvatarImage src={workout.author.avatarUrl || ''} className="object-cover" />
             <AvatarFallback className="text-sm font-bold text-gray-400">
-              {workout.author.name.charAt(0)}
+              {workout.author.name?.charAt(0) || 'A'}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -163,7 +180,7 @@ export function WorkoutCard({
             </h3>
             <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-gray-500">
               <span>
-                {new Date(workout.createdAt).toLocaleDateString('pt-BR', {
+                {new Date(dateStr).toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: 'short',
                   hour: '2-digit',
@@ -223,7 +240,7 @@ export function WorkoutCard({
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-mono text-3xl font-light tracking-tight text-gray-900">
-              {workout.distance.toFixed(2)}
+              {distance.toFixed(2)}
             </span>
             <span className="text-sm font-bold text-gray-500">km</span>
           </div>
@@ -234,7 +251,7 @@ export function WorkoutCard({
           </span>
           <div className="flex items-baseline gap-1">
             <span className="font-mono text-2xl font-light tracking-tight text-gray-900">
-              {calculatePace(workout.distance, workout.durationInMinutes)}
+              {calculatePace(distance, duration)}
             </span>
             <span className="text-xs font-bold text-gray-500">/km</span>
           </div>
@@ -244,7 +261,7 @@ export function WorkoutCard({
             Tempo
           </span>
           <span className="font-mono text-xl font-light tracking-tight text-gray-900">
-            {formatDuration(workout.durationInMinutes)}
+            {formatDuration(duration)}
           </span>
         </div>
       </div>

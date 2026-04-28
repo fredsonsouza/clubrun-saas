@@ -81,16 +81,25 @@ export async function getClubeRanking(app: FastifyInstance) {
             },
             _sum: {
               distance: true,
+              duration: true,
             },
             _count: {
               id: true,
             }
           })
 
+          const totalDistance = stats._sum.distance || 0
+          const totalSeconds = stats._sum.duration || 0
+          
+          // Pace em minutos decimais: (totalSeconds / 60) / totalDistance
+          const paceAvg = totalDistance > 0 ? (totalSeconds / 60) / totalDistance : 0
+
           return {
             ...r,
-            distance: stats._sum.distance || 0,
+            distance: totalDistance,
+            duration: totalSeconds,
             workoutsCount: stats._count.id || 0,
+            paceAvg,
           }
         }))
 

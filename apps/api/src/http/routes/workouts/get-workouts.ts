@@ -64,7 +64,12 @@ export async function getWorkouts(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { can } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { can } = getUserPermissions(
+          userId, 
+          memberShip.role, 
+          memberShip.isSystemAdmin,
+          memberShip.clubId
+        )
 
         if (!can('get', 'Workout')) {
           throw new UnauthorizedError(`You're not allowed to list workouts`)

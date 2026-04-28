@@ -53,7 +53,6 @@ export function ProfileClient({
   workouts,
   isOwnProfile,
 }: ProfileClientProps) {
-  const [activeWorkouts] = useState<Workout[]>(workouts)
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
 
   // Cálculo de Progresso do Perfil
@@ -123,10 +122,10 @@ export function ProfileClient({
           </div>
 
           <div className="relative px-6 pb-8 md:px-10">
-            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+            <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="-mt-16 flex flex-col items-center gap-6 md:-mt-20 md:flex-row md:items-end">
                 <div className="relative z-10 group">
-                  <div className={`relative h-32 w-32 rounded-full border-4 border-white bg-white shadow-md transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}>
+                  <div className={`relative h-32 w-32 rounded-full border-4 border-white bg-white shadow-xl transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}>
                     <Avatar className="h-full w-full">
                       <AvatarImage src={user.avatarUrl || ''} className="object-cover" />
                       <AvatarFallback className="text-3xl font-black text-gray-400">
@@ -135,33 +134,31 @@ export function ProfileClient({
                     </Avatar>
                   </div>
                   <div
-                    className="absolute right-1 bottom-1 flex h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-orange-500 shadow-sm"
+                    className="absolute right-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-orange-500 shadow-md"
                     title="Atleta Verificado"
                   >
-                    <Target className="h-3 w-3 text-white" />
+                    <Target className="h-3.5 w-3.5 text-white" />
                   </div>
                 </div>
-
-                <div className="pb-2 text-center md:text-left">
-                  <div className="flex items-center gap-3 justify-center md:justify-start">
-                    <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                      {user.name || 'Atleta Sem Nome'}
-                    </h1>
-                  </div>
-                  <p className="mt-1 flex items-center justify-center gap-1.5 font-bold text-gray-400 text-sm md:justify-start uppercase tracking-wider">
-                    <MapPin className="h-3.5 w-3.5" /> {athleteProfile?.city || 'Localização não definida'}
+                
+                <div className="pb-1 text-center md:text-left">
+                  <h1 className="text-3xl font-black text-gray-900 tracking-tight md:text-4xl">
+                    {user.name || 'Atleta Sem Nome'}
+                  </h1>
+                  <p className="mt-1.5 flex items-center justify-center gap-1.5 font-bold text-gray-400 text-xs md:justify-start uppercase tracking-[0.2em]">
+                    <MapPin className="h-3.5 w-3.5 text-orange-500" /> {athleteProfile?.city || 'Localização não definida'}
                   </p>
                 </div>
               </div>
 
-              {/* Ações */}
               {isOwnProfile && (
-                <div className="flex justify-center pb-2">
+                <div className="flex justify-center md:pb-1">
                   <button 
                     onClick={() => setIsUpdateModalOpen(true)}
-                    className="cursor-pointer flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition-all hover:border-orange-200 hover:bg-orange-50 hover:text-orange-500 focus:ring-2 focus:ring-orange-200 focus:outline-none"
+                    className="cursor-pointer group flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
                   >
-                    <Edit3 className="h-4 w-4" /> Editar Perfil
+                    <Edit3 className="h-4 w-4 transition-transform group-hover:rotate-12" /> 
+                    EDITAR PERFIL
                   </button>
                 </div>
               )}
@@ -251,8 +248,8 @@ export function ProfileClient({
               </h2>
             </div>
 
-            {activeWorkouts.length > 0 ? (
-              activeWorkouts.map((workout) => (
+            {workouts.length > 0 ? (
+              workouts.map((workout) => (
                 <WorkoutCard
                   key={workout.id}
                   workout={workout}
@@ -270,7 +267,7 @@ export function ProfileClient({
               </div>
             )}
 
-            {activeWorkouts.length > 0 && (
+            {workouts.length > 0 && (
               <button className="cursor-pointer w-full rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600 focus:ring-2 focus:ring-orange-500/50 focus:outline-none">
                 Ver histórico completo
               </button>

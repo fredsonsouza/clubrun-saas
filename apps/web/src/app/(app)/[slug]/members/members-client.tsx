@@ -51,6 +51,7 @@ interface Member {
   joinedAt: string
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'TRIAL'
   overdue: boolean
+  paceAvg?: number | null
 }
 
 interface MembersClientProps {
@@ -64,10 +65,13 @@ interface MembersClientProps {
   club: {
     name: string
     slug: string
+    description?: string | null
   }
   initialMembers: Member[]
   currentUserRole: string
 }
+
+import { MemberGrid } from './member-grid'
 
 export function MembersClient({
   user,
@@ -77,9 +81,11 @@ export function MembersClient({
 }: MembersClientProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState('')
-  const [tab, setTab] = useState<'all' | 'active' | 'overdue'>('all')
+  const [tab, setTab] = useState<'all' | 'active' | 'overdue' | 'athletes' | 'coaches'>('all')
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
+
+  const isRestrictedRole = currentUserRole === 'MEMBER' || currentUserRole === 'COACH'
 
   const filteredMembers = members.filter((m) => {
     const matchesSearch =
@@ -88,6 +94,8 @@ export function MembersClient({
     
     if (tab === 'active') return matchesSearch && !m.overdue
     if (tab === 'overdue') return matchesSearch && m.overdue
+    if (tab === 'athletes') return matchesSearch && m.role === 'MEMBER'
+    if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
     return matchesSearch
   })
 
@@ -100,13 +108,9 @@ export function MembersClient({
 
     if (result.success) {
       toast.success(result.message)
-      // Since backend might have demoted someone else (one-of-each rule),
-      // for simplicity we could refetch, or just update the local state.
-      // But user said "troca", so let's assume we need to refresh or handle the demote.
       setMembers(
         members.map((m) => {
           if (m.id === memberId) return { ...m, role: newRole }
-          // If we assigned a unique role, demote whoever had it
           if (['MANAGER', 'COACH', 'BILLING'].includes(newRole) && m.role === newRole) {
             return { ...m, role: 'MEMBER' }
           }
@@ -142,12 +146,30 @@ export function MembersClient({
     currentUserRole === 'ADMIN' ||
     currentUserRole === 'MANAGER'
 
+  if (isRestrictedRole) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
+        <Header user={user} />
+        <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
+          <MemberGrid 
+            members={members}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            tab={tab === 'athletes' || tab === 'coaches' ? tab : 'all'}
+            onTabChange={(newTab) => setTab(newTab)}
+            club={club}
+          />
+        </main>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
-        {/* CABEÇALHO DA PÁGINA */}
+        {/* CABEÇALHO DA PÁGINA (ADMIN) */}
         <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-orange-500 text-white shadow-xl shadow-orange-500/20">

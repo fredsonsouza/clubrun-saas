@@ -22,7 +22,7 @@ export async function updateWorkout(app: FastifyInstance) {
           body: z.object({
             title: z.string().nullable(),
             distance: z.number(),
-            duration: z.number().int().nullable(),
+            duration: z.number().nullable(),
             pace: z.number().nullable(),
             type: z.string(),
           }),
@@ -53,7 +53,12 @@ export async function updateWorkout(app: FastifyInstance) {
 
         const authWorkout = workoutSchema.parse(workout)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId, 
+          memberShip.role, 
+          memberShip.isSystemAdmin,
+          memberShip.clubId
+        )
 
         if (cannot('update', authWorkout)) {
           throw new UnauthorizedError(
@@ -75,6 +80,35 @@ export async function updateWorkout(app: FastifyInstance) {
             type,
           },
         })
+
+        // Update AthleteProfile paceAvg
+        const athleteStats = await prisma.workout.aggregate({
+          where: {
+            athleteId: workout.athleteId,
+            clubId: club.id,
+          },
+          _sum: {
+            distance: true,
+            duration: true,
+          },
+        })
+
+        if (athleteStats._sum.distance && athleteStats._sum.duration) {
+          const totalDistance = athleteStats._sum.distance
+          const totalSeconds = athleteStats._sum.duration
+          const newPaceAvg = (totalSeconds / 60) / totalDistance
+
+          await prisma.athleteProfile.upsert({
+            where: { userId: workout.athleteId },
+            create: {
+              userId: workout.athleteId,
+              paceAvg: newPaceAvg,
+            },
+            update: {
+              paceAvg: newPaceAvg,
+            },
+          })
+        }
 
         return reply.status(204).send()
       }

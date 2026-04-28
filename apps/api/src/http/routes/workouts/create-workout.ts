@@ -21,7 +21,7 @@ export async function createWorkout(app: FastifyInstance) {
           body: z.object({
             title: z.string(),
             distance: z.number(),
-            duration: z.number().int(),
+            duration: z.number().nullable(),
             pace: z.number(),
             athleteId: z.string().uuid().optional(),
             type: z.enum([
@@ -52,7 +52,12 @@ export async function createWorkout(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot, can } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot, can } = getUserPermissions(
+          userId, 
+          memberShip.role, 
+          memberShip.isSystemAdmin,
+          memberShip.clubId
+        )
 
         const { title, distance, duration, date, pace, type, notes, athleteId } =
           request.body
@@ -87,6 +92,35 @@ export async function createWorkout(app: FastifyInstance) {
             athleteId: targetAthleteId,
           },
         })
+
+        // Update AthleteProfile paceAvg
+        const athleteStats = await prisma.workout.aggregate({
+          where: {
+            athleteId: targetAthleteId,
+            clubId: club.id,
+          },
+          _sum: {
+            distance: true,
+            duration: true,
+          },
+        })
+
+        if (athleteStats._sum.distance && athleteStats._sum.duration) {
+          const totalDistance = athleteStats._sum.distance
+          const totalSeconds = athleteStats._sum.duration
+          const newPaceAvg = (totalSeconds / 60) / totalDistance
+
+          await prisma.athleteProfile.upsert({
+            where: { userId: targetAthleteId },
+            create: {
+              userId: targetAthleteId,
+              paceAvg: newPaceAvg,
+            },
+            update: {
+              paceAvg: newPaceAvg,
+            },
+          })
+        }
 
         return reply.status(201).send({
           workoutId: workout.id,

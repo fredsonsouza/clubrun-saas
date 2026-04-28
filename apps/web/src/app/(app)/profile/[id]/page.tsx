@@ -18,10 +18,11 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
   
   const isOwnProfile = currentUser.id === id
 
-  // Map workouts to match expected format in ProfileClient
+  // Map workouts to match expected format in ProfileClient/WorkoutCard
   const formattedWorkouts = workouts.map(w => ({
     ...w,
-    durationInMinutes: w.duration ? Math.floor(w.duration / 60) : 0,
+    durationInSeconds: w.duration || 0,
+    createdAt: new Date(w.date).toISOString(),
     author: {
       id: user.id,
       name: user.name || 'Atleta',

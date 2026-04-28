@@ -26,10 +26,11 @@ export default async function RankingPage({ params }: RankingPageProps) {
   const { rankings } = await getClubRanking({ slug, type: 'monthly' })
 
   const formattedRankings = rankings.map((r, index) => {
-    // Pace calculation: dummy pace if we don't have total time in ranking yet, 
-    // but usually pace = totalTime / distance. 
-    // Since get-club-ranking doesn't return time yet, I'll use a placeholder or calculate if available.
-    // Let's assume pace is "0:00" for now or calculated from points if points were based on pace.
+    const paceAvg = (r as any).paceAvg || 0
+    const mins = Math.floor(paceAvg)
+    const secs = Math.round((paceAvg - mins) * 60)
+    const formattedPace = paceAvg > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : '--:--'
+
     return {
       id: r.athlete.id,
       name: r.athlete.name || 'Atleta',
@@ -37,7 +38,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
       distance: r.distance || 0,
       workoutsCount: r.workoutsCount || 0,
       points: r.points,
-      pace: '4:30', // Placeholder for now, or could be passed from API if updated
+      pace: formattedPace,
       isMe: r.athlete.id === user.id,
       position: index + 1
     }

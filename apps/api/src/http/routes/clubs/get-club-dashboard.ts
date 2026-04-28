@@ -64,9 +64,7 @@ export async function getClubDashBoard(app: FastifyInstance) {
             activeMembers: activeCount,
             inactiveMembers: inactiveCount,
             pendingInvites: invitesCount,
-            totalDistanceMonth: Number(
-              workoutsMetrics._sum.distance?.toFixed(2) || 0
-            ),
+            totalDistanceMonth: Number(workoutsMetrics._sum.distance || 0),
             totalWorkoutsMonth: workoutsMetrics._count.id,
           },
         })
