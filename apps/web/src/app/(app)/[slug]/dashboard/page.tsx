@@ -5,6 +5,7 @@ import { getClubDashboard } from '@/http/get-club-dashboard'
 import { getWorkouts } from '@/http/get-workouts'
 import { getClubRanking } from '@/http/get-club-ranking'
 import { getMembers } from '@/http/get-members'
+import { getClub } from '@/http/get-club'
 import { DashboardClient } from './dashboard-client'
 import { redirect } from 'next/navigation'
 
@@ -33,21 +34,23 @@ export default async function ClubDashboardPage({
     { metrics }, 
     { workouts }, 
     { rankings }, 
-    { members }
+    { members },
+    { club }
   ] = await Promise.all([
     getClubDashboard({ slug }),
     getWorkouts({ slug, limit: 10 }),
     getClubRanking({ slug, type: 'monthly' }),
-    getMembers({ slug })
+    getMembers({ slug }),
+    getClub(slug)
   ])
 
   const clubInfo = {
     id: userClub.id,
-    name: userClub.name,
+    name: club.name,
     slug: slug,
-    description: `Bem-vindo ao ${userClub.name}! Treinos e performance em um só lugar.`,
+    description: club.description || `Bem-vindo ao ${club.name}! Treinos e performance em um só lugar.`,
     membersCount: metrics.activeMembers + metrics.inactiveMembers,
-    location: 'Boa Vista, RR', // Poderia vir do clube no futuro
+    location: club.city && club.state ? `${club.city}, ${club.state}` : 'Local não informado',
     monthlyDistance: metrics.totalDistanceMonth,
   }
 
@@ -86,11 +89,8 @@ export default async function ClubDashboardPage({
     role: m.role
   }))
 
-  // Agrega estatísticas por tipo (MOCK por enquanto já que a API de Dashboard não envia o array detalhado)
-  const typeStats = [
-    { type: 'EASY', count: metrics.totalWorkoutsMonth > 5 ? Math.floor(metrics.totalWorkoutsMonth * 0.6) : metrics.totalWorkoutsMonth },
-    { type: 'INTERVAL', count: metrics.totalWorkoutsMonth > 5 ? Math.ceil(metrics.totalWorkoutsMonth * 0.4) : 0 },
-  ]
+  // Agrega estatísticas por tipo
+  const typeStats = metrics.workoutsByType || []
 
   return (
     <DashboardClient

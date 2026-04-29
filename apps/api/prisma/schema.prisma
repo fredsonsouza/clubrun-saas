@@ -62,6 +62,9 @@ model Club {
   stripeCustomerId          String?   @unique @map("stripe_customer_id")
   stripeSubscriptionId      String?   @unique @map("stripe_subscription_id")
   subscriptionStatus        String?   @map("subscription_status")
+  description               String?
+  city                      String?
+  state                     String?
   createdAt                 DateTime  @default(now()) @map("created_at")
   updatedAt                 DateTime  @updatedAt @map("updated_at")
   ownerId                   String    @map("owner_id")

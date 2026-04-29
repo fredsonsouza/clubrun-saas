@@ -3,6 +3,7 @@ import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getMembers } from '@/http/get-members'
 import { getClubBilling } from '@/http/get-club-billing'
+import { getClub } from '@/http/get-club'
 import { redirect } from 'next/navigation'
 import { SettingsClient } from './settings-client'
 
@@ -30,15 +31,16 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
     redirect(`/${slug}/dashboard`)
   }
 
-  const [{ members }, { billing }] = await Promise.all([
+  const [{ members }, { billing }, { club }] = await Promise.all([
     getMembers({ slug }),
-    getClubBilling(slug)
+    getClubBilling(slug),
+    getClub(slug)
   ])
 
   const clubInfo = {
-    name: currentClub.name,
-    slug: currentClub.slug,
-    description: 'Treinos de alta performance no lavrado. Foco em maratonas e meia maratonas na região norte.',
+    name: club.name,
+    slug: club.slug,
+    description: club.description || 'Sem descrição.',
   }
 
   return (

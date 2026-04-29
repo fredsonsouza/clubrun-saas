@@ -57,6 +57,7 @@ export async function updateAthleteRanking(
       where: {
         athleteId,
         clubId,
+        status: 'COMPLETED',
         date: {
           gte: period.startDate,
           lte: period.endDate,
@@ -75,25 +76,32 @@ export async function updateAthleteRanking(
       totalPoints += Math.round(distancePoints + pacePoints)
     })
 
-    await prisma.ranking.upsert({
+    const existingRanking = await prisma.ranking.findFirst({
       where: {
-        clubId_athleteId_year_month_week: {
-          clubId,
-          athleteId,
-          year: period.year,
-          month: period.month ?? (null as any),
-          week: period.week ?? (null as any),
-        },
-      },
-      update: { points: totalPoints },
-      create: {
         clubId,
         athleteId,
         year: period.year,
         month: period.month,
         week: period.week,
-        points: totalPoints,
       },
     })
+
+    if (existingRanking) {
+      await prisma.ranking.update({
+        where: { id: existingRanking.id },
+        data: { points: totalPoints },
+      })
+    } else {
+      await prisma.ranking.create({
+        data: {
+          clubId,
+          athleteId,
+          year: period.year,
+          month: period.month,
+          week: period.week,
+          points: totalPoints,
+        },
+      })
+    }
   }
 }

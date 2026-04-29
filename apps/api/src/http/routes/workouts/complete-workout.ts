@@ -68,7 +68,10 @@ export async function completeWorkout(app: FastifyInstance) {
           },
         })
 
-        // Update AthleteProfile paceAvg
+        // Update AthleteProfile and Ranking
+        const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')
+        await updateAthleteRanking(userId, club.id, new Date())
+
         const athleteStats = await prisma.workout.aggregate({
           where: {
             athleteId: userId,

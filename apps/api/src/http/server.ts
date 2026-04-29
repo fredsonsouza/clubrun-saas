@@ -136,8 +136,11 @@ app.register(getPendingInvites)
 app.register(getClubBilling)
 app.register(payInvoice)
 
+import { getExploreClubs } from './routes/clubs/get-explore-clubs'
+
 app.register(getClubeRanking)
 app.register(getClubDashBoard)
+app.register(getExploreClubs)
 
 app.register(createRace)
 app.register(getRaces)

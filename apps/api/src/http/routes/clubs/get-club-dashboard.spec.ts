@@ -13,6 +13,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     workout: {
       aggregate: vi.fn(),
+      groupBy: vi.fn(),
     },
   },
 }))
@@ -48,6 +49,11 @@ describe('Get Club Dashboard (Unit)', () => {
       _count: { id: 25 },
     } as any)
 
+    vi.mocked(prisma.workout.groupBy).mockResolvedValue([
+      { type: 'EASY', _count: { id: 15 } },
+      { type: 'INTERVAL', _count: { id: 10 } },
+    ] as any)
+
     const response = await app.inject({
       method: 'GET',
       url: '/clubs/acme-club/dashboard',
@@ -64,6 +70,10 @@ describe('Get Club Dashboard (Unit)', () => {
         pendingInvites: 3,
         totalDistanceMonth: 150.5,
         totalWorkoutsMonth: 25,
+        workoutsByType: [
+          { type: 'EASY', count: 15 },
+          { type: 'INTERVAL', count: 10 },
+        ],
       },
     })
   })

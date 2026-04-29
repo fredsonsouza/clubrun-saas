@@ -27,6 +27,10 @@ export async function getClubDashBoard(app: FastifyInstance) {
                 pendingInvites: z.number(),
                 totalDistanceMonth: z.number(),
                 totalWorkoutsMonth: z.number(),
+                workoutsByType: z.array(z.object({
+                  type: z.string(),
+                  count: z.number()
+                }))
               }),
             }),
           },
@@ -40,7 +44,7 @@ export async function getClubDashBoard(app: FastifyInstance) {
         const monthStart = startOfMonth(now)
         const monthEnd = endOfMonth(now)
 
-        const [activeCount, inactiveCount, invitesCount, workoutsMetrics] =
+        const [activeCount, inactiveCount, invitesCount, workoutsMetrics, typeStats] =
           await Promise.all([
             prisma.member.count({
               where: { clubId: club.id, status: 'ACTIVE' },
@@ -52,11 +56,23 @@ export async function getClubDashBoard(app: FastifyInstance) {
             prisma.workout.aggregate({
               where: {
                 clubId: club.id,
+                status: 'COMPLETED',
                 date: { gte: monthStart, lte: monthEnd },
               },
               _sum: { distance: true },
               _count: { id: true },
             }),
+            prisma.workout.groupBy({
+              by: ['type'],
+              where: {
+                clubId: club.id,
+                status: 'COMPLETED',
+                date: { gte: monthStart, lte: monthEnd },
+              },
+              _count: {
+                id: true
+              }
+            })
           ])
 
         return reply.send({
@@ -66,6 +82,10 @@ export async function getClubDashBoard(app: FastifyInstance) {
             pendingInvites: invitesCount,
             totalDistanceMonth: Number(workoutsMetrics._sum.distance || 0),
             totalWorkoutsMonth: workoutsMetrics._count.id,
+            workoutsByType: typeStats.map(s => ({
+              type: s.type,
+              count: s._count.id
+            }))
           },
         })
       }

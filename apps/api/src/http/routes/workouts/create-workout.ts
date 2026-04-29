@@ -97,8 +97,12 @@ export async function createWorkout(app: FastifyInstance) {
           },
         })
 
-        // Update AthleteProfile paceAvg ONLY if workout is COMPLETED
+        // Update AthleteProfile and Ranking ONLY if workout is COMPLETED
         if (workout.status === 'COMPLETED') {
+          const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')
+          
+          await updateAthleteRanking(targetAthleteId, club.id, date)
+
           const athleteStats = await prisma.workout.aggregate({
             where: {
               athleteId: targetAthleteId,

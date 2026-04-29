@@ -11,6 +11,10 @@ interface GetClubDashboardResponse {
     pendingInvites: number
     totalDistanceMonth: number
     totalWorkoutsMonth: number
+    workoutsByType: {
+      type: string
+      count: number
+    }[]
   }
 }
 

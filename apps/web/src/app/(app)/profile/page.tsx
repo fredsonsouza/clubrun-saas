@@ -7,10 +7,9 @@ export default async function ProfilePage() {
   const { user: currentUser } = await auth()
 
   // Fetch real profile data for the current user
-  const { user, athleteProfile, workouts } = await getUserProfile(currentUser.id)
+  const { user, athleteProfile, workouts, plannedWorkouts } = await getUserProfile(currentUser.id)
 
-  // Map workouts to match expected format in ProfileClient
-  const formattedWorkouts = workouts.map(w => ({
+  const formatWorkout = (w: any) => ({
     ...w,
     durationInMinutes: w.duration ? Math.floor(w.duration / 60) : 0,
     author: {
@@ -20,7 +19,10 @@ export default async function ProfilePage() {
     },
     type: w.type as any,
     visibility: w.visibility as any,
-  }))
+  })
+
+  const formattedWorkouts = (workouts || []).map(formatWorkout)
+  const formattedPlannedWorkouts = (plannedWorkouts || []).map(formatWorkout)
 
   return (
     <ProfileClient
@@ -28,6 +30,7 @@ export default async function ProfilePage() {
       user={user}
       athleteProfile={athleteProfile}
       workouts={formattedWorkouts}
+      plannedWorkouts={formattedPlannedWorkouts}
       isOwnProfile={true}
     />
   )

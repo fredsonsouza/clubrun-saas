@@ -10,6 +10,10 @@ vi.mock('@/lib/prisma', () => ({
     workout: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      aggregate: vi.fn(),
+    },
+    athleteProfile: {
+      upsert: vi.fn(),
     },
   },
 }))
@@ -44,6 +48,13 @@ describe('Update Workout (Unit)', () => {
       distance: 5,
       type: 'EASY',
       visibility: 'PUBLIC',
+    } as any)
+
+    vi.mocked(prisma.workout.aggregate).mockResolvedValue({
+      _sum: {
+        distance: 10,
+        duration: 3600,
+      },
     } as any)
 
     const response = await app.inject({
