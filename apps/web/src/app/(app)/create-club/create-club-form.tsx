@@ -29,6 +29,7 @@ const generateSlug = (text: string) => {
 
 interface CreateClubFormProps {
   user: {
+    id: string
     name: string | null
     email: string
     avatarUrl: string | null
@@ -67,9 +68,7 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
 
     if (result.success) {
       toast.success(result.message)
-      // Redireciona para o novo slug (embora a API gere o slug, assumimos que segue o padrão ou usamos o slug digitado se a API permitisse)
-      // Por agora, redirecionamos para o dashboard do novo clube
-      router.push(`/${slug}/dashboard`)
+      router.push('/explore')
     } else {
       toast.error(result.message)
       setIsLoading(false)

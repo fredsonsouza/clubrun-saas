@@ -29,7 +29,7 @@ describe('Update Member (E2E)', () => {
       data: {
         userId: secondUser.id,
         clubId: club?.id!,
-        role: 'MEMBER',
+        role: 'ATHLETE',
       },
     })
 
@@ -63,7 +63,7 @@ describe('Update Member (E2E)', () => {
       data: {
         userId: secondUser.id,
         clubId: club?.id!,
-        role: 'MEMBER',
+        role: 'ATHLETE',
         status: 'ACTIVE',
       },
     })
@@ -72,7 +72,7 @@ describe('Update Member (E2E)', () => {
       .put(`/clubs/${club?.slug}/members/${member.id}`)
       .set('Authorization', `Bearer ${token}`)
       .send({
-        role: 'MEMBER',
+        role: 'ATHLETE',
         status: 'INACTIVE',
       })
 
@@ -85,8 +85,8 @@ describe('Update Member (E2E)', () => {
     expect(updatedMember?.status).toBe('INACTIVE')
   })
 
-  it('should not be able to update a member if user is just a MEMBER', async () => {
-    const { token, club } = await createAndAuthenticateUser(app, 'MEMBER')
+  it('should not be able to update a member if user is just a ATHLETE', async () => {
+    const { token, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const response = await request(app.server)
       .put(`/clubs/${club?.slug}/members/${faker.string.uuid()}`)

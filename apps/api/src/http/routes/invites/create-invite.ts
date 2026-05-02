@@ -44,7 +44,21 @@ export async function createInvite(app: FastifyInstance) {
       if (cannot('create', 'Invite')) {
         throw new UnauthorizedError(`You're not allowed to create new invites`)
       }
+
       const { email, role } = request.body
+
+      // Role security validation
+      if (memberShip.role === 'ATHLETE' && role !== 'ATHLETE') {
+        throw new UnauthorizedError(
+          'As an athlete, you can only invite other athletes.'
+        )
+      }
+
+      if (role === 'OWNER') {
+        throw new UnauthorizedError(
+          'You cannot invite someone as an owner. Use the transfer ownership flow instead.'
+        )
+      }
 
       const [, domain] = email.split('@')
 

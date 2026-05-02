@@ -1,7 +1,7 @@
 'use server'
 
 import { createClub } from '@/http/create-club'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function createClubAction(formData: FormData) {
   const name = formData.get('name') as string
@@ -14,7 +14,8 @@ export async function createClubAction(formData: FormData) {
       // slug: slug // A API cria o slug baseado no nome internamente
     })
     
-    revalidateTag('clubs')
+    revalidatePath('/')
+    revalidatePath('/explore')
     
     return { success: true, clubId, message: 'Seu clube foi criado com sucesso!' }
   } catch (err) {

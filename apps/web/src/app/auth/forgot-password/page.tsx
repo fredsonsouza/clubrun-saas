@@ -1,21 +1,16 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useFormState } from '@/hooks/use-form-state'
+import { forgotPasswordAction } from './actions'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { AlertTriangle, Loader2, MailCheck, Flame, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { ArrowLeft, Flame, MailCheck } from 'lucide-react'
 
 export default function ForgotPasswordPage() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSent, setIsSent] = useState(false)
+  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
+    forgotPasswordAction
+  )
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setTimeout(() => {
-      setIsLoading(false)
-      setIsSent(true) // Mostra a tela de sucesso
-    }, 1500)
-  }
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 p-6 font-sans">
@@ -32,7 +27,7 @@ export default function ForgotPasswordPage() {
           </Link>
         </div>
 
-        {!isSent ? (
+        {!success ? (
           <>
             <div className="mb-8 text-center">
               <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
@@ -43,6 +38,18 @@ export default function ForgotPasswordPage() {
                 redefinir sua senha.
               </p>
             </div>
+
+            {success === false && message && (
+              <Alert className="mb-6 border-orange-500/10 bg-orange-500/5">
+                <AlertTriangle className="h-4 w-4 text-orange-500" />
+                <AlertTitle className="font-bold text-orange-500 uppercase">
+                  Erro ao solicitar
+                </AlertTitle>
+                <AlertDescription className="text-orange-900/70">
+                  {message}
+                </AlertDescription>
+              </Alert>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-1.5">
@@ -60,15 +67,20 @@ export default function ForgotPasswordPage() {
                   placeholder="atleta@exemplo.com"
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                 />
+                {errors?.email && (
+                  <p className="text-xs font-bold text-orange-600">
+                    {errors.email[0]}
+                  </p>
+                )}
               </div>
 
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isPending}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3.5 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
               >
-                {isLoading ? (
-                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                {isPending ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   'Enviar link de recuperação'
                 )}
@@ -88,12 +100,12 @@ export default function ForgotPasswordPage() {
               Enviamos as instruções de recuperação para o e-mail informado. Não
               se esqueça de checar a caixa de spam.
             </p>
-            <button
-              onClick={() => setIsSent(false)}
+            <Link
+              href="/auth/forgot-password"
               className="text-sm font-bold text-gray-500 transition-colors hover:text-gray-900"
             >
               Tentar com outro e-mail
-            </button>
+            </Link>
           </div>
         )}
 

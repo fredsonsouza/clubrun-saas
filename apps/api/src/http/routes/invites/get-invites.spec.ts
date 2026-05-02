@@ -29,7 +29,7 @@ describe('Get Invites (Unit)', () => {
 
     vi.mocked(prisma.invite.findUnique).mockResolvedValue({
       id: inviteId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       email: 'johndoe@example.com',
       createdAt: new Date(),
       club: { name: 'Acme Club' },
@@ -60,7 +60,7 @@ describe('Get Invites (Unit)', () => {
     vi.mocked(prisma.invite.findMany).mockResolvedValue([
       {
         id: '81f02179-8d75-474c-8975-c54d8b965c4d',
-        role: 'MEMBER',
+        role: 'ATHLETE',
         email: 'johndoe@example.com',
         createdAt: new Date(),
         author: { id: authorId, name: 'Author' },

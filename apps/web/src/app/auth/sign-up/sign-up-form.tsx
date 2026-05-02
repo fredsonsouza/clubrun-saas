@@ -13,16 +13,29 @@ import {
 } from 'lucide-react'
 import { useFormState } from '@/hooks/use-form-state'
 import { signInUpAction } from './actions'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signInWithGoogle } from '../actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export function SignUpForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  
+  const role = searchParams.get('role')
+  const plan = searchParams.get('plan')
+  const redirectTo = searchParams.get('redirectTo')
+  const token = searchParams.get('token')
+
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInUpAction,
     () => {
-      router.push('/auth/sign-in')
+      const params = new URLSearchParams()
+      if (role) params.set('role', role)
+      if (plan) params.set('plan', plan)
+      if (redirectTo) params.set('redirectTo', redirectTo)
+      if (token) params.set('token', token)
+      const queryString = params.toString()
+      router.push(`/auth/sign-in${queryString ? `?${queryString}` : ''}`)
     }
   )
 
@@ -163,6 +176,33 @@ export function SignUpForm() {
 
             <div className="space-y-1.5">
               <label
+                htmlFor="username"
+                className="text-sm font-bold text-gray-700"
+              >
+                Nome de Usuário (Username)
+              </label>
+              <div className="relative">
+                <span className="absolute top-1/2 left-4 -translate-y-1/2 font-bold text-gray-400">
+                  @
+                </span>
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  required
+                  placeholder="seu.nome"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-4 pl-10 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                />
+              </div>
+              {errors?.username && (
+                <p className="text-xs font-bold text-orange-600">
+                  {errors.username[0]}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label
                 htmlFor="email"
                 className="text-sm font-bold text-gray-700"
               >
@@ -257,7 +297,7 @@ export function SignUpForm() {
           <p className="pt-4 text-center text-sm font-medium text-gray-500">
             Já possui conta?{' '}
             <Link
-              href="/auth/sign-in"
+              href={`/auth/sign-in${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${redirectTo}` : ''}${token ? `&token=${token}` : ''}` : ''}`}
               className="font-bold text-orange-500 hover:underline"
             >
               Fazer login

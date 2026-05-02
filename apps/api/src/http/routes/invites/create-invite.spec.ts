@@ -49,7 +49,7 @@ describe('Create Invite (Unit)', () => {
       },
       body: {
         email: 'johndoe@example.com',
-        role: 'MEMBER',
+        role: 'ATHLETE',
       },
     })
 
@@ -81,7 +81,7 @@ describe('Create Invite (Unit)', () => {
       },
       body: {
         email: 'johndoe@example.com',
-        role: 'MEMBER',
+        role: 'ATHLETE',
       },
     })
 

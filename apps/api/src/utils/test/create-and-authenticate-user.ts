@@ -4,7 +4,7 @@ import { randomUUID } from 'node:crypto'
 
 export async function createAndAuthenticateUser(
   app: FastifyInstance,
-  role?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
 ) {
   const user = await prisma.user.create({
     data: {

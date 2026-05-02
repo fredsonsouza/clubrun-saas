@@ -1,7 +1,7 @@
 'use server'
 
 import { updateMember, removeMember } from '@/http/update-member'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function updateMemberAction({
   slug,
@@ -10,7 +10,7 @@ export async function updateMemberAction({
 }: {
   slug: string
   memberId: string
-  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
 }) {
   try {
     await updateMember({
@@ -18,7 +18,7 @@ export async function updateMemberAction({
       memberId,
       role,
     })
-    revalidateTag('members')
+    revalidatePath(`/${slug}/members`)
     return { success: true, message: 'Cargo do membro atualizado com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao atualizar cargo do membro.' }
@@ -37,7 +37,7 @@ export async function removeMemberAction({
       slug,
       memberId,
     })
-    revalidateTag('members')
+    revalidatePath(`/${slug}/members`)
     return { success: true, message: 'Membro removido do clube com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao remover membro.' }

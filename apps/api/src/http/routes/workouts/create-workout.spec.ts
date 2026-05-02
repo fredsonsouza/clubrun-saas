@@ -32,7 +32,7 @@ describe('Create Workout (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
       user: { isSystemAdmin: false }
     } as any)

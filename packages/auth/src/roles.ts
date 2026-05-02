@@ -3,7 +3,7 @@ export const roleSchema = z.enum([
   'OWNER',
   'MANAGER',
   'ADMIN',
-  'MEMBER',
+  'ATHLETE',
   'COACH',
   'BILLING',
 ])

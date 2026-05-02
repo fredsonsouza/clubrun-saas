@@ -39,14 +39,17 @@ export async function getSystemStats(app: FastifyInstance) {
           throw new UnauthorizedError('Only system administrators can access this.')
         }
 
-        const [totalClubs, totalUsers, totalWorkouts] = await Promise.all([
+        const [totalClubs, totalUsers, totalWorkouts, revenueStats] = await Promise.all([
           prisma.club.count(),
           prisma.user.count(),
           prisma.workout.count(),
+          prisma.invoice.aggregate({
+            where: { status: 'PAID' },
+            _sum: { amount: true },
+          }),
         ])
 
-        // Mock revenue for now as we don't have real stripe integration data here
-        const totalRevenue = totalClubs * 149.90
+        const totalRevenue = Number(revenueStats._sum.amount || 0)
 
         return reply.send({
           stats: {

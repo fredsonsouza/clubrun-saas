@@ -66,8 +66,8 @@ export async function removeMember(app: FastifyInstance) {
         })
 
         await createAuditLog({
-          action: 'MEMBER_REMOVED',
-          entity: 'MEMBER',
+          action: 'ATHLETE_REMOVED',
+          entity: 'ATHLETE',
           entityId: memberId,
           userId,
           payload: { clubId: club.id, slug: club.slug },

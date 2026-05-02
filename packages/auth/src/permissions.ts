@@ -30,15 +30,14 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can(['get', 'update'], 'Ranking')
     can('manage', ['Invite', 'Billing', 'Invoice'])
 
-    can('update', 'Club')
+    can('update_roles', 'User')
     
     // Restrictions
     cannot('transfer_ownership', 'Club')
-    cannot('update_roles', 'User')
     cannot('delete', 'User') // Cannot remove members
   },
 
-  MEMBER(user, { can }) {
+  ATHLETE(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
 
     can('create', 'Workout')

@@ -38,6 +38,7 @@ import { Button } from '@/components/ui/button'
 
 interface DashboardClientProps {
   user: {
+    id: string
     name: string | null
     email: string
     avatarUrl: string | null
@@ -51,7 +52,7 @@ interface DashboardClientProps {
     location: string
     monthlyDistance: number
   }
-  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   isMember: boolean
   initialFeed: Workout[]
   ranking: Array<{
@@ -63,6 +64,7 @@ interface DashboardClientProps {
   }>
   members: Array<{
     id: string
+    userId: string
     name: string
     avatarUrl: string | null
     role: string
@@ -283,7 +285,7 @@ export function DashboardClient({
                 {members.slice(0, 5).map((member) => (
                   <Link 
                     key={member.id} 
-                    href={`/profile/${member.id}`}
+                    href={`/profile/${member.userId}`}
                     className="cursor-pointer group/member flex items-center justify-between gap-3 rounded-xl p-2 transition-colors hover:bg-gray-50"
                   >
                     <div className="flex items-center gap-3">

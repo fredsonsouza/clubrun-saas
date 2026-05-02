@@ -86,14 +86,21 @@ export async function getMembers(app: FastifyInstance) {
           },
         })
         const membersWithRoles = members.map(
-          ({ user: { id: userId, athleteProfile, ...user }, invoices, ...member }) => {
-            return {
-              ...user,
-              ...member,
-              userId,
+          ({ user: { id: realUserId, athleteProfile, ...user }, invoices, ...member }) => {
+            const data = {
+              id: member.id,
+              userId: realUserId,
+              role: member.role,
+              name: user.name,
+              email: user.email,
+              avatarUrl: user.avatarUrl,
               paceAvg: athleteProfile?.paceAvg || null,
               overdue: invoices.some(i => i.status === 'OVERDUE'),
             }
+            
+            console.log(`[GET_MEMBERS] MemberID: ${data.id} | UserID: ${data.userId} | Name: ${data.name}`)
+            
+            return data
           }
         )
 

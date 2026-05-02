@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   ShieldCheck,
   Lock,
@@ -26,35 +26,74 @@ interface CheckoutClientProps {
 
 export function CheckoutClient({ user }: CheckoutClientProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan') || 'pro'
+
   const [isLoading, setIsLoading] = useState(false)
+  const [showSuccess, setShowSuccess] = useState(false)
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvc, setCvc] = useState('')
   const [name, setName] = useState('')
 
-  const planInfo = {
-    name: 'Plano Pro',
-    price: 'R$ 99,00',
-    interval: 'por mês',
-    features: [
-      'Atletas ilimitados',
-      'Gestão de provas avançada',
-      'Suporte prioritário via WhatsApp',
-      'Múltiplos gestores e treinadores',
-      'Ranking em tempo real',
-    ],
+  const getPlanInfo = (planName: string) => {
+    switch (planName) {
+      case 'starter':
+        return {
+          name: 'Plano Starter',
+          price: 'R$ 24,90',
+          interval: 'por mês',
+          features: [
+            'Até 30 atletas ativos',
+            '1 Clube exclusivo',
+            'Dashboard do Treinador',
+            'Aprovação de convites',
+          ],
+        }
+      case 'elite':
+        return {
+          name: 'Plano Elite',
+          price: 'R$ 99,90',
+          interval: 'por mês',
+          features: [
+            'Atletas ilimitados',
+            'Tudo do plano Pro',
+            'Domínio personalizado',
+            'Suporte prioritário VIP',
+          ],
+        }
+      default:
+        return {
+          name: 'Plano Pro',
+          price: 'R$ 49,90',
+          interval: 'por mês',
+          features: [
+            'Até 100 atletas ativos',
+            'Gestão de provas avançada',
+            'Múltiplos administradores',
+            'Verificação de inadimplência',
+            'Ranking em tempo real',
+          ],
+        }
+    }
   }
+
+  const planInfo = getPlanInfo(plan)
 
   const handleCheckout = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // API Call Simulation
+    // Simulação de processamento de pagamento
     setTimeout(() => {
       setIsLoading(false)
-      alert('Assinatura ativada com sucesso! Bem-vindo ao ClubRun Pro.')
-      router.push('/explore')
-    }, 2000)
+      setShowSuccess(true)
+      
+      // Pequeno delay para mostrar o sucesso antes de redirecionar
+      setTimeout(() => {
+        router.push('/create-club?checkoutComplete=true')
+      }, 2500)
+    }, 3000)
   }
 
   // Máscaras simples
@@ -87,6 +126,28 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
+      {/* Overlay de Sucesso */}
+      {showSuccess && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
+          <div className="animate-in zoom-in-95 fade-in flex flex-col items-center text-center duration-500">
+            <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 text-green-500 shadow-xl shadow-green-500/10">
+              <CheckCircle2 className="h-12 w-12" />
+            </div>
+            <h2 className="mb-2 text-4xl font-black tracking-tight text-gray-900">
+              Pagamento Confirmado!
+            </h2>
+            <p className="max-w-xs text-lg font-medium text-gray-500">
+              Sua assinatura {planInfo.name} foi ativada com sucesso. Prepare-se para decolar!
+            </p>
+            
+            <div className="mt-12 flex items-center gap-2 text-xs font-black tracking-widest text-gray-400 uppercase">
+              <div className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
+              Redirecionando para criação do clube...
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Estilo Checkout (sem distrações) */}
       <Header user={user} />
 

@@ -77,7 +77,7 @@ describe('Create Club (Unit)', () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const token = app.jwt.sign({ sub: userId })
 
-    vi.mocked(prisma.member.findMany).mockResolvedValue([{ role: 'MEMBER', status: 'ACTIVE' } as any])
+    vi.mocked(prisma.member.findMany).mockResolvedValue([{ role: 'ATHLETE', status: 'ACTIVE' } as any])
     vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: userId, isSystemAdmin: false } as any)
 
     const response = await app.inject({

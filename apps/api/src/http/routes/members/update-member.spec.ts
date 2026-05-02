@@ -92,7 +92,7 @@ describe('Update Member (Unit)', () => {
         id: { not: memberIdToUpdate }
       },
       data: {
-        role: 'MEMBER'
+        role: 'ATHLETE'
       }
     })
   })
@@ -105,7 +105,7 @@ describe('Update Member (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club' },
       user: { isSystemAdmin: false }
     } as any)

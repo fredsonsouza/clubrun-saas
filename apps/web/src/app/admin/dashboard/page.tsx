@@ -46,7 +46,7 @@ export default async function AdminDashboardPage() {
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Clubes</p>
             <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalClubs}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
-              <TrendingUp className="h-3 w-3" /> +12% este mês
+              Crescimento contínuo
             </div>
           </div>
 
@@ -57,7 +57,7 @@ export default async function AdminDashboardPage() {
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Usuários Totais</p>
             <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalUsers}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
-              <TrendingUp className="h-3 w-3" /> +8% este mês
+              Novos atletas hoje
             </div>
           </div>
 
@@ -70,7 +70,7 @@ export default async function AdminDashboardPage() {
               {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(stats.totalRevenue)}
             </p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
-              <TrendingUp className="h-3 w-3" /> +15% este mês
+              Assinaturas ativas
             </div>
           </div>
 
@@ -81,7 +81,7 @@ export default async function AdminDashboardPage() {
             <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total de Atividades</p>
             <p className="mt-1 text-3xl font-black text-gray-900">{stats.totalWorkouts}</p>
             <div className="mt-4 flex items-center gap-1 text-xs font-bold text-emerald-500">
-              Recorde histórico
+              Histórico global
             </div>
           </div>
         </div>

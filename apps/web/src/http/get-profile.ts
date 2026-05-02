@@ -7,6 +7,7 @@ interface getProfileResponse {
     email: string
     avatarUrl: string | null
     isSystemAdmin: boolean
+    role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   }
 }
 

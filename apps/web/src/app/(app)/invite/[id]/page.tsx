@@ -24,7 +24,7 @@ const MOCK_INVITE_DETAILS = {
     name: 'Fredson Souza',
     avatarUrl: 'https://github.com/fredsonsouza.png',
   },
-  role: 'MEMBER',
+  role: 'ATHLETE',
   status: 'PENDING',
 }
 

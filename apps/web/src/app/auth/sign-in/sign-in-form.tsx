@@ -12,16 +12,28 @@ import {
 } from 'lucide-react'
 import { useFormState } from '@/hooks/use-form-state'
 import { signInWithEmailAndPassword } from './actions'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signInWithGoogle } from '../actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 export function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const plan = searchParams.get('plan')
+  const role = searchParams.get('role')
+  const redirectTo = searchParams.get('redirectTo')
+  const token = searchParams.get('token')
+
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
     () => {
-      router.push('/')
+      if (redirectTo) {
+        router.push(`${redirectTo}${token ? `?token=${token}` : ''}`)
+      } else if (plan) {
+        router.push(`/checkout?plan=${plan}${role ? `&role=${role}` : ''}`)
+      } else {
+        router.push('/')
+      }
     }
   )
 
@@ -222,7 +234,7 @@ export function SignInForm() {
           <p className="pt-4 text-center text-sm font-medium text-gray-500">
             Não tem uma conta?{' '}
             <Link
-              href="/auth/sign-up"
+              href={`/auth/sign-up${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${redirectTo}` : ''}${token ? `&token=${token}` : ''}` : ''}`}
               className="font-bold text-orange-500 hover:underline"
             >
               Cadastre-se grátis

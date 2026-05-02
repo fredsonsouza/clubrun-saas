@@ -60,8 +60,8 @@ describe('Create Club (E2E)', () => {
   })
 
   it('should not be able to create a new club if already belongs to an active club', async () => {
-    // createAndAuthenticateUser(app, 'MEMBER') cria um usuário já vinculado a um clube
-    const { token } = await createAndAuthenticateUser(app, 'MEMBER')
+    // createAndAuthenticateUser(app, 'ATHLETE') cria um usuário já vinculado a um clube
+    const { token } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const response = await request(app.server)
       .post('/clubs')

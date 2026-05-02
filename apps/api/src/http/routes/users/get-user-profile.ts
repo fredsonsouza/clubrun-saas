@@ -25,49 +25,21 @@ export async function getUserProfile(app: FastifyInstance) {
                 id: z.string().uuid(),
                 name: z.string().nullable(),
                 email: z.string(),
-                avatarUrl: z.string().url().nullable(),
+                avatarUrl: z.string().nullable(),
                 isSystemAdmin: z.boolean(),
               }),
               athleteProfile: z.object({
-                bio: z.string().nullable(),
-                city: z.string().nullable(),
-                paceAvg: z.number().nullable(),
-                weight: z.number().nullable(),
-                height: z.number().nullable(),
-                gender: z.string().nullable(),
-                instagramUrl: z.string().nullable(),
-                stravaUrl: z.string().nullable(),
+                bio: z.string().nullable().optional(),
+                city: z.string().nullable().optional(),
+                paceAvg: z.number().nullable().optional(),
+                weight: z.number().nullable().optional(),
+                height: z.number().nullable().optional(),
+                gender: z.any().nullable().optional(),
+                instagramUrl: z.string().nullable().optional(),
+                stravaUrl: z.string().nullable().optional(),
               }).nullable(),
-              workouts: z.array(z.object({
-                id: z.string().uuid(),
-                title: z.string().nullable(),
-                distance: z.number(),
-                duration: z.number().nullable(),
-                type: z.string(),
-                date: z.date(),
-                visibility: z.string(),
-                status: z.enum(['PLANNED', 'COMPLETED']),
-                assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
-                club: z.object({
-                  name: z.string(),
-                  slug: z.string(),
-                })
-              })),
-              plannedWorkouts: z.array(z.object({
-                id: z.string().uuid(),
-                title: z.string().nullable(),
-                distance: z.number(),
-                duration: z.number().nullable(),
-                type: z.string(),
-                date: z.date(),
-                visibility: z.string(),
-                status: z.enum(['PLANNED', 'COMPLETED']),
-                assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
-                club: z.object({
-                  name: z.string(),
-                  slug: z.string(),
-                })
-              })),
+              workouts: z.array(z.any()),
+              plannedWorkouts: z.array(z.any()),
             }),
           },
         },
@@ -76,6 +48,8 @@ export async function getUserProfile(app: FastifyInstance) {
         const { userId: profileUserId } = request.params
         const currentUserId = await request.getCurrentUserId()
         const isOwner = currentUserId === profileUserId
+        
+        console.log(`[DEBUG] Buscando perfil do usuário: ${profileUserId} (Solicitado por: ${currentUserId})`)
 
         const user = await prisma.user.findUnique({
           where: { id: profileUserId },
@@ -90,6 +64,7 @@ export async function getUserProfile(app: FastifyInstance) {
         })
 
         if (!user) {
+          console.error(`[ERROR] Usuário não encontrado no banco: ${profileUserId}`)
           throw new BadRequestError('User not found')
         }
 

@@ -47,7 +47,7 @@ interface Member {
   name: string
   email: string
   avatarUrl: string | null
-  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   joinedAt: string
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'TRIAL'
   overdue: boolean
@@ -85,7 +85,7 @@ export function MembersClient({
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
 
-  const isRestrictedRole = currentUserRole === 'MEMBER' || currentUserRole === 'COACH'
+  const isRestrictedRole = currentUserRole === 'ATHLETE' || currentUserRole === 'COACH'
 
   const filteredMembers = members.filter((m) => {
     const matchesSearch =
@@ -94,7 +94,7 @@ export function MembersClient({
     
     if (tab === 'active') return matchesSearch && !m.overdue
     if (tab === 'overdue') return matchesSearch && m.overdue
-    if (tab === 'athletes') return matchesSearch && m.role === 'MEMBER'
+    if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
     if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
     return matchesSearch
   })
@@ -112,7 +112,7 @@ export function MembersClient({
         members.map((m) => {
           if (m.id === memberId) return { ...m, role: newRole }
           if (['MANAGER', 'COACH', 'BILLING'].includes(newRole) && m.role === newRole) {
-            return { ...m, role: 'MEMBER' }
+            return { ...m, role: 'ATHLETE' }
           }
           return m
         })
@@ -348,7 +348,7 @@ export function MembersClient({
                             <Zap className="h-4 w-4 text-amber-500" /> Tornar Financeiro
                           </DropdownMenuItem>
                           <DropdownMenuItem 
-                            onClick={() => handleUpdateRole(member.id, 'MEMBER')}
+                            onClick={() => handleUpdateRole(member.id, 'ATHLETE')}
                             className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                           >
                             <Users className="h-4 w-4 text-gray-400" /> Tornar Atleta

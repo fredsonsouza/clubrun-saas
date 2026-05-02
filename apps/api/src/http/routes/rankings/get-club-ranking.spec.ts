@@ -32,7 +32,7 @@ describe('Get Club Ranking (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       user: { isSystemAdmin: false },
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
     } as any)
@@ -82,7 +82,7 @@ describe('Get Club Ranking (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       user: { isSystemAdmin: false },
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
     } as any)

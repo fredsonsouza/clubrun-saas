@@ -41,7 +41,7 @@ interface RacesClientProps {
     name: string
     slug: string
   }
-  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   upcomingRaces: Race[]
   pastRaces: Race[]
 }

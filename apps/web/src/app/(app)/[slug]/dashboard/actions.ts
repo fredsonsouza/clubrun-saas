@@ -2,7 +2,7 @@
 
 import { deleteWorkout } from '@/http/delete-workout'
 import { createWorkout } from '@/http/create-workout'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function createWorkoutAction(formData: FormData) {
   const slug = formData.get('slug') as string
@@ -35,8 +35,8 @@ export async function createWorkoutAction(formData: FormData) {
       assignmentMode,
     })
 
-    revalidateTag('workouts')
-    revalidateTag('ranking')
+    revalidatePath(`/${slug}/dashboard`)
+    revalidatePath(`/${slug}/ranking`)
 
     return { success: true, message: 'Treino registrado com sucesso! Motivando o pelotão...' }
   } catch (err) {
@@ -53,7 +53,8 @@ export async function deleteWorkoutAction({
 }) {
   try {
     await deleteWorkout({ slug, workoutId })
-    revalidateTag('workouts')
+    revalidatePath(`/${slug}/dashboard`)
+    revalidatePath(`/${slug}/ranking`)
     return { success: true, message: 'Treino removido com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao remover o treino.' }

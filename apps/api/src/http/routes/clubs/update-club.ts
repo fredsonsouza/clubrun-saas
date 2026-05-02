@@ -7,6 +7,7 @@ import { BadRequestError } from '../_errors/bad-request-error'
 import { clubSchema } from '@saas/auth'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function updateClub(app: FastifyInstance) {
   app
@@ -73,6 +74,14 @@ export async function updateClub(app: FastifyInstance) {
             domain,
             shouldAttachUsersByDomain,
           },
+        })
+
+        await createAuditLog({
+          action: 'UPDATE_CLUB',
+          entity: 'CLUB',
+          entityId: club.id,
+          userId,
+          payload: { name, domain },
         })
 
         return reply.status(204).send()

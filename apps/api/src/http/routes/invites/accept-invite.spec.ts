@@ -42,7 +42,7 @@ describe('Accept Invite (Unit)', () => {
       id: inviteId,
       email: 'johndoe@example.com',
       clubId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
     } as any)
 
     const response = await app.inject({

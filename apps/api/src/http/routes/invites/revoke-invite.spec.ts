@@ -54,7 +54,7 @@ describe('Revoke Invite (Unit)', () => {
     })
   })
 
-  it('should not be able to revoke an invite if user is a MEMBER', async () => {
+  it('should not be able to revoke an invite if user is a ATHLETE', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const inviteId = '81f02179-8d75-474c-8975-c54d8b965c4d'
     const token = app.jwt.sign({ sub: userId })
@@ -62,7 +62,7 @@ describe('Revoke Invite (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
     } as any)
 

@@ -25,10 +25,12 @@ import { getCookie } from 'cookies-next'
 
 interface HeaderProps {
   user: {
+    id: string
     name: string | null
     email: string
     avatarUrl: string | null
     isSystemAdmin?: boolean
+    role?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   }
   variant?: 'default' | 'onboarding'
 }
@@ -40,15 +42,18 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false)
   const systemMenuRef = useRef<HTMLDivElement>(null)
 
+  const [clubs, setClubs] = useState<{slug: string, role: string}[]>([])
+
   const isSuperAdmin = user.isSystemAdmin || user.email === 'admin@clubrun.com'
 
   useEffect(() => {
     async function loadHeaderData() {
       try {
-        const { clubs } = await getClubs()
+        const { clubs: fetchedClubs } = await getClubs()
+        setClubs(fetchedClubs)
         const currentClubSlug = getCookie('club') as string
 
-        const club = clubs.find((c) => c.slug === currentClubSlug) || clubs[0]
+        const club = fetchedClubs.find((c) => c.slug === currentClubSlug) || fetchedClubs[0]
         if (club) {
           setActiveSlug(club.slug)
           setUserRole(club.role)
@@ -94,16 +99,17 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
     )
   }
 
-  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN' || isSuperAdmin
+  const isAnyOwner = clubs.some(c => c.role === 'OWNER')
+  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN' || isSuperAdmin || isAnyOwner || user.role === 'OWNER'
   
-  const dashboardHref = activeSlug ? `/${activeSlug}/dashboard` : '/'
-  const rankingHref = activeSlug ? `/${activeSlug}/ranking` : '#'
-  const membersHref = activeSlug ? `/${activeSlug}/members` : '#'
-  const invitesHref = activeSlug ? `/${activeSlug}/invites` : '#'
-  const settingsHref = activeSlug ? `/${activeSlug}/settings` : '#'
-  const racesHref = activeSlug ? `/${activeSlug}/races` : '#'
+  const dashboardHref = activeSlug ? `/${activeSlug}/dashboard` : '/explore'
+  const rankingHref = activeSlug ? `/${activeSlug}/ranking` : '/explore'
+  const membersHref = activeSlug ? `/${activeSlug}/members` : '/explore'
+  const invitesHref = activeSlug ? `/${activeSlug}/invites` : '/create-club'
+  const settingsHref = activeSlug ? `/${activeSlug}/settings` : (isAnyOwner ? '/create-club' : '/explore')
+  const racesHref = activeSlug ? `/${activeSlug}/races` : '/explore'
 
-  const showClubSwitcher = isSuperAdmin || userRole === 'OWNER'
+  const showClubSwitcher = isSuperAdmin || isAnyOwner || userRole === 'OWNER'
 
   return (
     <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md">
@@ -127,7 +133,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
-        <div className={`hidden items-center gap-0.5 ${userRole === 'MEMBER' || userRole === 'COACH' ? 'text-[16px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
+        <div className={`hidden items-center gap-0.5 ${userRole === 'ATHLETE' || userRole === 'COACH' ? 'text-[16px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
           <Link
             href="/explore"
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
@@ -141,10 +147,10 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <LayoutDashboard className="h-4 w-4" />
-            {userRole === 'MEMBER' || userRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
+            {userRole === 'ATHLETE' || userRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
           </Link>
 
-          {(userRole === 'MEMBER' || userRole === 'COACH') && (
+          {(userRole === 'ATHLETE' || userRole === 'COACH') && (
             <Link
               href={`/profile/${user.id}`}
               className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname?.startsWith('/profile') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}

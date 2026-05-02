@@ -3,7 +3,7 @@ import { api } from './api-client'
 interface UpdateMemberRequest {
   slug: string
   memberId: string
-  role?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   status?: 'ACTIVE' | 'INACTIVE'
 }
 

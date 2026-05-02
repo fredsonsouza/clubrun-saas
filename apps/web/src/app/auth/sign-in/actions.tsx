@@ -43,5 +43,6 @@ export async function signInWithEmailAndPassword(data: FormData) {
       errors: null,
     }
   }
-  redirect('/')
+ 
+  return { success: true, message: null, errors: null }
 }

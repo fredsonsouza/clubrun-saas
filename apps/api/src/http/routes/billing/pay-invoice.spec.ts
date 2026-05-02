@@ -57,7 +57,7 @@ describe('Pay Invoice (Unit)', () => {
     })
   })
 
-  it('should not be able to pay an invoice if user is a MEMBER', async () => {
+  it('should not be able to pay an invoice if user is a ATHLETE', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const invoiceId = '90f9689b-9c5c-4d8b-96d5-4d8b965c4d8b'
     const token = app.jwt.sign({ sub: userId })
@@ -65,7 +65,7 @@ describe('Pay Invoice (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club' },
     } as any)
 

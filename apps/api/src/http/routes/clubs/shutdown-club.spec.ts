@@ -54,7 +54,7 @@ describe('Shutdown Club (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club', ownerId: 'another-user' },
     } as any)
 

@@ -56,7 +56,7 @@ export async function updateMember(app: FastifyInstance) {
               id: { not: memberId }
             },
             data: {
-              role: 'MEMBER'
+              role: 'ATHLETE'
             }
           })
         }

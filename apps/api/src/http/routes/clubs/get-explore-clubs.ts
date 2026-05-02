@@ -26,7 +26,7 @@ export async function getExploreClubs(app: FastifyInstance) {
                   avatarUrl: z.string().nullable(),
                   membersCount: z.number(),
                   location: z.string().nullable(),
-                  membershipStatus: z.enum(['MEMBER', 'NONE', 'PENDING']),
+                  membershipStatus: z.enum(['ATHLETE', 'NONE', 'PENDING']),
                 })
               ),
             }),
@@ -62,9 +62,9 @@ export async function getExploreClubs(app: FastifyInstance) {
         const formattedClubs = clubs.map((club) => {
           const userMember = club.members[0]
           
-          let membershipStatus: 'MEMBER' | 'NONE' | 'PENDING' = 'NONE'
+          let membershipStatus: 'ATHLETE' | 'NONE' | 'PENDING' = 'NONE'
           if (userMember) {
-            membershipStatus = userMember.status === 'ACTIVE' ? 'MEMBER' : 'PENDING'
+            membershipStatus = userMember.status === 'ACTIVE' ? 'ATHLETE' : 'PENDING'
           }
 
           const location = club.city && club.state ? `${club.city}, ${club.state}` : 'Local não informado'

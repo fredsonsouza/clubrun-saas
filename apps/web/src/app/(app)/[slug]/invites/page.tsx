@@ -4,6 +4,7 @@ import { getClubs } from '@/http/get-clubs'
 import { getInvites } from '@/http/get-invites'
 import { redirect } from 'next/navigation'
 import { InvitesClient } from './invites-client'
+import { getPendingMembers } from '@/http/get-pending-members'
 
 interface InvitesPageProps {
   params: Promise<{
@@ -24,6 +25,7 @@ export default async function InvitesPage({ params }: InvitesPageProps) {
 
   // BUSCA CONVITES REAIS DA API
   const { invites } = await getInvites({ slug })
+  const { members: pendingMembers } = await getPendingMembers(slug)
 
   const formattedInvites = invites.map((invite) => ({
     id: invite.id,
@@ -31,6 +33,14 @@ export default async function InvitesPage({ params }: InvitesPageProps) {
     role: invite.role,
     createdAt: invite.createdAt,
     author: invite.author?.name || 'Sistema',
+  }))
+
+  const formattedPendingMembers = pendingMembers.map((m) => ({
+    id: m.id,
+    name: m.user.name || 'Novo Corredor',
+    email: m.user.email,
+    avatarUrl: m.user.avatarUrl,
+    createdAt: m.createdAt,
   }))
 
   const clubInfo = {
@@ -41,9 +51,9 @@ export default async function InvitesPage({ params }: InvitesPageProps) {
   return (
     <InvitesClient
       user={user}
-      club={clubInfo}
+      slug={slug}
       initialInvites={formattedInvites}
-      userRole={currentClub.role as any}
+      initialPendingMembers={formattedPendingMembers}
     />
   )
 }

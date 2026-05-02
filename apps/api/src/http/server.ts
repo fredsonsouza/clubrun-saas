@@ -55,6 +55,7 @@ import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
 import { getSystemStats } from './routes/system/get-system-stats'
 import { getSystemClubs } from './routes/system/get-system-clubs'
 import { getSystemLogs } from './routes/system/get-system-logs'
+import { getSystemBilling } from './routes/system/get-system-billing'
 import { getUserProfile } from './routes/users/get-user-profile'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
@@ -120,13 +121,23 @@ app.register(updateWorkout)
 app.register(getMyWorkouts)
 app.register(completeWorkout)
 
+import { getPendingMembers } from './routes/members/get-pending-members'
+import { updateMemberStatus } from './routes/members/update-member-status'
+
 app.register(getMembers)
+app.register(getPendingMembers)
 app.register(updateMember)
+app.register(updateMemberStatus)
 app.register(removeMember)
+
+import { getClubInviteLink } from './routes/invites/get-club-invite-link'
+import { joinClubViaLink } from './routes/invites/join-club-via-link'
 
 app.register(createInvite)
 app.register(getInvite)
 app.register(getInvites)
+app.register(getClubInviteLink)
+app.register(joinClubViaLink)
 app.register(acceptInvite)
 app.register(approveInvite)
 app.register(rejectInvite)
@@ -138,9 +149,12 @@ app.register(payInvoice)
 
 import { getExploreClubs } from './routes/clubs/get-explore-clubs'
 
+import { getClubPublicInfo } from './routes/clubs/get-club-public-info'
+
 app.register(getClubeRanking)
 app.register(getClubDashBoard)
 app.register(getExploreClubs)
+app.register(getClubPublicInfo)
 
 app.register(createRace)
 app.register(getRaces)
@@ -150,6 +164,7 @@ app.register(getRaceResults)
 app.register(getSystemStats)
 app.register(getSystemClubs)
 app.register(getSystemLogs)
+app.register(getSystemBilling)
 app.register(getUserProfile)
 
 // app.listen({ port: env.SERVER_PORT }).then(() => {

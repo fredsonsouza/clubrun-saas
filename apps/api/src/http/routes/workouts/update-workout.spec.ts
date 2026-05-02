@@ -36,7 +36,7 @@ describe('Update Workout (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: clubId, slug: 'acme-club' },
     } as any)
 
@@ -88,7 +88,7 @@ describe('Update Workout (Unit)', () => {
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: clubId, slug: 'acme-club' },
     } as any)
 

@@ -2,7 +2,7 @@
 
 import { api } from '@/http/api-client'
 import { updateAthleteProfile } from '@/http/update-athlete-profile'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function updateProfileAction(data: {
   weight?: number
@@ -17,7 +17,7 @@ export async function updateProfileAction(data: {
   try {
     await updateAthleteProfile(data)
 
-    revalidateTag('profile')
+    revalidatePath('/profile')
 
     return { success: true, message: 'Perfil atualizado com sucesso!' }
   } catch (err) {
@@ -40,9 +40,7 @@ export async function completeWorkoutAction(formData: FormData) {
       }
     })
 
-    revalidateTag('workouts')
-    revalidateTag('ranking')
-    revalidateTag('profile')
+    revalidatePath('/', 'layout')
 
     return { success: true, message: 'Treino finalizado com sucesso! Ótimo trabalho.' }
   } catch (err) {

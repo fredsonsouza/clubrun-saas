@@ -2,7 +2,7 @@
 
 import { updateClub, shutdownClub } from '@/http/update-club'
 import { transferClubOwnership } from '@/http/transfer-club'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function updateClubAction(formData: FormData) {
   const slug = formData.get('slug') as string
@@ -18,7 +18,7 @@ export async function updateClubAction(formData: FormData) {
       shouldAttachUsersByDomain,
     })
 
-    revalidateTag('clubs')
+    revalidatePath('/', 'layout')
 
     return { success: true, message: 'Definições do clube atualizadas!' }
   } catch (err) {
@@ -35,7 +35,7 @@ export async function transferOwnershipAction({
 }) {
   try {
     await transferClubOwnership({ slug, transferToUserId })
-    revalidateTag('clubs')
+    revalidatePath('/', 'layout')
     return { success: true, message: 'Propriedade transferida com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao transferir propriedade.' }
@@ -45,7 +45,7 @@ export async function transferOwnershipAction({
 export async function shutdownClubAction(slug: string) {
   try {
     await shutdownClub(slug)
-    revalidateTag('clubs')
+    revalidatePath('/', 'layout')
     return { success: true, message: 'Clube encerrado com sucesso.' }
   } catch (err) {
     return { success: false, message: 'Erro ao encerrar o clube.' }

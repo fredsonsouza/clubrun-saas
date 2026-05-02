@@ -7,6 +7,7 @@ import { ClubCard, Club } from '@/components/club-card'
 
 interface ExploreClubsClientProps {
   user: {
+    id: string
     name: string | null
     email: string
     avatarUrl: string | null

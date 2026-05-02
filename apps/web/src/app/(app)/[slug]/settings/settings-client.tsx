@@ -20,6 +20,11 @@ import {
   ChevronDown,
   UserCog,
   RefreshCcw,
+  BarChart,
+  Users,
+  Activity,
+  Compass,
+  UserPlus
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { 
@@ -41,7 +46,7 @@ import { Button } from '@/components/ui/button'
 interface Member {
   id: string
   userId: string
-  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   name: string | null
   email: string
   avatarUrl: string | null
@@ -59,7 +64,7 @@ interface SettingsClientProps {
     slug: string
     description: string | null
   }
-  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   billing: {
     seats: {
       amount: number
@@ -67,6 +72,14 @@ interface SettingsClientProps {
       price: number
     }
     total: number
+  }
+  members: Member[]
+  metrics: {
+    activeMembers: number
+    inactiveMembers: number
+    pendingInvites: number
+    totalDistanceMonth: number
+    totalWorkoutsMonth: number
   }
 }
 
@@ -92,10 +105,11 @@ export function SettingsClient({
   userRole,
   members,
   billing,
+  metrics,
 }: SettingsClientProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<'general' | 'billing' | 'danger'>(
-    'general'
+  const [activeTab, setActiveTab] = useState<'overview' | 'general' | 'billing' | 'danger'>(
+    'overview'
   )
   const [name, setName] = useState(club.name)
   const [description, setDescription] = useState(club.description || '')
@@ -179,10 +193,10 @@ export function SettingsClient({
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
-              Definições do Clube
+              Painel de Gestão
             </h1>
             <p className="text-sm font-medium text-gray-500">
-              Faça a gestão da identidade, faturação e segurança da sua equipa.
+              Controle total sobre o seu pelotão: métricas, configurações e faturação.
             </p>
           </div>
           
@@ -195,11 +209,19 @@ export function SettingsClient({
         <div className="flex flex-col items-start gap-8 md:flex-row">
           <aside className="w-full shrink-0 space-y-1 md:w-72">
             <button
+              onClick={() => setActiveTab('overview')}
+              className={`cursor-pointer flex w-full items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+            >
+              <BarChart className={`h-4 w-4 ${activeTab === 'overview' ? 'text-orange-500' : ''}`} /> 
+              Visão Geral
+              {activeTab === 'overview' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
+            </button>
+            <button
               onClick={() => setActiveTab('general')}
               className={`cursor-pointer flex w-full items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
             >
               <Settings className={`h-4 w-4 ${activeTab === 'general' ? 'text-orange-500' : ''}`} /> 
-              Geral
+              Configurações do Clube
               {activeTab === 'general' && <ArrowRight className="ml-auto h-4 w-4 animate-in slide-in-from-left-2" />}
             </button>
             <button
@@ -227,6 +249,59 @@ export function SettingsClient({
           </aside>
 
           <div className="w-full flex-1">
+            {activeTab === 'overview' && (
+              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+                <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
+                      <Users className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Membros Ativos</p>
+                    <p className="mt-1 text-4xl font-black text-gray-900">{metrics.activeMembers}</p>
+                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500">
+                      <span className="text-orange-500">{metrics.inactiveMembers} inativos</span>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-500">
+                      <Activity className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Treinos no Mês</p>
+                    <p className="mt-1 text-4xl font-black text-gray-900">{metrics.totalWorkoutsMonth}</p>
+                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-blue-500">
+                      Volume total da equipe
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
+                      <Compass className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Distância Total (Mês)</p>
+                    <p className="mt-1 text-4xl font-black text-gray-900">
+                      {metrics.totalDistanceMonth > 1000 
+                        ? `${(metrics.totalDistanceMonth / 1000).toFixed(1)} km` 
+                        : `${metrics.totalDistanceMonth} m`}
+                    </p>
+                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-500">
+                      Quilometragem acumulada
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-500">
+                      <UserPlus className="h-6 w-6" />
+                    </div>
+                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Convites Pendentes</p>
+                    <p className="mt-1 text-4xl font-black text-gray-900">{metrics.pendingInvites}</p>
+                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-purple-500">
+                      <a href={`/${club.slug}/invites`} className="hover:underline">Gerenciar convites →</a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             {activeTab === 'general' && (
               <div className="animate-in fade-in slide-in-from-right-4 rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm duration-300 sm:p-10">
                 <div className="mb-8">

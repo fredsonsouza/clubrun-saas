@@ -24,7 +24,7 @@ describe('Create Invite (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         email: inviteEmail,
-        role: 'MEMBER',
+        role: 'ATHLETE',
       })
 
     expect(response.statusCode).toBe(201)
@@ -38,7 +38,7 @@ describe('Create Invite (E2E)', () => {
 
     expect(invite).not.toBeNull()
     expect(invite?.email).toBe(inviteEmail)
-    expect(invite?.role).toBe('MEMBER')
+    expect(invite?.role).toBe('ATHLETE')
   })
 
   it('should not be able to create an invite with unauthorized role (BILLING)', async () => {
@@ -49,7 +49,7 @@ describe('Create Invite (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         email: faker.internet.email(),
-        role: 'MEMBER',
+        role: 'ATHLETE',
       })
 
     expect(response.statusCode).toBe(401)
@@ -82,7 +82,7 @@ describe('Create Invite (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         email: `test@${domain}`,
-        role: 'MEMBER',
+        role: 'ATHLETE',
       })
 
     expect(response.statusCode).toBe(400)
@@ -97,7 +97,7 @@ describe('Create Invite (E2E)', () => {
     await request(app.server)
       .post(`/clubs/${club?.slug}/invites`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ email, role: 'MEMBER' })
+      .send({ email, role: 'ATHLETE' })
 
     // Segundo convite igual
     const response = await request(app.server)
@@ -120,7 +120,7 @@ describe('Create Invite (E2E)', () => {
         members_on: {
           create: {
             clubId: club?.id!,
-            role: 'MEMBER',
+            role: 'ATHLETE',
           },
         },
       },
@@ -131,7 +131,7 @@ describe('Create Invite (E2E)', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         email: secondUserEmail,
-        role: 'MEMBER',
+        role: 'ATHLETE',
       })
 
     expect(response.statusCode).toBe(400)

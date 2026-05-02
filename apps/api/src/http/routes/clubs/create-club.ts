@@ -48,7 +48,7 @@ export async function createClub(app: FastifyInstance) {
 
         // Super admins can create as many as they want
         // Owners can create as many as they want
-        // Others (MEMBER, COACH, etc) can only create if they have no clubs yet
+        // Others (ATHLETE, COACH, etc) can only create if they have no clubs yet
         if (!user?.isSystemAdmin && hasMemberShips && !isOwnerOfAll) {
           throw new BadRequestError('As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.')
         }

@@ -22,7 +22,7 @@ interface Member {
   name: string
   email: string
   avatarUrl: string | null
-  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   joinedAt: string
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'TRIAL'
   overdue: boolean
@@ -55,7 +55,7 @@ export function MemberGrid({
       m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       m.email.toLowerCase().includes(searchTerm.toLowerCase())
     
-    if (tab === 'athletes') return matchesSearch && m.role === 'MEMBER'
+    if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
     if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
     return matchesSearch
   })

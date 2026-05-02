@@ -280,7 +280,7 @@ export function ProfileClient({
                       key={workout.id}
                       workout={workout}
                       currentUserId={currentUser.id}
-                      userRole="MEMBER"
+                      userRole="ATHLETE"
                     />
                   ))
                 ) : (
@@ -308,7 +308,7 @@ export function ProfileClient({
                       <WorkoutCard
                         workout={workout}
                         currentUserId={currentUser.id}
-                        userRole="MEMBER"
+                        userRole="ATHLETE"
                         onComplete={handleOpenCompleteModal}
                       />
                     </div>

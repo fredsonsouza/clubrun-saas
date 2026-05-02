@@ -50,7 +50,7 @@ export default async function ClubDashboardPage({
     slug: slug,
     description: club.description || `Bem-vindo ao ${club.name}! Treinos e performance em um só lugar.`,
     membersCount: metrics.activeMembers + metrics.inactiveMembers,
-    location: club.city && club.state ? `${club.city}, ${club.state}` : 'Local não informado',
+    location: 'Sede do Clube',
     monthlyDistance: metrics.totalDistanceMonth,
   }
 
@@ -63,7 +63,9 @@ export default async function ClubDashboardPage({
     durationInSeconds: w.duration || 0,
     type: w.type as any,
     visibility: 'PUBLIC' as const,
-    createdAt: w.date,
+    status: w.status as any,
+    assignmentMode: w.assignmentMode as any,
+    createdAt: typeof w.date === 'string' ? w.date : new Date(w.date).toISOString(),
     author: {
       id: w.athlete.id,
       name: w.athlete.name || 'Atleta',

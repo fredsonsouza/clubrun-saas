@@ -29,7 +29,7 @@ describe('Transfer Club Ownership (E2E)', () => {
       data: {
         userId: secondUser.id,
         clubId: club?.id!,
-        role: 'MEMBER',
+        role: 'ATHLETE',
       },
     })
 
@@ -82,7 +82,7 @@ describe('Transfer Club Ownership (E2E)', () => {
   })
 
   it('should not be able to transfer ownership if user is not the owner', async () => {
-    const { token, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const response = await request(app.server)
       .patch(`/clubs/${club?.slug}/owner`)

@@ -6,6 +6,7 @@ import z from 'zod'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function createWorkout(app: FastifyInstance) {
   app
@@ -132,6 +133,14 @@ export async function createWorkout(app: FastifyInstance) {
             })
           }
         }
+
+        await createAuditLog({
+          action: 'WORKOUT_CREATED',
+          entity: 'WORKOUT',
+          entityId: workout.id,
+          userId,
+          payload: { clubId: club.id, distance: workout.distance, athleteId: targetAthleteId },
+        })
 
         return reply.status(201).send({
           workoutId: workout.id,

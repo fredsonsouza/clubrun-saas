@@ -56,14 +56,14 @@ describe('Get Club Billing (Unit)', () => {
     })
   })
 
-  it('should not be able to get billing if user is just a MEMBER', async () => {
+  it('should not be able to get billing if user is just a ATHLETE', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue({
       id: 'member-id',
       userId,
-      role: 'MEMBER',
+      role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club' },
     } as any)
 

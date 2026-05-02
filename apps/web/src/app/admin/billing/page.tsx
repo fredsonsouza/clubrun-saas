@@ -1,50 +1,16 @@
 import React from 'react'
 import { auth } from '@/auth/auth'
 import { AdminHeader } from '@/components/admin-header'
+import { getSystemBilling } from '@/http/get-system-billing'
 import {
   CreditCard,
-  TrendingUp,
-  ArrowUpRight,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react'
-
-const RECENT_TRANSACTIONS = [
-  {
-    id: 'tx-1',
-    entity: 'Corre Macuxi',
-    type: 'Assinatura PRO',
-    amount: 49.9,
-    date: 'Hoje, 14:30',
-    status: 'PAID',
-  },
-  {
-    id: 'tx-2',
-    entity: 'Atleta: Carlos Silva',
-    type: 'ClubRun Pass',
-    amount: 19.9,
-    date: 'Hoje, 10:15',
-    status: 'PAID',
-  },
-  {
-    id: 'tx-3',
-    entity: 'Elite Run',
-    type: 'Assinatura ELITE',
-    amount: 99.9,
-    date: 'Ontem',
-    status: 'PAID',
-  },
-  {
-    id: 'tx-4',
-    entity: 'Atleta: Julia Martins',
-    type: 'ClubRun Pass',
-    amount: 19.9,
-    date: 'Ontem',
-    status: 'FAILED',
-  },
-]
 
 export default async function AdminBillingPage() {
   const { user } = await auth()
+  const { billing } = await getSystemBilling()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
@@ -76,12 +42,12 @@ export default async function AdminBillingPage() {
                 </p>
                 <div className="flex items-baseline gap-2">
                   <span className="text-5xl font-black text-white">
-                    R$ 14.850<span className="text-3xl text-gray-500">,00</span>
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.mrr)}
                   </span>
                 </div>
               </div>
               <div className="flex items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/20 px-3 py-1.5 text-sm font-bold text-green-400">
-                <TrendingUp className="h-4 w-4" /> +15.4%
+                Dados reais
               </div>
             </div>
 
@@ -90,13 +56,17 @@ export default async function AdminBillingPage() {
                 <p className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
                   Receita de Clubes (B2B)
                 </p>
-                <p className="text-xl font-bold text-white">R$ 3.250,00</p>
+                <p className="text-xl font-bold text-white">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.b2bRevenue)}
+                </p>
               </div>
               <div>
                 <p className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
                   Receita de Atletas (B2C)
                 </p>
-                <p className="text-xl font-bold text-white">R$ 11.600,00</p>
+                <p className="text-xl font-bold text-white">
+                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.b2cRevenue)}
+                </p>
               </div>
             </div>
           </div>
@@ -107,10 +77,10 @@ export default async function AdminBillingPage() {
               Saldo a Transferir
             </p>
             <p className="mb-6 text-4xl font-black text-gray-900">
-              R$ 4.230,00
+              {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(billing.availableBalance)}
             </p>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 transition-colors hover:bg-gray-200">
-              <ArrowUpRight className="h-4 w-4" /> Efetuar Saque
+            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 transition-colors hover:bg-gray-200 cursor-not-allowed opacity-50">
+               Efetuar Saque (Indisponível)
             </button>
           </div>
         </div>
@@ -121,7 +91,7 @@ export default async function AdminBillingPage() {
         </h2>
         <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
           <div className="divide-y divide-gray-50">
-            {RECENT_TRANSACTIONS.map((tx) => (
+            {billing.transactions.length > 0 ? billing.transactions.map((tx) => (
               <div
                 key={tx.id}
                 className="flex items-center justify-between p-5 transition-colors hover:bg-gray-50"
@@ -129,12 +99,12 @@ export default async function AdminBillingPage() {
                 <div>
                   <p className="text-sm font-bold text-gray-900">{tx.entity}</p>
                   <p className="mt-0.5 text-xs font-medium text-gray-500">
-                    {tx.type} • {tx.date}
+                    {tx.type} • {new Date(tx.date).toLocaleDateString('pt-BR')} {new Date(tx.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-right">
                   <span className="font-mono text-sm font-bold text-gray-900">
-                    R$ {tx.amount.toFixed(2)}
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(tx.amount)}
                   </span>
                   {tx.status === 'PAID' ? (
                     <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-green-100 bg-green-50 px-2 py-1 text-[10px] font-bold tracking-wider text-green-600 uppercase">
@@ -142,12 +112,16 @@ export default async function AdminBillingPage() {
                     </span>
                   ) : (
                     <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-red-100 bg-red-50 px-2 py-1 text-[10px] font-bold tracking-wider text-red-600 uppercase">
-                      Falhou
+                      <AlertCircle className="h-3 w-3" /> {tx.status}
                     </span>
                   )}
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="p-12 text-center text-sm font-medium text-gray-400">
+                Nenhuma transação registrada.
+              </div>
+            )}
           </div>
         </div>
       </main>

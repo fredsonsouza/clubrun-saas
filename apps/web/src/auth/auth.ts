@@ -21,7 +21,8 @@ export async function auth() {
     return {
       user: {
         ...user,
-        id: user.id,
+        id: user.id as string,
+        role: user.role,
       },
     }
   } catch {}

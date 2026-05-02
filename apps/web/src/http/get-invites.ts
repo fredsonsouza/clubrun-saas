@@ -7,7 +7,7 @@ interface GetInvitesRequest {
 interface GetInvitesResponse {
   invites: Array<{
     id: string
-    role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+    role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
     email: string
     createdAt: string
     author: {

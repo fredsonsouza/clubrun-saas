@@ -10,6 +10,12 @@ const signUpSchema = z
     name: z.string().refine((value) => value.split(' ').length > 1, {
       message: 'Por favor, informe seu nome completo!',
     }),
+    username: z
+      .string()
+      .min(3, { message: 'Username deve ter pelo menos 3 caracteres.' })
+      .regex(/^[a-zA-Z0-9._-]+$/, {
+        message: 'Username só pode conter letras, números, pontos, underscores e hífens.',
+      }),
     email: z.email({ message: 'Por favor, informe um e-mail válido!' }),
     password: z
       .string()
@@ -29,11 +35,12 @@ export async function signInUpAction(data: FormData) {
 
     return { success: false, message: null, errors }
   }
-  const { name, password, email } = result.data
+  const { name, username, password, email } = result.data
 
   try {
     await signUp({
       name,
+      username,
       email,
       password,
     })
@@ -53,5 +60,5 @@ export async function signInUpAction(data: FormData) {
     }
   }
 
-  redirect('/')
+  return { success: true, message: null, errors: null }
 }

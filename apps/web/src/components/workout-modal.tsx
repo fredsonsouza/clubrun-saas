@@ -22,7 +22,7 @@ interface CreateWorkoutModalProps {
   slug: string
   onClose: () => void
   onSuccess?: () => void
-  userRole?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  userRole?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   members?: Array<{ id: string, name: string, userId: string }>
 }
 

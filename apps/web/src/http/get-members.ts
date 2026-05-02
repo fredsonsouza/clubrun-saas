@@ -8,7 +8,7 @@ interface GetMembersResponse {
   members: Array<{
     id: string
     userId: string
-    role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+    role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
     name: string | null
     email: string
     avatarUrl: string | null
@@ -18,7 +18,13 @@ interface GetMembersResponse {
 
 export async function getMembers({ slug }: GetMembersRequest) {
   const result = await api
-    .get(`clubs/${slug}/members`)
+    .get(`clubs/${slug}/members?t=${new Date().getTime()}`, {
+      fetchOptions: {
+        next: {
+          revalidate: 0,
+        },
+      },
+    })
     .json<GetMembersResponse>()
 
   return result

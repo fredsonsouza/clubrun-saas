@@ -3,7 +3,7 @@ import { api } from './api-client'
 interface CreateInviteRequest {
   slug: string
   email: string
-  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
 }
 
 export async function createInvite({ slug, email, role }: CreateInviteRequest) {

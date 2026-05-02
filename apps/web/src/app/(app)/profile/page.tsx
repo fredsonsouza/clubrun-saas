@@ -28,7 +28,7 @@ export default async function ProfilePage() {
     <ProfileClient
       currentUser={currentUser}
       user={user}
-      athleteProfile={athleteProfile}
+      athleteProfile={athleteProfile ? { ...athleteProfile, isPublic: true } : null}
       workouts={formattedWorkouts}
       plannedWorkouts={formattedPlannedWorkouts}
       isOwnProfile={true}

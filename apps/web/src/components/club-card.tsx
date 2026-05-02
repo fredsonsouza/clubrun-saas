@@ -17,9 +17,9 @@ export interface Club {
   slug: string
   description: string | null
   membersCount: number
-  location?: string
+  location: string | null
   // Estados mockados para a UI saber como o usuário interage com este clube
-  membershipStatus: 'NONE' | 'PENDING' | 'MEMBER' | 'OWNER'
+  membershipStatus: 'NONE' | 'PENDING' | 'ATHLETE' | 'OWNER'
 }
 
 interface ClubCardProps {
@@ -31,7 +31,7 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
   // Define o visual das ações baseado no status do usuário
   const renderActions = () => {
     const isMember =
-      club.membershipStatus === 'MEMBER' || club.membershipStatus === 'OWNER'
+      club.membershipStatus === 'ATHLETE' || club.membershipStatus === 'OWNER'
     const isPending = club.membershipStatus === 'PENDING'
 
     if (isMember) {
@@ -84,7 +84,7 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
         <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-xl font-black text-gray-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-orange-50 group-hover:text-orange-500">
           {club.name.charAt(0)}
         </div>
-        {club.membershipStatus === 'MEMBER' && (
+        {club.membershipStatus === 'ATHLETE' && (
           <span className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-[10px] font-bold tracking-wider text-green-600 uppercase">
             <CheckCircle2 className="h-3 w-3" /> Inscrito
           </span>

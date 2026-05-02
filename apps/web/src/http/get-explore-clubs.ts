@@ -9,7 +9,7 @@ interface GetExploreClubsResponse {
     avatarUrl: string | null
     membersCount: number
     location: string | null
-    membershipStatus: 'MEMBER' | 'NONE' | 'PENDING'
+    membershipStatus: 'ATHLETE' | 'NONE' | 'PENDING'
   }[]
 }
 

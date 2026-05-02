@@ -2,7 +2,7 @@
 
 import { createRace } from '@/http/create-race'
 import { createRaceResult } from '@/http/create-race-result'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath } from 'next/cache'
 
 export async function createRaceAction(formData: FormData) {
   const slug = formData.get('slug') as string
@@ -22,7 +22,7 @@ export async function createRaceAction(formData: FormData) {
       imageUrl: imageUrl || null,
     })
 
-    revalidateTag('races')
+    revalidatePath(`/${slug}/races`)
 
     return { success: true, message: 'Prova criada com sucesso!' }
   } catch (err) {
@@ -48,8 +48,8 @@ export async function createRaceResultAction(formData: FormData) {
       position,
     })
 
-    revalidateTag('races')
-    revalidateTag(`race-results:${raceId}`)
+    revalidatePath(`/${slug}/races`)
+    revalidatePath(`/${slug}/races/${raceId}`)
 
     return { success: true, message: 'Resultado registrado com sucesso!' }
   } catch (err) {

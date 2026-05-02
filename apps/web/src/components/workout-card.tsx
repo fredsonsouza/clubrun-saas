@@ -46,7 +46,7 @@ export interface Workout {
 interface WorkoutCardProps {
   workout: Workout
   currentUserId: string
-  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'MEMBER' | 'COACH' | 'BILLING'
+  userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   onDelete?: (id: string) => void
   onEdit?: (id: string) => void
   onComplete?: (workout: Workout) => void
@@ -207,9 +207,9 @@ export function WorkoutCard({
               </span>
               <span>•</span>
               {workout.visibility === 'PUBLIC' ? (
-                <Globe className="h-3 w-3 text-gray-400" title="Público" />
+                <span title="Público"><Globe className="h-3 w-3 text-gray-400" /></span>
               ) : (
-                <Lock className="h-3 w-3 text-orange-500" title="Privado" />
+                <span title="Privado"><Lock className="h-3 w-3 text-orange-500" /></span>
               )}
             </div>
           </div>

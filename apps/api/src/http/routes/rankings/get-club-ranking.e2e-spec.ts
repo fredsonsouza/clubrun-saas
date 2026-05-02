@@ -16,7 +16,7 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club monthly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const year = getYear(new Date())
     const month = getMonth(new Date()) + 1
@@ -56,7 +56,7 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club weekly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const year = getYear(new Date())
     const week = getISOWeek(new Date())
@@ -82,7 +82,7 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club yearly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const year = 2024
 

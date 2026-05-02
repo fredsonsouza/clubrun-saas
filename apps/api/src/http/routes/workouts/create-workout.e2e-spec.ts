@@ -15,7 +15,7 @@ describe('Create Workout (E2E)', () => {
   })
 
   it('should be able to register a new workout', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const title = faker.lorem.words(3)
     const distance = faker.number.float({ min: 1, max: 50, fractionDigits: 2 })
@@ -84,7 +84,7 @@ describe('Create Workout (E2E)', () => {
   })
 
   it('should not be able to register a workout with invalid data', async () => {
-    const { token, club } = await createAndAuthenticateUser(app, 'MEMBER')
+    const { token, club } = await createAndAuthenticateUser(app, 'ATHLETE')
 
     const response = await request(app.server)
       .post(`/clubs/${club?.slug}/workouts`)
