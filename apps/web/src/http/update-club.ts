@@ -5,6 +5,11 @@ interface UpdateClubRequest {
   name: string
   domain?: string | null
   cnpj?: string | null
+  description?: string | null
+  city?: string | null
+  state?: string | null
+  avatarUrl?: string | null
+  bannerUrl?: string | null
   shouldAttachUsersByDomain?: boolean
 }
 
@@ -13,6 +18,11 @@ export async function updateClub({
   name,
   domain,
   cnpj,
+  description,
+  city,
+  state,
+  avatarUrl,
+  bannerUrl,
   shouldAttachUsersByDomain,
 }: UpdateClubRequest) {
   await api.put(`clubs/${slug}`, {
@@ -20,6 +30,11 @@ export async function updateClub({
       name,
       domain,
       cnpj,
+      description,
+      city,
+      state,
+      avatarUrl,
+      bannerUrl,
       shouldAttachUsersByDomain,
     },
   })

@@ -14,7 +14,7 @@ export async function getWorkouts(app: FastifyInstance) {
       '/clubs/:slug/workouts',
       {
         schema: {
-          tags: ['Workouts'],
+          tags: ['workouts'],
           summary: 'Get club workouts',
           security: [{ bearerAuth: [] }],
           params: z.object({
@@ -49,7 +49,7 @@ export async function getWorkouts(app: FastifyInstance) {
                     name: z.string().nullable(),
                     avatarUrl: z.string().nullable(),
                   }),
-                }),
+                })
               ),
               meta: z.object({
                 total: z.number(),
@@ -69,23 +69,25 @@ export async function getWorkouts(app: FastifyInstance) {
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { can } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
 
-        console.log(`[PERM_DEBUG] User=${userId}, Role=${memberShip.role}, Club=${slug}`)
+        console.log(
+          `[PERM_DEBUG] User=${userId}, Role=${memberShip.role}, Club=${slug}`
+        )
         console.log(`[PERM_DEBUG] Pode listar treinos?`, can('get', 'Workout'))
 
         if (!can('get', 'Workout')) {
           throw new UnauthorizedError(`You're not allowed to list workouts`)
         }
 
-        const where = { 
-          clubId: club.id, 
+        const where = {
+          clubId: club.id,
           status,
-          ...(athleteId ? { athleteId } : {}) 
+          ...(athleteId ? { athleteId } : {}),
         }
 
         const [total, workouts] = await Promise.all([
@@ -134,6 +136,6 @@ export async function getWorkouts(app: FastifyInstance) {
             totalPages: Math.ceil(total / limit),
           },
         })
-      },
+      }
     )
 }

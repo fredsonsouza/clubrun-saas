@@ -1,6 +1,8 @@
 import { api } from './api-client'
 
 interface UpdateAthleteProfileRequest {
+  name?: string
+  avatarUrl?: string | null
   weight?: number
   height?: number
   gender?: 'MALE' | 'FEMALE' | 'OTHER'

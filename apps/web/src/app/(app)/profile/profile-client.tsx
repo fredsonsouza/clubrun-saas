@@ -46,6 +46,7 @@ interface ProfileClientProps {
   workouts: Workout[]
   plannedWorkouts: Workout[]
   isOwnProfile: boolean
+  token?: string
 }
 
 export function ProfileClient({
@@ -55,6 +56,7 @@ export function ProfileClient({
   workouts,
   plannedWorkouts,
   isOwnProfile,
+  token,
 }: ProfileClientProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
@@ -332,7 +334,9 @@ export function ProfileClient({
       <UpdateProfileModal 
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
-        initialData={athleteProfile}
+        user={user}
+        athleteProfile={athleteProfile}
+        token={token}
       />
 
       <CompleteWorkoutModal

@@ -29,6 +29,7 @@ export async function auth() {
         id: user.id as string,
         emailVerifiedAt: user.emailVerifiedAt,
       },
+      token,
     }
   } catch (error) {
   }

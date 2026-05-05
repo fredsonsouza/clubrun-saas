@@ -5,6 +5,8 @@ import { updateAthleteProfile } from '@/http/update-athlete-profile'
 import { revalidatePath } from 'next/cache'
 
 export async function updateProfileAction(data: {
+  name?: string
+  avatarUrl?: string | null
   weight?: number
   height?: number
   gender?: 'MALE' | 'FEMALE' | 'OTHER'

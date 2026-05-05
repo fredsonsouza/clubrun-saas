@@ -11,7 +11,7 @@ interface UserProfilePageProps {
 
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { id } = await params
-  const { user: currentUser } = await auth()
+  const { user: currentUser, token } = await auth()
 
   // Fetch real profile data
   const { user, athleteProfile, workouts, plannedWorkouts } = await getUserProfile(id)
@@ -45,6 +45,7 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
       workouts={formattedWorkouts}
       plannedWorkouts={formattedPlannedWorkouts}
       isOwnProfile={isOwnProfile}
+      token={token}
     />
   )
 }

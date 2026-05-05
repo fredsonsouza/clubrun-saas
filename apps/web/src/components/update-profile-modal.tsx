@@ -15,12 +15,16 @@ import {
 } from 'lucide-react'
 
 import { toast } from 'sonner'
-import { updateProfileAction } from '@/app/(app)/profile/actions'
+import { ImageUpload } from './image-upload'
 
 interface UpdateProfileModalProps {
   isOpen: boolean
   onClose: () => void
-  initialData: {
+  user: {
+    name: string | null
+    avatarUrl: string | null
+  }
+  athleteProfile: {
     bio: string | null
     city: string | null
     weight: number | null
@@ -30,14 +34,19 @@ interface UpdateProfileModalProps {
     stravaUrl: string | null
     isPublic: boolean
   } | null
+  token?: string
 }
 
 export function UpdateProfileModal({
   isOpen,
   onClose,
-  initialData,
+  user,
+  athleteProfile: initialData,
+  token,
 }: UpdateProfileModalProps) {
   const [formData, setFormData] = useState({
+    name: user?.name || '',
+    avatarUrl: user?.avatarUrl || '',
     bio: initialData?.bio || '',
     city: initialData?.city || '',
     weight: initialData?.weight?.toString() || '',
@@ -55,8 +64,13 @@ export function UpdateProfileModal({
     e.preventDefault()
     setIsSaving(true)
     
+    // Import delayed to avoid circular issues if any
+    const { updateProfileAction } = await import('@/app/(app)/profile/actions')
+
     const result = await updateProfileAction({
       ...formData,
+      name: formData.name,
+      avatarUrl: formData.avatarUrl || null,
       weight: formData.weight ? parseFloat(formData.weight) : undefined,
       height: formData.height ? parseInt(formData.height) : undefined,
       gender: formData.gender as any,
@@ -99,6 +113,33 @@ export function UpdateProfileModal({
 
         <div className="overflow-y-auto bg-white p-6 md:p-8">
           <form id="profile-form" onSubmit={handleSubmit} className="space-y-8">
+            {/* FOTO E NOME */}
+            <div className="flex flex-col gap-8 md:flex-row md:items-center">
+              <div className="w-32 shrink-0">
+                <ImageUpload 
+                  value={formData.avatarUrl}
+                  onChange={(url) => setFormData({ ...formData, avatarUrl: url })}
+                  label="Sua Foto"
+                  token={token}
+                />
+              </div>
+              <div className="flex-1 space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-orange-500">
+                  Seu Nome
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="Seu nome completo"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 text-lg font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                />
+              </div>
+            </div>
+
             {/* BIO E LOCALIZAÇÃO */}
             <div className="space-y-4">
               <h3 className="text-xs font-black uppercase tracking-widest text-orange-500">

@@ -24,6 +24,11 @@ export async function updateClub(app: FastifyInstance) {
             name: z.string(),
             domain: z.string().nullish(),
             cnpj: z.string().nullish(),
+            description: z.string().nullish(),
+            city: z.string().nullish(),
+            state: z.string().nullish(),
+            avatarUrl: z.string().nullish(),
+            bannerUrl: z.string().nullish(),
             shouldAttachUsersByDomain: z.boolean().optional(),
           }),
           params: z.object({
@@ -39,11 +44,21 @@ export async function updateClub(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { name, domain, shouldAttachUsersByDomain, cnpj } = request.body
+        const { 
+          name, 
+          domain, 
+          shouldAttachUsersByDomain, 
+          cnpj, 
+          description, 
+          city, 
+          state, 
+          avatarUrl, 
+          bannerUrl 
+        } = request.body
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot, can } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
         if (cannot('update', authClub)) {
           throw new UnauthorizedError(`You're not allowed to update this club`)
@@ -73,6 +88,12 @@ export async function updateClub(app: FastifyInstance) {
             name,
             domain,
             shouldAttachUsersByDomain,
+            cnpj,
+            description,
+            city,
+            state,
+            avatarUrl,
+            bannerUrl,
           },
         })
 
@@ -81,7 +102,16 @@ export async function updateClub(app: FastifyInstance) {
           entity: 'CLUB',
           entityId: club.id,
           userId,
-          payload: { name, domain },
+          payload: { 
+            name, 
+            domain, 
+            cnpj, 
+            description, 
+            city, 
+            state, 
+            avatarUrl, 
+            bannerUrl 
+          },
         })
 
         return reply.status(204).send()

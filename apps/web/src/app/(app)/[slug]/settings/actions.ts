@@ -8,6 +8,12 @@ export async function updateClubAction(formData: FormData) {
   const slug = formData.get('slug') as string
   const name = formData.get('name') as string
   const domain = formData.get('domain') as string
+  const cnpj = formData.get('cnpj') as string
+  const description = formData.get('description') as string
+  const city = formData.get('city') as string
+  const state = formData.get('state') as string
+  const avatarUrl = formData.get('avatarUrl') as string
+  const bannerUrl = formData.get('bannerUrl') as string
   const shouldAttachUsersByDomain = formData.get('shouldAttachUsersByDomain') === 'on'
 
   try {
@@ -15,6 +21,12 @@ export async function updateClubAction(formData: FormData) {
       slug,
       name,
       domain: domain || null,
+      cnpj: cnpj || null,
+      description: description || null,
+      city: city || null,
+      state: state || null,
+      avatarUrl: avatarUrl || null,
+      bannerUrl: bannerUrl || null,
       shouldAttachUsersByDomain,
     })
 

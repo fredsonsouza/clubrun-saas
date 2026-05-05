@@ -16,28 +16,41 @@ export async function updateAthleteProfile(app: FastifyInstance) {
           summary: 'Update athlete physical and training profile',
           security: [{ bearerAuth: [] }],
           body: z.object({
+            name: z.string().optional(),
+            avatarUrl: z.string().url().nullable().optional(),
             weight: z.number().positive().optional(),
             height: z.number().int().positive().optional(),
             birthDate: z.coerce.date().optional(),
             gender: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
             bio: z.string().max(500).optional(),
             city: z.string().optional(),
-            instagramUrl: z.url().nullable().optional(),
-            youtubeUrl: z.url().nullable().optional(),
-            stravaUrl: z.url().nullable().optional(),
+            instagramUrl: z.string().nullable().optional(), // Changed from z.url() to z.string() to be more flexible
+            youtubeUrl: z.string().nullable().optional(),
+            stravaUrl: z.string().nullable().optional(),
             isPublic: z.boolean().optional(),
           }),
         },
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
-        const data = request.body
+        const { name, avatarUrl, ...athleteData } = request.body
+
+        // Update User info if provided
+        if (name || avatarUrl !== undefined) {
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              ...(name && { name }),
+              ...(avatarUrl !== undefined && { avatarUrl }),
+            },
+          })
+        }
 
         const profile = await prisma.athleteProfile.update({
           where: {
             userId,
           },
-          data,
+          data: athleteData,
         })
 
         return reply.send({ profile })

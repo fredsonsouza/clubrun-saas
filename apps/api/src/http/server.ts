@@ -3,6 +3,12 @@ import fastifyCors from '@fastify/cors'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
 import fastifyJwt from '@fastify/jwt'
+import fastifyStatic from '@fastify/static'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 import {
   jsonSchemaTransform,
@@ -59,6 +65,7 @@ import { getSystemClubs } from './routes/system/get-system-clubs'
 import { getSystemLogs } from './routes/system/get-system-logs'
 import { getSystemBilling } from './routes/system/get-system-billing'
 import { getUserProfile } from './routes/users/get-user-profile'
+import { uploadImage } from './routes/uploads/upload-image'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -96,6 +103,11 @@ app.register(fastifyJwt, {
 })
 
 app.register(fastifyCors)
+
+app.register(fastifyStatic, {
+  root: path.resolve(__dirname, '../../uploads'),
+  prefix: '/uploads',
+})
 
 import { completeWorkout } from './routes/workouts/complete-workout'
 
@@ -170,6 +182,7 @@ app.register(getSystemClubs)
 app.register(getSystemLogs)
 app.register(getSystemBilling)
 app.register(getUserProfile)
+app.register(uploadImage)
 
 // app.listen({ port: env.SERVER_PORT }).then(() => {
 //   console.log('HTTP server runnig ✅')

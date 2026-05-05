@@ -43,6 +43,8 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
+import { ImageUpload } from '@/components/image-upload'
+
 interface Member {
   id: string
   userId: string
@@ -63,6 +65,11 @@ interface SettingsClientProps {
     name: string
     slug: string
     description: string | null
+    avatarUrl: string | null
+    bannerUrl: string | null
+    cnpj: string | null
+    city: string | null
+    state: string | null
   }
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   billing: {
@@ -81,6 +88,7 @@ interface SettingsClientProps {
     totalDistanceMonth: number
     totalWorkoutsMonth: number
   }
+  token?: string
 }
 
 // --- MOCKS DE FATURAÇÃO ---
@@ -106,6 +114,7 @@ export function SettingsClient({
   members,
   billing,
   metrics,
+  token,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<'overview' | 'general' | 'billing' | 'danger'>(
@@ -113,6 +122,12 @@ export function SettingsClient({
   )
   const [name, setName] = useState(club.name)
   const [description, setDescription] = useState(club.description || '')
+  const [cnpj, setCnpj] = useState(club.cnpj || '')
+  const [city, setCity] = useState(club.city || '')
+  const [state, setState] = useState(club.state || '')
+  const [avatarUrl, setAvatarUrl] = useState(club.avatarUrl || '')
+  const [bannerUrl, setBannerUrl] = useState(club.bannerUrl || '')
+
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [deleteConfirmName, setDeleteConfirmName] = useState('')
@@ -133,6 +148,11 @@ export function SettingsClient({
     formData.append('name', name)
     formData.append('slug', club.slug)
     formData.append('description', description)
+    formData.append('cnpj', cnpj)
+    formData.append('city', city)
+    formData.append('state', state)
+    formData.append('avatarUrl', avatarUrl)
+    formData.append('bannerUrl', bannerUrl)
 
     const result = await updateClubAction(formData)
 
@@ -308,53 +328,94 @@ export function SettingsClient({
                   <h2 className="text-xl font-extrabold text-gray-900">
                     Informações do Clube
                   </h2>
-                  <p className="text-sm font-medium text-gray-400">Edite os detalhes básicos que todos os atletas veem.</p>
+                  <p className="text-sm font-medium text-gray-400">Edite os detalhes básicos e a identidade visual do seu pelotão.</p>
                 </div>
 
-                <form onSubmit={handleSaveChanges} className="space-y-8">
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                      <Trophy className="h-3.5 w-3.5 text-orange-500" /> Nome do Clube
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Ex: Macuxi Runners"
-                      className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                <form onSubmit={handleSaveChanges} className="space-y-10">
+                  {/* Identidade Visual */}
+                  <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <ImageUpload 
+                      label="Logo do Clube"
+                      value={avatarUrl}
+                      onChange={setAvatarUrl}
+                      aspectRatio="square"
+                      token={token}
+                    />
+                    <ImageUpload 
+                      label="Banner de Capa"
+                      value={bannerUrl}
+                      onChange={setBannerUrl}
+                      aspectRatio="video"
+                      token={token}
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                      <Globe className="h-3.5 w-3.5 text-orange-500" /> Link Público do Clube
-                    </label>
-                    <div className="flex items-stretch overflow-hidden rounded-2xl shadow-sm ring-1 ring-gray-200 transition-all focus-within:ring-2 focus-within:ring-orange-500/50">
-                      <span className="flex items-center border-r border-gray-200 bg-gray-100 px-5 text-sm font-bold text-gray-500">
-                        clubrun.com/
-                      </span>
+                  <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                        <Trophy className="h-3.5 w-3.5 text-orange-500" /> Nome do Clube
+                      </label>
                       <input
                         type="text"
-                        disabled
-                        value={club.slug}
-                        className="w-full flex-1 cursor-not-allowed bg-gray-50 px-5 py-4 font-bold text-gray-400"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Ex: Macuxi Runners"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                       />
                     </div>
-                    <p className="mt-2 text-xs font-medium text-gray-400">
-                      A URL é permanente para garantir que os links de convite nunca quebrem.
-                    </p>
+
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                        <ShieldCheck className="h-3.5 w-3.5 text-orange-500" /> CNPJ (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        value={cnpj}
+                        onChange={(e) => setCnpj(e.target.value)}
+                        placeholder="00.000.000/0000-00"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Cidade
+                      </label>
+                      <input
+                        type="text"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder="Ex: Boa Vista"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
+                      </label>
+                      <input
+                        type="text"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                        placeholder="Ex: Roraima"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                      />
+                    </div>
                   </div>
 
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                      <AlignLeft className="h-3.5 w-3.5 text-orange-500" /> Descrição Curta
+                      <AlignLeft className="h-3.5 w-3.5 text-orange-500" /> Descrição do Clube
                     </label>
                     <textarea
                       rows={4}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
-                      placeholder="O que torna seu clube único?"
+                      placeholder="Fale um pouco sobre a história e os objetivos do clube..."
                       className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                     />
                   </div>

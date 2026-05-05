@@ -42,8 +42,15 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
   const clubInfo = {
     name: club.name,
     slug: club.slug,
-    description: club.description || 'Sem descrição.',
+    description: club.description || '',
+    avatarUrl: club.avatarUrl,
+    bannerUrl: club.bannerUrl,
+    cnpj: club.cnpj || '',
+    city: club.city || '',
+    state: club.state || '',
   }
+
+  const { token } = await auth()
 
   return (
     <SettingsClient
@@ -53,6 +60,7 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
       members={members}
       billing={billing}
       metrics={metrics}
+      token={token}
     />
   )
 }
