@@ -1,4 +1,4 @@
-import { isAuthenticated } from '@/auth/auth'
+import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
 
 export default async function AppLayout({
@@ -6,9 +6,17 @@ export default async function AppLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  if (!(await isAuthenticated())) {
-    redirect('/')
+  const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
   }
+
+  /* Temporariamente desativado
+  if (!user.emailVerifiedAt) {
+    redirect('/auth/verify-email')
+  }
+  */
 
   return <>{children}</>
 }

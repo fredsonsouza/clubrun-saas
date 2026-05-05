@@ -1,4 +1,4 @@
-import { isAuthenticated } from '@/auth/auth'
+import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
 
 export default async function AuthLayout({
@@ -6,8 +6,11 @@ export default async function AuthLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  // Proteção da rota: se já estiver logado, manda direto para o app
-  if (await isAuthenticated()) {
+  const { user } = await auth().catch(() => ({ user: null }))
+
+  // Se estiver logado E verificado, não faz sentido estar nas páginas de auth (login/cadastro)
+  // Mas se estiver logado e NÃO verificado, ele PODE estar na página de verificação.
+  if (user && user.emailVerifiedAt) {
     redirect('/')
   }
 

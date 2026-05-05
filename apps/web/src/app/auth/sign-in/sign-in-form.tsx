@@ -23,12 +23,17 @@ export function SignInForm() {
   const role = searchParams.get('role')
   const redirectTo = searchParams.get('redirectTo')
   const token = searchParams.get('token')
+  const inviteId = searchParams.get('inviteId')
 
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
     () => {
       if (redirectTo) {
-        router.push(`${redirectTo}${token ? `?token=${token}` : ''}`)
+        const params = new URLSearchParams()
+        if (token) params.set('token', token)
+        if (inviteId) params.set('inviteId', inviteId)
+        const queryString = params.toString()
+        router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`)
       } else if (plan) {
         router.push(`/checkout?plan=${plan}${role ? `&role=${role}` : ''}`)
       } else {
@@ -129,6 +134,9 @@ export function SignInForm() {
 
           {/* Botão do Google */}
           <form action={signInWithGoogle}>
+            {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
+            {token && <input type="hidden" name="token" value={token} />}
+            {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
             <button
               type="submit"
               className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
@@ -166,22 +174,22 @@ export function SignInForm() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label
-                htmlFor="email"
+                htmlFor="login"
                 className="text-sm font-bold text-gray-700"
               >
-                E-mail
+                E-mail ou Usuário
               </label>
               <input
-                id="email"
-                name="email"
-                type="email"
+                id="login"
+                name="login"
+                type="text"
                 required
-                placeholder="atleta@exemplo.com"
+                placeholder="atleta@exemplo.com ou username"
                 className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
               />
-              {errors?.email && (
+              {errors?.login && (
                 <p className="text-xs font-bold text-orange-600">
-                  {errors.email[0]}
+                  {errors.login[0]}
                 </p>
               )}
             </div>

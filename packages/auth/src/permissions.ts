@@ -26,7 +26,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
   MANAGER(_, { can, cannot }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
     
-    can(['create', 'update', 'delete'], ['Workout', 'Race', 'RaceResult'])
+    can(['get', 'create', 'update', 'delete'], ['Workout', 'Race', 'RaceResult'])
     can(['get', 'update'], 'Ranking')
     can('manage', ['Invite', 'Billing', 'Invoice'])
 
@@ -40,20 +40,13 @@ export const permissions: Record<Role, PermissionsByRole> = {
   ATHLETE(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
 
-    can('create', 'Workout')
+    can(['get', 'create'], 'Workout')
     can(['update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
     
     can('get', ['Race', 'RaceResult', 'Ranking'])
     
     can('create', 'Invite')
     can('get', 'Invite', { authorId: { $eq: user.id } })
-
-    if (user.currentClubId) {
-      can('get', 'Workout', {
-        clubId: { $eq: user.currentClubId },
-        visibility: { $in: ['PUBLIC', 'COACH_ONLY'] },
-      })
-    }
   },
 
   COACH(user, { can }) {
@@ -63,14 +56,10 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can('prescribe', 'Workout')
     
     // Coach can manage their own workouts
-    can(['create', 'update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
+    can(['get', 'create', 'update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
     
     // Coach can see all club workouts
-    if (user.currentClubId) {
-      can('get', 'Workout', {
-        clubId: { $eq: user.currentClubId },
-      })
-    }
+    can('get', 'Workout')
 
     can(['get'], 'Race')
     can(['create', 'update'], 'RaceResult')

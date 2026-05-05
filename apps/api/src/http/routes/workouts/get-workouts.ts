@@ -75,6 +75,9 @@ export async function getWorkouts(app: FastifyInstance) {
           memberShip.clubId
         )
 
+        console.log(`[PERM_DEBUG] User=${userId}, Role=${memberShip.role}, Club=${slug}`)
+        console.log(`[PERM_DEBUG] Pode listar treinos?`, can('get', 'Workout'))
+
         if (!can('get', 'Workout')) {
           throw new UnauthorizedError(`You're not allowed to list workouts`)
         }

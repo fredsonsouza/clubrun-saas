@@ -18,6 +18,17 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
     request.getUserMemberShip = async (slug: string) => {
       const userId = await request.getCurrentUserId()
 
+      const userFromDb = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { emailVerifiedAt: true },
+      })
+
+      /* Temporariamente desativado para facilitar o desenvolvimento
+      if (!userFromDb?.emailVerifiedAt) {
+        throw new UnauthorizedError('Por favor, verifique seu e-mail para acessar os recursos do clube.')
+      }
+      */
+
       const member = await prisma.member.findFirst({
         where: {
           userId,
@@ -35,6 +46,7 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
         },
       })
       if (!member) {
+        console.error(`[ERROR] Membro não encontrado para User=${userId} no clube ${slug}`)
         throw new UnauthorizedError(`You're not a member of this club`)
       }
 

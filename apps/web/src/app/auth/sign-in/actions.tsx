@@ -7,7 +7,7 @@ import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 const signInSchema = z.object({
-  email: z.email({ message: 'Por favor, informe um e-mail válido!' }),
+  login: z.string().min(1, { message: 'Por favor, informe seu e-mail ou usuário!' }),
   password: z.string().min(1, { message: 'Por favor, informe sua senha!' }),
 })
 
@@ -20,12 +20,12 @@ export async function signInWithEmailAndPassword(data: FormData) {
     return { success: false, message: null, errors }
   }
 
-  const { email, password } = result.data
+  const { login, password } = result.data
 
   try {
     const { token } = await signInWithPassword({
-      email: String(email),
-      password: String(password),
+      login,
+      password,
     })
 
     ;(await cookies()).set('token', token, {

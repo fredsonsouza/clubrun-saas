@@ -14,9 +14,11 @@ model User {
   email          String          @unique
   passwordHash   String?         @map("password_hash")
   avatarUrl      String?         @map("avatar_url")
+  emailVerifiedAt DateTime?      @map("email_verified_at")
   isSystemAdmin  Boolean         @default(false) @map("is_system_admin")
   createdAt      DateTime        @default(now()) @map("created_at")
   updatedAt      DateTime        @updatedAt @map("updated_at")
+
   accounts       Account[]
   athleteProfile AthleteProfile?
   auditLogs      AuditLog[]
@@ -45,6 +47,7 @@ model Account {
 model Token {
   id        String    @id @default(uuid())
   type      TokenType
+  code      String?
   createdAt DateTime  @default(now()) @map("created_at")
   userId    String    @map("user_id")
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -103,7 +106,7 @@ model Member {
   clubId   String       @map("club_id")
   userId   String       @map("user_id")
   createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @updatedAt @map("updated_at")
+  updatedAt DateTime    @default(now()) @updatedAt @map("updated_at")
   invoices Invoice[]
   club     Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
   user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -244,6 +247,7 @@ model Invoice {
 
 enum TokenType {
   PASSWORD_RECOVER
+  EMAIL_VERIFICATION
 }
 
 enum OAuthProvider {

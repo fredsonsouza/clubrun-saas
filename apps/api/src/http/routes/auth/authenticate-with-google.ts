@@ -103,7 +103,13 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
 
       if (!user) {
         user = await prisma.user.create({
-          data: { name, email, avatarUrl },
+          data: { name, email, avatarUrl, emailVerifiedAt: new Date() },
+        })
+      } else if (!user.emailVerifiedAt) {
+        // Se o usuário já existia mas não estava verificado, marcamos como verificado agora que logou com Google
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { emailVerifiedAt: new Date() },
         })
       }
 

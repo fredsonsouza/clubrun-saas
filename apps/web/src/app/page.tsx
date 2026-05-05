@@ -1,30 +1,32 @@
-import { isAuthenticated } from '@/auth/auth'
+import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { redirect } from 'next/navigation'
 import { LandingPage } from '@/components/landing-page'
+import { cookies } from 'next/headers'
 
-/**
- * Esta página atua como o roteador principal da aplicação.
- * Se o usuário não estiver autenticado, mostramos a Landing Page.
- * Se estiver autenticado, redirecionamos para o dashboard do seu primeiro clube
- * ou para a página de exploração caso não tenha clubes.
- */
 export default async function IndexPage() {
-  const isAuth = await isAuthenticated()
+  const token = (await cookies()).get('token')?.value
 
-  if (!isAuth) {
+  if (!token) {
     return <LandingPage />
   }
 
-  // Usuário autenticado: buscar clubes
+  const { user } = await auth()
+
+  /* Temporariamente desativado para facilitar o desenvolvimento
+  if (!user.emailVerifiedAt) {
+    redirect('/auth/verify-email')
+  }
+  */
+
+  // Usuário autenticado e verificado: buscar clubes
   let clubs = []
   
   try {
     const data = await getClubs()
     clubs = data.clubs
   } catch (error) {
-    // Falha na autenticação ou erro de rede -> Logout
-    redirect('/api/auth/sign-out')
+    redirect('/explore')
   }
 
   if (clubs.length > 0) {

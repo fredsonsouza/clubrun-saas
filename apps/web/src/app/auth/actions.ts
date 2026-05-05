@@ -1,10 +1,16 @@
 import { redirect } from 'next/navigation'
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(formData?: FormData) {
   const googleSignInUrl = new URL(
     '/o/oauth2/v2/auth',
     'https://accounts.google.com'
   )
+
+  const redirectTo = formData?.get('redirectTo')?.toString()
+  const token = formData?.get('token')?.toString()
+  const inviteId = formData?.get('inviteId')?.toString()
+
+  const state = JSON.stringify({ redirectTo, token, inviteId })
 
   googleSignInUrl.searchParams.set(
     'client_id',
@@ -16,6 +22,7 @@ export async function signInWithGoogle() {
   )
   googleSignInUrl.searchParams.set('response_type', 'code')
   googleSignInUrl.searchParams.set('scope', 'openid email profile')
+  googleSignInUrl.searchParams.set('state', state)
 
   return redirect(googleSignInUrl.toString())
 }

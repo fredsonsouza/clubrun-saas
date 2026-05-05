@@ -18,6 +18,8 @@ import { errorHandler } from './error-handle'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resetPassword } from './routes/auth/reset-password'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
+import { verifyEmail } from './routes/auth/verify-email'
+import { resendVerification } from './routes/auth/resend-verification'
 import { env } from '@saas/env'
 import { createClub } from './routes/clubs/create-club'
 import { getMemberShip } from './routes/clubs/get-membership'
@@ -104,6 +106,8 @@ app.register(updateAthleteProfile)
 app.register(requestPasswordRecovery)
 app.register(resetPassword)
 app.register(authenticateWithGoogle)
+app.register(verifyEmail)
+app.register(resendVerification)
 
 app.register(createClub)
 app.register(getMemberShip)

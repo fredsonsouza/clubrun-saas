@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { compare } from 'bcryptjs'
 import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
+import { z } from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 
 export function authenticateWithPassword(app: FastifyInstance) {
@@ -13,7 +13,7 @@ export function authenticateWithPassword(app: FastifyInstance) {
         tags: ['auth'],
         summary: 'Authenticate with e-mail & password',
         body: z.object({
-          email: z.email(),
+          login: z.string(),
           password: z.string(),
         }),
         response: {
@@ -24,23 +24,28 @@ export function authenticateWithPassword(app: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { email, password } = request.body
+      const { login, password } = request.body
 
-      const userFromEmail = await prisma.user.findUnique({
-        where: { email },
+      const user = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: login },
+            { username: login },
+          ],
+        },
       })
 
-      if (!userFromEmail) {
+      if (!user) {
         throw new BadRequestError('Invalid credentials')
       }
 
-      if (userFromEmail.passwordHash === null) {
+      if (user.passwordHash === null) {
         throw new BadRequestError(
           'User does not have a password, use social login'
         )
       }
 
-      const isPasswordValid = await compare(password, userFromEmail.passwordHash)
+      const isPasswordValid = await compare(password, user.passwordHash)
 
       if (!isPasswordValid) {
         throw new BadRequestError('Invalid credentials')
@@ -50,7 +55,7 @@ export function authenticateWithPassword(app: FastifyInstance) {
         {},
         {
           sign: {
-            sub: userFromEmail.id,
+            sub: user.id,
             expiresIn: '7d',
           },
         }

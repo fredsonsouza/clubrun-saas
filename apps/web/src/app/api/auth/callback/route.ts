@@ -25,10 +25,24 @@ export async function GET(request: NextRequest) {
     maxAge: 60 * 60 * 24 * 7, //7 days
   })
 
-  const redirectUrl = request.nextUrl.clone()
+  const state = searchParams.get('state')
+  let redirectTo = '/'
 
-  redirectUrl.pathname = '/'
-  redirectUrl.search = ''
+  if (state) {
+    try {
+      const parsedState = JSON.parse(state)
+      if (parsedState.redirectTo) {
+        const params = new URLSearchParams()
+        if (parsedState.token) params.set('token', parsedState.token)
+        if (parsedState.inviteId) params.set('inviteId', parsedState.inviteId)
+        
+        const queryString = params.toString()
+        redirectTo = `${parsedState.redirectTo}${queryString ? `?${queryString}` : ''}`
+      }
+    } catch (e) {
+      console.error('Falha ao processar o state do Google:', e)
+    }
+  }
 
-  return NextResponse.redirect(redirectUrl)
+  return NextResponse.redirect(new URL(redirectTo, request.nextUrl))
 }

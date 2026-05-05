@@ -25,6 +25,8 @@ export function SignUpForm() {
   const plan = searchParams.get('plan')
   const redirectTo = searchParams.get('redirectTo')
   const token = searchParams.get('token')
+  const inviteId = searchParams.get('inviteId')
+  const invitedEmail = searchParams.get('email')
 
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInUpAction,
@@ -32,10 +34,8 @@ export function SignUpForm() {
       const params = new URLSearchParams()
       if (role) params.set('role', role)
       if (plan) params.set('plan', plan)
-      if (redirectTo) params.set('redirectTo', redirectTo)
-      if (token) params.set('token', token)
-      const queryString = params.toString()
-      router.push(`/auth/sign-in${queryString ? `?${queryString}` : ''}`)
+      // On success
+      router.push('/auth/sign-in')
     }
   )
 
@@ -120,6 +120,9 @@ export function SignUpForm() {
           )}
 
           <form action={signInWithGoogle}>
+            {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
+            {token && <input type="hidden" name="token" value={token} />}
+            {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
             <button
               type="submit"
               className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
@@ -213,8 +216,9 @@ export function SignUpForm() {
                 name="email"
                 type="email"
                 required
-                placeholder="atleta@exemplo.com"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                defaultValue={invitedEmail || ''}
+                readOnly={!!invitedEmail}
+                className={`w-full rounded-xl border border-gray-200 ${invitedEmail ? 'bg-gray-100' : 'bg-gray-50'} px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none`}
               />
               {errors?.email && (
                 <p className="text-xs font-bold text-orange-600">
