@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Header } from '@/components/header'
 import {
   Settings,
@@ -139,6 +139,60 @@ export function SettingsClient({
   const admins = members.filter(
     (m) => (m.role === 'ADMIN' || m.role === 'MANAGER') && m.email !== user.email
   )
+
+  // --- LÓGICA IBGE ---
+  const [ufs, setUfs] = useState<{ id: number; sigla: string; nome: string }[]>([])
+  const [cities, setCities] = useState<{ id: number; nome: string }[]>([])
+  const [isLoadingUfs, setIsLoadingUfs] = useState(false)
+  const [isLoadingCities, setIsLoadingCities] = useState(false)
+
+  // Busca Estados (UFs) ao montar
+  useEffect(() => {
+    async function loadUfs() {
+      try {
+        setIsLoadingUfs(true)
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome')
+        const data = await response.json()
+        setUfs(data)
+      } catch (error) {
+        console.error('Erro ao carregar UFs:', error)
+      } finally {
+        setIsLoadingUfs(false)
+      }
+    }
+    loadUfs()
+  }, [])
+
+  // Busca Cidades ao mudar o Estado
+  // Se o 'state' for uma sigla (ex: RR), buscamos cidades
+  // Se for nome completo (ex: Roraima), precisamos achar a sigla
+  useEffect(() => {
+    async function loadCities() {
+      if (!state) {
+        setCities([])
+        return
+      }
+
+      // Tenta achar a sigla se o state for o nome
+      const uf = ufs.find(u => u.sigla === state || u.nome === state)
+      if (!uf) return
+
+      try {
+        setIsLoadingCities(true)
+        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf.sigla}/municipios?orderBy=nome`)
+        const data = await response.json()
+        setCities(data)
+      } catch (error) {
+        console.error('Erro ao carregar cidades:', error)
+      } finally {
+        setIsLoadingCities(false)
+      }
+    }
+
+    if (ufs.length > 0) {
+      loadCities()
+    }
+  }, [state, ufs])
 
   const handleSaveChanges = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -382,28 +436,44 @@ export function SettingsClient({
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Cidade
+                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
                       </label>
-                      <input
-                        type="text"
-                        value={city}
-                        onChange={(e) => setCity(e.target.value)}
-                        placeholder="Ex: Boa Vista"
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                      />
+                      <select
+                        value={ufs.find(u => u.nome === state || u.sigla === state)?.sigla || ''}
+                        onChange={(e) => {
+                          const uf = ufs.find(u => u.sigla === e.target.value)
+                          setState(uf ? uf.nome : '')
+                          setCity('') // Reseta cidade ao mudar estado
+                        } }
+                        disabled={isLoadingUfs}
+                        className="cursor-pointer w-full appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50"
+                      >
+                        <option value="">Selecione o Estado</option>
+                        {ufs.map((u) => (
+                          <option key={u.id} value={u.sigla}>
+                            {u.nome}
+                          </option>
+                        ))}
+                      </select>
                     </div>
 
                     <div className="space-y-2">
                       <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
+                        <Globe className="h-3.5 w-3.5 text-orange-500" /> Cidade
                       </label>
-                      <input
-                        type="text"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                        placeholder="Ex: Roraima"
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                      />
+                      <select
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        disabled={isLoadingCities || !state}
+                        className="cursor-pointer w-full appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50"
+                      >
+                        <option value="">{isLoadingCities ? 'Carregando cidades...' : 'Selecione a Cidade'}</option>
+                        {cities.map((c) => (
+                          <option key={c.id} value={c.nome}>
+                            {c.nome}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 

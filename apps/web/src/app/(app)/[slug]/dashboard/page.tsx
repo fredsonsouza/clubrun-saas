@@ -48,9 +48,11 @@ export default async function ClubDashboardPage({
     id: userClub.id,
     name: club.name,
     slug: slug,
+    avatarUrl: club.avatarUrl,
+    bannerUrl: club.bannerUrl,
     description: club.description || `Bem-vindo ao ${club.name}! Treinos e performance em um só lugar.`,
     membersCount: metrics.activeMembers + metrics.inactiveMembers,
-    location: 'Sede do Clube',
+    location: club.city && club.state ? `${club.city}, ${club.state}` : club.city || club.state || 'Localização não definida',
     monthlyDistance: metrics.totalDistanceMonth,
   }
 

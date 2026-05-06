@@ -47,6 +47,8 @@ interface DashboardClientProps {
     id: string
     name: string
     slug: string
+    avatarUrl: string | null
+    bannerUrl: string | null
     description: string | null
     membersCount: number
     location: string
@@ -136,70 +138,114 @@ export function DashboardClient({
         </div>
 
         {/* ==========================================
-            BANNER DO CLUBE (Resumo Global)
+            CABEÇALHO PREMIUM DO CLUBE
         ========================================== */}
-        <div className="relative mb-8 flex flex-col items-center justify-between overflow-hidden rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm md:flex-row md:p-8 gap-6">
-          <div className="pointer-events-none absolute top-0 right-0 h-64 w-64 rounded-full bg-orange-500/5 blur-3xl" />
-
-          <div className="z-10 flex flex-col items-center gap-6 text-center md:flex-row md:items-start md:text-left">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-gray-200 bg-gray-50 text-3xl font-black text-gray-400">
-              {club.name.charAt(0)}
-            </div>
-            <div>
-              <div className="mb-1 flex items-center justify-center gap-3 md:justify-start">
-                <h1 className="text-2xl font-extrabold tracking-tight text-gray-900 md:text-3xl">
+        <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
+          {/* Banner de Fundo */}
+          <div className="relative h-48 w-full overflow-hidden sm:h-64">
+            {club.bannerUrl ? (
+              <img 
+                src={club.bannerUrl} 
+                alt="Banner do Clube" 
+                className="h-full w-full object-cover transition-transform duration-700 hover:scale-105"
+              />
+            ) : (
+              <div className="h-full w-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600">
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+            {/* Overlay de Info no Banner (Mobile Friendly) */}
+            <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between md:bottom-8 md:left-48 md:right-10">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-400 drop-shadow-sm">
+                  PELOTÃO OFICIAL
+                </span>
+                <h1 className="text-3xl font-black tracking-tight text-white md:text-5xl drop-shadow-md">
                   {club.name}
                 </h1>
-                {isMember && (userRole === 'OWNER' || userRole === 'ADMIN') && (
-                  <Link
-                    href={`/${club.slug}/settings`}
-                    className="rounded-lg bg-gray-50 p-1.5 text-gray-400 transition-colors hover:text-gray-900"
-                    title="Configurações do Clube"
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Link>
-                )}
               </div>
-              <p className="mb-3 max-w-2xl text-sm font-medium text-gray-500 line-clamp-2">
-                {club.description}
-              </p>
-              <div className="flex flex-wrap items-center justify-center gap-3 text-xs font-bold text-gray-500 md:justify-start">
-                <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-gray-400" /> {club.location}
-                </span>
-                <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5">
-                  <Users className="h-3.5 w-3.5 text-gray-400" />{' '}
-                  {club.membersCount} Membros
-                </span>
+              
+              {/* Stats Rápidas no Banner */}
+              <div className="hidden items-center gap-6 md:flex">
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">Membros</p>
+                  <p className="text-xl font-black text-white">{club.membersCount}</p>
+                </div>
+                <div className="h-8 w-px bg-white/20"></div>
+                <div className="text-right">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/70">Distância (Mês)</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl font-black text-orange-400">{club.monthlyDistance.toFixed(1)}</span>
+                    <span className="text-[10px] font-bold text-white/70">km</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="z-10 flex shrink-0 flex-col items-center md:items-end">
-            <span className="mb-1 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
-              Distância do Clube (Mês)
-            </span>
-            <div className="mb-4 flex items-baseline gap-1">
-              <span className="font-mono text-4xl font-black tracking-tight text-orange-500">
-                {club.monthlyDistance.toFixed(1)}
-              </span>
-              <span className="text-sm font-bold text-orange-400">km</span>
+          {/* Barra de Ações Inferior */}
+          <div className="relative flex flex-col items-center justify-between gap-6 px-6 py-8 md:flex-row md:px-10">
+            {/* Logo do Clube (Sobreposto) */}
+            <div className="absolute -top-12 left-1/2 -translate-x-1/2 md:left-10 md:translate-x-0">
+              <div className="relative group">
+                <div className="h-24 w-24 overflow-hidden rounded-[1.5rem] border-4 border-white bg-white shadow-2xl transition-transform duration-300 group-hover:scale-105 md:h-32 md:w-32">
+                  <Avatar className="h-full w-full rounded-none">
+                    <AvatarImage src={club.avatarUrl || ''} className="object-cover" />
+                    <AvatarFallback className="rounded-none bg-orange-50 text-2xl font-black text-orange-500 md:text-4xl">
+                      {club.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="absolute -right-2 -bottom-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-orange-500 text-white shadow-lg">
+                  <Trophy className="h-4 w-4" />
+                </div>
+              </div>
             </div>
-            
-            {isMember ? (
-              <button
-                onClick={() => setIsWorkoutModalOpen(true)}
-                className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-gray-800 active:scale-95 md:w-auto"
-              >
-                <Plus className="h-4 w-4" /> Registrar Treino
-              </button>
-            ) : (
-              <button
-                className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-6 py-3 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 md:w-auto"
-              >
-                <UserPlus className="h-4 w-4" /> Juntar-se ao Clube
-              </button>
-            )}
+
+            <div className="mt-12 flex-1 pt-2 text-center md:mt-0 md:pl-38 md:text-left">
+              <p className="max-w-2xl text-sm font-medium leading-relaxed text-gray-500">
+                {club.description}
+              </p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-gray-400 md:justify-start">
+                <span className="flex items-center gap-1.5 transition-colors hover:text-orange-500">
+                  <MapPin className="h-3.5 w-3.5 text-orange-500" /> {club.location}
+                </span>
+                <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                <span className="flex items-center gap-1.5 transition-colors hover:text-orange-500">
+                  <Activity className="h-3.5 w-3.5 text-orange-500" /> Ativo Recentemente
+                </span>
+                {isMember && (userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER') && (
+                  <>
+                    <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                    <Link
+                      href={`/${club.slug}/settings`}
+                      className="flex items-center gap-1.5 text-gray-400 transition-colors hover:text-gray-900"
+                    >
+                      <Settings className="h-3.5 w-3.5" /> GERENCIAR CLUBE
+                    </Link>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="flex w-full shrink-0 flex-col gap-3 md:w-auto md:flex-row">
+              {isMember ? (
+                <button
+                  onClick={() => setIsWorkoutModalOpen(true)}
+                  className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl bg-gray-900 px-8 py-4 text-sm font-black text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
+                >
+                  <Plus className="h-5 w-5" /> REGISTRAR TREINO
+                </button>
+              ) : (
+                <button
+                  className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 text-sm font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+                >
+                  <UserPlus className="h-5 w-5" /> PARTICIPAR DO CLUBE
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
