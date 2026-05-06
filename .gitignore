@@ -47,3 +47,9 @@ docker-compose.yml
 credentials.md
 get_credentials.ts
 fix_passwords.ts
+
+# Local Uploads
+uploads/
+apps/api/uploads/
+
+

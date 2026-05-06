@@ -4,18 +4,19 @@ import { z } from 'zod'
 export const env = createEnv({
   server: {
     SERVER_PORT: z.coerce.number().default(3333),
-    DATABASE_URL: z.url(),
+    DATABASE_URL: z.string().url().optional(),
 
-    JWT_SECRET: z.string(),
+    JWT_SECRET: z.string().optional(),
 
-    GOOGLE_OAUTH_CLIENT_ID: z.string(),
-    GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
-    GOOGLE_OAUTH_CLIENT_REDIRECT_URI: z.url(),
+    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_REDIRECT_URI: z.string().url().optional(),
     RESEND_API_KEY: z.string().optional(),
   },
   client: {},
   shared: {
     NEXT_PUBLIC_APP_URL: z.url().default('http://localhost:3000'),
+    NEXT_PUBLIC_API_URL: z.url().default('http://localhost:3333'),
   },
   runtimeEnv: {
     DATABASE_URL: process.env.DATABASE_URL,
@@ -26,8 +27,10 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI:
       process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
 
   emptyStringAsUndefined: true,
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION || typeof window !== 'undefined',
 })

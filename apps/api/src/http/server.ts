@@ -104,6 +104,13 @@ app.register(fastifyJwt, {
 
 app.register(fastifyCors)
 
+import fastifyRateLimit from '@fastify/rate-limit'
+
+app.register(fastifyRateLimit, {
+  max: 100,
+  timeWindow: '1 minute',
+})
+
 app.register(fastifyStatic, {
   root: path.resolve(__dirname, '../../uploads'),
   prefix: '/uploads',

@@ -39,9 +39,36 @@ export async function requestPasswordRecovery(app: FastifyInstance) {
         },
       })
 
-      // Send e-mail with password recover link
+      // Enviar e-mail via Resend
+      try {
+        const { resend } = await import('@/lib/mail')
+        const { env } = await import('@saas/env')
 
-      console.log('Recover password token', code)
+        await resend.emails.send({
+          from: 'ClubRun <onboarding@resend.dev>',
+          to: email,
+          subject: 'Recuperação de Senha - ClubRun',
+          html: `
+            <div style="font-family: sans-serif; line-height: 1.6; color: #111;">
+              <h2 style="color: #f97316;">Recuperação de Senha</h2>
+              <p>Olá,</p>
+              <p>Recebemos uma solicitação para redefinir a senha da sua conta no ClubRun.</p>
+              <p>Para prosseguir, clique no botão abaixo:</p>
+              <div style="margin-top: 24px;">
+                <a href="${env.NEXT_PUBLIC_APP_URL}/auth/reset-password?code=${code}" 
+                   style="background-color: #f97316; color: #fff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">
+                   REDEFINIR SENHA
+                </a>
+              </div>
+              <p style="margin-top: 32px; font-size: 12px; color: #666;">Se você não solicitou esta redefinição, pode ignorar este e-mail.</p>
+              <hr />
+              <p style="color: #999; font-size: 10px;">ClubRun SaaS - Pelotão de Elite</p>
+            </div>
+          `,
+        })
+      } catch (error) {
+        console.error('Falha ao enviar e-mail de recuperação:', error)
+      }
 
       return reply.status(201).send()
     }

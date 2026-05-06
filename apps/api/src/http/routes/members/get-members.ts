@@ -25,14 +25,14 @@ export async function getMembers(app: FastifyInstance) {
             200: z.object({
               members: z.array(
                 z.object({
-                  id: z.uuid(),
-                  userId: z.uuid(),
+                  id: z.string().uuid(),
+                  userId: z.string().uuid(),
                   role: roleSchema,
                   name: z.string().nullable(),
-                  email: z.string().email(),
+                  email: z.string().email().or(z.null()),
                   avatarUrl: z.string().nullable(),
                   overdue: z.boolean(),
-                  paceAvg: z.number().nullable().optional(),
+                  paceAvg: z.number().nullable(),
                 })
               ),
             }),
@@ -52,59 +52,40 @@ export async function getMembers(app: FastifyInstance) {
         )
 
         if (cannot('get', 'User')) {
-          throw new UnauthorizedError(`You're not allowed to see club members`)
+          throw new UnauthorizedError(`Você não tem permissão para ver os membros deste clube`)
         }
 
         const members = await prisma.member.findMany({
-          select: {
-            id: true,
-            role: true,
+          where: { clubId: club.id },
+          include: {
             user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatarUrl: true,
-                athleteProfile: {
-                  select: {
-                    paceAvg: true,
-                  }
-                }
-              },
-            },
-            invoices: {
-              select: {
-                status: true,
+              include: {
+                athleteProfile: true
               }
             },
-          },
-          where: {
-            clubId: club.id,
-          },
-          orderBy: {
-            role: 'asc',
-          },
-        })
-        const membersWithRoles = members.map(
-          ({ user: { id: realUserId, athleteProfile, ...user }, invoices, ...member }) => {
-            const data = {
-              id: member.id,
-              userId: realUserId,
-              role: member.role,
-              name: user.name,
-              email: user.email,
-              avatarUrl: user.avatarUrl,
-              paceAvg: athleteProfile?.paceAvg || null,
-              overdue: invoices.some(i => i.status === 'OVERDUE'),
+            invoices: {
+              select: { status: true }
             }
-            
-            console.log(`[GET_MEMBERS] MemberID: ${data.id} | UserID: ${data.userId} | Name: ${data.name}`)
-            
-            return data
-          }
-        )
+          },
+          orderBy: { role: 'asc' }
+        })
 
-        return reply.send({ members: membersWithRoles })
+        const isPrivileged = ['ADMIN', 'OWNER', 'MANAGER'].includes(memberShip.role) || memberShip.isSystemAdmin
+
+        const formattedMembers = members.map((m) => {
+          return {
+            id: m.id,
+            userId: m.user.id,
+            role: m.role,
+            name: m.user.name || 'Atleta',
+            email: isPrivileged ? m.user.email : null,
+            avatarUrl: m.user.avatarUrl || null,
+            paceAvg: m.user.athleteProfile?.paceAvg || null,
+            overdue: isPrivileged ? m.invoices.some(i => i.status === 'OVERDUE') : false,
+          }
+        })
+
+        return reply.send({ members: formattedMembers })
       }
     )
 }

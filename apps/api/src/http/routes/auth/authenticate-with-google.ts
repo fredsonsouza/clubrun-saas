@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { env } from '@saas/env'
 import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
+import { z } from 'zod'
+import { createAuditLog } from '@/utils/audit-log'
 
 const googleTokenErrorSchema = z.object({
   error: z.string(),
@@ -103,13 +104,41 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
 
       if (!user) {
         user = await prisma.user.create({
-          data: { name, email, avatarUrl, emailVerifiedAt: new Date() },
+          data: { 
+            name, 
+            email, 
+            avatarUrl, 
+            emailVerifiedAt: new Date(),
+            athleteProfile: {
+              create: {
+                isPublic: true,
+              }
+            }
+          },
         })
-      } else if (!user.emailVerifiedAt) {
-        // Se o usuário já existia mas não estava verificado, marcamos como verificado agora que logou com Google
-        user = await prisma.user.update({
-          where: { id: user.id },
-          data: { emailVerifiedAt: new Date() },
+
+        await createAuditLog({
+          userId: user.id,
+          action: 'GOOGLE_SIGNUP',
+          entity: 'USER',
+          entityId: user.id,
+          payload: { email: user.email },
+        })
+      } else {
+        if (!user.emailVerifiedAt) {
+          // Se o usuário já existia mas não estava verificado, marcamos como verificado agora que logou com Google
+          user = await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerifiedAt: new Date() },
+          })
+        }
+
+        await createAuditLog({
+          userId: user.id,
+          action: 'GOOGLE_LOGIN',
+          entity: 'USER',
+          entityId: user.id,
+          payload: { email: user.email },
         })
       }
 

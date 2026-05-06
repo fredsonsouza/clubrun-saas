@@ -156,6 +156,7 @@ model Workout {
   club           Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@index([clubId])
+  @@index([athleteId])
   @@map("workouts")
 }
 
@@ -209,6 +210,8 @@ model AuditLog {
   userId    String?  @map("user_id")
   user      User?    @relation(fields: [userId], references: [id])
 
+  @@index([userId])
+  @@index([entityId])
   @@map("audit_logs")
 }
 

@@ -1,7 +1,8 @@
 import ky from 'ky'
+import { env } from '@saas/env'
 
 export const api = ky.create({
-  prefixUrl: 'http://localhost:3333',
+  prefixUrl: env.NEXT_PUBLIC_API_URL || 'http://localhost:3333',
 
   hooks: {
     beforeRequest: [
