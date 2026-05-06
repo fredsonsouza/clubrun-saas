@@ -14,6 +14,11 @@ interface RankingPageProps {
 export default async function RankingPage({ params }: RankingPageProps) {
   const { slug } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   const currentClub = clubs.find((c) => c.slug === slug)
@@ -51,7 +56,12 @@ export default async function RankingPage({ params }: RankingPageProps) {
 
   return (
     <RankingClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       club={clubInfo}
       initialRankings={formattedRankings}
     />

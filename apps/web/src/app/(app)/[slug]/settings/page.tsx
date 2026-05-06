@@ -17,6 +17,11 @@ interface ClubSettingsPageProps {
 export default async function ClubSettingsPage({ params }: ClubSettingsPageProps) {
   const { slug } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   // Procura o clube atual e o papel do usuário nele
@@ -54,7 +59,12 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
 
   return (
     <SettingsClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       club={clubInfo}
       userRole={currentClub.role as any}
       members={members}

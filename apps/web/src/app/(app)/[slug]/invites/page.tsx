@@ -15,6 +15,11 @@ interface InvitesPageProps {
 export default async function InvitesPage({ params }: InvitesPageProps) {
   const { slug } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   const currentClub = clubs.find((c) => c.slug === slug)
@@ -50,7 +55,12 @@ export default async function InvitesPage({ params }: InvitesPageProps) {
 
   return (
     <InvitesClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       slug={slug}
       initialInvites={formattedInvites}
       initialPendingMembers={formattedPendingMembers}

@@ -8,6 +8,11 @@ export default async function CreateClubPage({
   searchParams: Promise<{ checkoutComplete?: string }>
 }) {
   const { user } = await auth()
+  
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const resolvedSearchParams = await searchParams
 
   const isSuperAdmin = user.isSystemAdmin || user.email === 'admin@clubrun.com'
@@ -17,5 +22,14 @@ export default async function CreateClubPage({
     redirect('/checkout?plan=pro')
   }
 
-  return <CreateClubForm user={user} />
+  return (
+    <CreateClubForm 
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }} 
+    />
+  )
 }

@@ -39,6 +39,18 @@ export default async function JoinPage({
 
   const { user } = await auth()
 
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
+  // Sanitized user for client components
+  const sanitizedUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    avatarUrl: user.avatarUrl,
+  }
+
   // Verifica se o usuário já é membro do clube
   const { getClubs } = await import('@/http/get-clubs')
   const { clubs: userClubs } = await getClubs()
@@ -55,9 +67,9 @@ export default async function JoinPage({
       
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
-          <Header user={user} />
+          <Header user={sanitizedUser} />
           <main className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-20 sm:px-6 lg:px-8">
-            <AcceptInviteForm invite={invite} user={user} />
+            <AcceptInviteForm invite={invite} user={sanitizedUser} />
           </main>
         </div>
       )
@@ -69,9 +81,9 @@ export default async function JoinPage({
       
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
-          <Header user={user} />
+          <Header user={sanitizedUser} />
           <main className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-20 sm:px-6 lg:px-8">
-            <JoinClubForm club={club} token={token} user={user} />
+            <JoinClubForm club={club} token={token} user={sanitizedUser} />
           </main>
         </div>
       )

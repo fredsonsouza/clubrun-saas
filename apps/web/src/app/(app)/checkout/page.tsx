@@ -10,5 +10,14 @@ export default async function CheckoutPage() {
     redirect('/auth/sign-in?callbackUrl=/checkout')
   }
 
-  return <CheckoutClient user={user} />
+  return (
+    <CheckoutClient 
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }} 
+    />
+  )
 }

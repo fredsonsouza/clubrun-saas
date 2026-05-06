@@ -16,6 +16,11 @@ interface RaceDetailsPageProps {
 export default async function RaceDetailsPage({ params }: RaceDetailsPageProps) {
   const { slug, raceId } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   const currentClub = clubs.find((c) => c.slug === slug)
@@ -31,7 +36,12 @@ export default async function RaceDetailsPage({ params }: RaceDetailsPageProps) 
 
   return (
     <RaceDetailsClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       club={{ name: currentClub.name, slug: currentClub.slug }}
       race={race}
       results={results}

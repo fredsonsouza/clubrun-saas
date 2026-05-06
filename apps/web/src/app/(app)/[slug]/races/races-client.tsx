@@ -57,39 +57,46 @@ export function RacesClient({
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isResultModalOpen, setIsResultModalOpen] = useState(false)
-  const [selectedRace, setSelectedRace] = useState<{ id: string, name: string } | null>(null)
+  const [selectedRace, setSelectedRace] = useState<{
+    id: string
+    name: string
+  } | null>(null)
 
-  const displayedRaces = (activeTab === 'upcoming' ? upcomingRaces : pastRaces).filter(
-    (race) => race.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const displayedRaces = (
+    activeTab === 'upcoming' ? upcomingRaces : pastRaces
+  ).filter((race) =>
+    race.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
+  const canManage =
+    userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN'
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
-        
         {/* CABEÇALHO */}
         <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <div className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-orange-500">
+            <div className="mb-4 flex items-center gap-2 text-[10px] font-black tracking-widest text-orange-500 uppercase">
               <Activity className="h-4 w-4" /> Planejamento de Provas
             </div>
             <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900 md:text-4xl">
               Calendário <span className="text-orange-500">Target</span>
             </h1>
             <p className="max-w-md text-sm font-medium text-gray-500">
-              Acompanhe os eventos onde o <strong className="text-gray-900">{club.name}</strong> estará presente.
+              Acompanhe os eventos onde o{' '}
+              <strong className="text-gray-900">{club.name}</strong> estará
+              presente.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {canManage && (
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="cursor-pointer flex items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
+                className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-bold text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95"
               >
                 <Plus className="h-5 w-5" /> Adicionar Prova
               </button>
@@ -102,13 +109,13 @@ export function RacesClient({
           <div className="flex w-full items-center gap-2 rounded-[1.25rem] border border-gray-100 bg-white p-1.5 shadow-sm md:w-auto">
             <button
               onClick={() => setActiveTab('upcoming')}
-              className={`cursor-pointer flex-1 rounded-xl px-6 py-3 text-xs font-black uppercase tracking-wider transition-all md:flex-none ${activeTab === 'upcoming' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-gray-400 hover:text-gray-900'}`}
+              className={`flex-1 cursor-pointer rounded-xl px-6 py-3 text-xs font-black tracking-wider uppercase transition-all md:flex-none ${activeTab === 'upcoming' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-gray-400 hover:text-gray-900'}`}
             >
               Próximas Provas
             </button>
             <button
               onClick={() => setActiveTab('past')}
-              className={`cursor-pointer flex-1 rounded-xl px-6 py-3 text-xs font-black uppercase tracking-wider transition-all md:flex-none ${activeTab === 'past' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-gray-400 hover:text-gray-900'}`}
+              className={`flex-1 cursor-pointer rounded-xl px-6 py-3 text-xs font-black tracking-wider uppercase transition-all md:flex-none ${activeTab === 'past' ? 'bg-orange-500 text-white shadow-md shadow-orange-500/20' : 'text-gray-400 hover:text-gray-900'}`}
             >
               Resultados
             </button>
@@ -135,14 +142,14 @@ export function RacesClient({
                 href={`/${club.slug}/races/${race.id}`}
                 className="group relative overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white p-1 transition-all hover:border-orange-200 hover:shadow-2xl"
               >
-                <div className="flex flex-col h-full bg-white rounded-[2rem] p-6 sm:p-8">
+                <div className="flex h-full flex-col rounded-4xl bg-white p-6 sm:p-8">
                   <div className="mb-6 flex items-start justify-between">
                     {/* Data Badge */}
                     <div className="flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-orange-50 text-orange-500 ring-1 ring-orange-100 transition-transform group-hover:scale-110">
-                      <span className="text-[10px] font-black uppercase tracking-widest leading-none mb-1">
+                      <span className="mb-1 text-[10px] leading-none font-black tracking-widest uppercase">
                         {race.date.split(' ')[1]}
                       </span>
-                      <span className="text-2xl font-black leading-none">
+                      <span className="text-2xl leading-none font-black">
                         {race.date.split(' ')[0]}
                       </span>
                     </div>
@@ -155,11 +162,12 @@ export function RacesClient({
                   </div>
 
                   <div className="mb-6 flex-1">
-                    <h3 className="mb-2 text-2xl font-black tracking-tight text-gray-900 line-clamp-2 group-hover:text-orange-500 transition-colors">
+                    <h3 className="mb-2 line-clamp-2 text-2xl font-black tracking-tight text-gray-900 transition-colors group-hover:text-orange-500">
                       {race.name}
                     </h3>
                     <div className="flex items-center gap-2 text-sm font-bold text-gray-400">
-                      <MapPin className="h-4 w-4 text-orange-500" /> {race.location}
+                      <MapPin className="h-4 w-4 text-orange-500" />{' '}
+                      {race.location}
                     </div>
                   </div>
 
@@ -169,7 +177,7 @@ export function RacesClient({
                       {race.distances.map((dist) => (
                         <span
                           key={dist}
-                          className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-1.5 text-xs font-black uppercase tracking-widest text-gray-600"
+                          className="rounded-xl border border-gray-100 bg-gray-50 px-3 py-1.5 text-xs font-black tracking-widest text-gray-600 uppercase"
                         >
                           {dist}
                         </span>
@@ -180,24 +188,31 @@ export function RacesClient({
                       <div className="flex items-center gap-3">
                         <div className="flex -space-x-3">
                           {[1, 2, 3].map((i) => (
-                            <div key={i} className="h-8 w-8 rounded-full border-2 border-white bg-gray-200">
-                              <img src={`https://i.pravatar.cc/150?u=${race.id}-${i}`} className="h-full w-full rounded-full object-cover" alt="" />
+                            <div
+                              key={i}
+                              className="h-8 w-8 rounded-full border-2 border-white bg-gray-200"
+                            >
+                              <img
+                                src={`https://i.pravatar.cc/150?u=${race.id}-${i}`}
+                                className="h-full w-full rounded-full object-cover"
+                                alt=""
+                              />
                             </div>
                           ))}
                         </div>
-                        <span className="text-xs font-black uppercase tracking-widest text-gray-400">
+                        <span className="text-xs font-black tracking-widest text-gray-400 uppercase">
                           {race.registeredCount} Atletas
                         </span>
                       </div>
 
                       {activeTab === 'past' && (
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.preventDefault()
                             setSelectedRace({ id: race.id, name: race.name })
                             setIsResultModalOpen(true)
                           }}
-                          className="cursor-pointer flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-600 transition-colors hover:bg-amber-100"
+                          className="flex cursor-pointer items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black tracking-widest text-amber-600 uppercase transition-colors hover:bg-amber-100"
                         >
                           <Trophy className="h-3.5 w-3.5" /> Registrar Meu Tempo
                         </button>
@@ -214,17 +229,19 @@ export function RacesClient({
               <CalendarDays className="h-10 w-10" />
             </div>
             <h3 className="mb-2 text-2xl font-black text-gray-900">
-              {searchQuery ? 'Nenhuma prova encontrada para sua busca' : 'O horizonte está livre'}
+              {searchQuery
+                ? 'Nenhuma prova encontrada para sua busca'
+                : 'O horizonte está livre'}
             </h3>
-            <p className="max-w-sm text-sm font-medium leading-relaxed text-gray-500">
+            <p className="max-w-sm text-sm leading-relaxed font-medium text-gray-500">
               {activeTab === 'upcoming'
                 ? 'Ainda não foram definidas provas-alvo. Que tal sugerir uma ao treinador?'
                 : 'Ainda não temos resultados registrados no histórico deste clube.'}
             </p>
             {canManage && !searchQuery && (
-              <button 
+              <button
                 onClick={() => setIsCreateModalOpen(true)}
-                className="mt-8 cursor-pointer flex items-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+                className="mt-8 flex cursor-pointer items-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 font-bold text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
               >
                 <Plus className="h-5 w-5" /> Cadastrar Primeira Prova
               </button>
@@ -233,7 +250,7 @@ export function RacesClient({
         )}
       </main>
 
-      <CreateRaceModal 
+      <CreateRaceModal
         isOpen={isCreateModalOpen}
         slug={club.slug}
         onClose={() => setIsCreateModalOpen(false)}

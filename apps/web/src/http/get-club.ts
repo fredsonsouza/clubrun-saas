@@ -6,7 +6,13 @@ interface GetClubResponse {
     name: string
     slug: string
     avatarUrl: string | null
+    bannerUrl: string | null
     description: string | null
+    city: string | null
+    state: string | null
+    cnpj: string | null
+    domain: string | null
+    shouldAttachUsersByDomain: boolean
     ownerId: string
   }
 }

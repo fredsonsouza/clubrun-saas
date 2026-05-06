@@ -14,6 +14,11 @@ interface MembersPageProps {
 export default async function MembersPage({ params }: MembersPageProps) {
   const { slug } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   const currentClub = clubs.find((c) => c.slug === slug)
@@ -46,7 +51,12 @@ export default async function MembersPage({ params }: MembersPageProps) {
 
   return (
     <MembersClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       club={clubInfo}
       initialMembers={formattedMembers}
       currentUserRole={currentClub.role}

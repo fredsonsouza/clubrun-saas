@@ -7,14 +7,27 @@ import {
   CheckCircle2,
   AlertCircle,
 } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 export default async function AdminBillingPage() {
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { billing } = await getSystemBilling()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
-      <AdminHeader user={user} />
+      <AdminHeader 
+        user={{
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+        }} 
+      />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         <div className="mb-8">

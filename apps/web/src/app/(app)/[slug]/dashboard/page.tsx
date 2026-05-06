@@ -20,6 +20,11 @@ export default async function ClubDashboardPage({
 }: ClubDashboardPageProps) {
   const { slug } = await params
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { clubs } = await getClubs()
 
   // Procura se o usuário já é membro do clube
@@ -98,7 +103,12 @@ export default async function ClubDashboardPage({
 
   return (
     <DashboardClient
-      user={user}
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       club={clubInfo}
       userRole={userClub.role as any}
       isMember={true}

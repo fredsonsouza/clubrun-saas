@@ -45,7 +45,7 @@ export async function getWorkouts(app: FastifyInstance) {
                   createdAt: z.coerce.date(),
                   clubId: z.uuid(),
                   athlete: z.object({
-                    id: z.string(),
+                    id: z.string().uuid(),
                     name: z.string().nullable(),
                     avatarUrl: z.string().nullable(),
                   }),
@@ -75,13 +75,8 @@ export async function getWorkouts(app: FastifyInstance) {
           memberShip.clubId
         )
 
-        console.log(
-          `[PERM_DEBUG] User=${userId}, Role=${memberShip.role}, Club=${slug}`
-        )
-        console.log(`[PERM_DEBUG] Pode listar treinos?`, can('get', 'Workout'))
-
         if (!can('get', 'Workout')) {
-          throw new UnauthorizedError(`You're not allowed to list workouts`)
+          throw new UnauthorizedError(`Você não tem permissão para listar os treinos deste clube`)
         }
 
         const where = {

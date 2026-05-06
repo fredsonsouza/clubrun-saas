@@ -14,15 +14,28 @@ import {
   Activity,
   History,
 } from 'lucide-react'
+import { redirect } from 'next/navigation'
 
 export default async function AdminDashboardPage() {
   const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
   const { stats } = await getSystemStats()
   const { logs } = await getSystemLogs()
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
-      <AdminHeader user={user} />
+      <AdminHeader 
+        user={{
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          avatarUrl: user.avatarUrl,
+        }} 
+      />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
         <div className="mb-10">

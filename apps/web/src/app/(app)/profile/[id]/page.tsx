@@ -2,6 +2,7 @@ import React from 'react'
 import { auth } from '@/auth/auth'
 import { ProfileClient } from '../profile-client'
 import { getUserProfile } from '@/http/get-user-profile'
+import { redirect } from 'next/navigation'
 
 interface UserProfilePageProps {
   params: Promise<{
@@ -12,6 +13,10 @@ interface UserProfilePageProps {
 export default async function UserProfilePage({ params }: UserProfilePageProps) {
   const { id } = await params
   const { user: currentUser, token } = await auth()
+
+  if (!currentUser) {
+    redirect('/auth/sign-in')
+  }
 
   // Fetch real profile data
   const { user, athleteProfile, workouts, plannedWorkouts } = await getUserProfile(id)
@@ -39,7 +44,12 @@ export default async function UserProfilePage({ params }: UserProfilePageProps) 
 
   return (
     <ProfileClient
-      currentUser={currentUser}
+      currentUser={{
+        id: currentUser.id,
+        name: currentUser.name,
+        email: currentUser.email,
+        avatarUrl: currentUser.avatarUrl,
+      }}
       user={user}
       athleteProfile={athleteProfile ? { ...athleteProfile, isPublic: true } : null}
       workouts={formattedWorkouts}
