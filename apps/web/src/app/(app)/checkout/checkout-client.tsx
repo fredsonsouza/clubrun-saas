@@ -91,7 +91,12 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
       
       // Pequeno delay para mostrar o sucesso antes de redirecionar
       setTimeout(() => {
-        router.push('/create-club?checkoutComplete=true')
+        const role = searchParams.get('role')
+        if (role === 'athlete') {
+          router.push('/explore?checkoutComplete=true')
+        } else {
+          router.push('/create-club?checkoutComplete=true')
+        }
       }, 2500)
     }, 3000)
   }

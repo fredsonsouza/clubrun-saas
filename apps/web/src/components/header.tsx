@@ -99,8 +99,9 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
     )
   }
 
-  const isAnyOwner = clubs.some(c => c.role === 'OWNER')
-  const canManage = userRole === 'OWNER' || userRole === 'MANAGER' || userRole === 'ADMIN' || isSuperAdmin || isAnyOwner || user.role === 'OWNER'
+  const effectiveRole = userRole || user.role
+  const isAnyOwner = clubs.some(c => c.role === 'OWNER') || user.role === 'OWNER'
+  const canManage = effectiveRole === 'OWNER' || effectiveRole === 'MANAGER' || effectiveRole === 'ADMIN' || isSuperAdmin || isAnyOwner
   
   const dashboardHref = activeSlug ? `/${activeSlug}/dashboard` : '/explore'
   const rankingHref = activeSlug ? `/${activeSlug}/ranking` : '/explore'
@@ -109,7 +110,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   const settingsHref = activeSlug ? `/${activeSlug}/settings` : (isAnyOwner ? '/create-club' : '/explore')
   const racesHref = activeSlug ? `/${activeSlug}/races` : '/explore'
 
-  const showClubSwitcher = isSuperAdmin || isAnyOwner || userRole === 'OWNER'
+  const showClubSwitcher = isSuperAdmin || isAnyOwner || effectiveRole === 'OWNER'
 
   return (
     <nav className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 backdrop-blur-md">
@@ -133,7 +134,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
         </div>
 
         {/* NAVEGAÇÃO CENTRAL */}
-        <div className={`hidden items-center gap-0.5 ${userRole === 'ATHLETE' || userRole === 'COACH' ? 'text-[16px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
+        <div className={`hidden items-center gap-0.5 ${effectiveRole === 'ATHLETE' || effectiveRole === 'COACH' ? 'text-[16px]' : 'text-[13px]'} font-bold text-gray-500 xl:flex`}>
           <Link
             href="/explore"
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname === '/explore' ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
@@ -147,10 +148,10 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${isActive('/dashboard') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}
           >
             <LayoutDashboard className="h-4 w-4" />
-            {userRole === 'ATHLETE' || userRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
+            {effectiveRole === 'ATHLETE' || effectiveRole === 'COACH' ? 'Feed do Clube' : 'Painel'}
           </Link>
 
-          {(userRole === 'ATHLETE' || userRole === 'COACH') && (
+          {(effectiveRole === 'ATHLETE' || effectiveRole === 'COACH') && (
             <Link
               href={`/profile/${user.id}`}
               className={`flex h-20 items-center gap-1.5 px-2.5 border-b-2 transition-all cursor-pointer ${pathname?.startsWith('/profile') ? 'border-orange-500 text-orange-600' : 'border-transparent hover:text-gray-900'}`}

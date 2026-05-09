@@ -4,6 +4,8 @@ import React, { useState } from 'react'
 import { Search, Flame, Compass } from 'lucide-react'
 import { Header } from '@/components/header'
 import { ClubCard, Club } from '@/components/club-card'
+import { requestJoinClub } from '@/http/request-join-club'
+import { JoinFeedbackModal } from '@/components/join-feedback-modal'
 
 interface ExploreClubsClientProps {
   user: {
@@ -18,6 +20,11 @@ interface ExploreClubsClientProps {
 export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [clubs, setClubs] = useState<Club[]>(initialClubs)
+  
+  // Estados do Modal de Feedback
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalType, setModalType] = useState<'success' | 'error'>('success')
+  const [selectedClubName, setSelectedClubName] = useState('')
 
   const filteredClubs = clubs.filter(
     (c) =>
@@ -26,13 +33,24 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
         c.location.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const handleJoinRequest = (clubId: string) => {
-    // API Call: POST /invites/request-join
-    setClubs(
-      clubs.map((c) =>
-        c.id === clubId ? { ...c, membershipStatus: 'PENDING' } : c
+  const handleJoinRequest = async (clubId: string, slug: string, name: string) => {
+    try {
+      await requestJoinClub(slug)
+      
+      setClubs(
+        clubs.map((c) =>
+          c.id === clubId ? { ...c, membershipStatus: 'PENDING' } : c
+        )
       )
-    )
+
+      setSelectedClubName(name)
+      setModalType('success')
+      setIsModalOpen(true)
+    } catch (error) {
+      console.error(error)
+      setModalType('error')
+      setIsModalOpen(true)
+    }
   }
 
   return (
@@ -85,7 +103,7 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
               <ClubCard
                 key={club.id}
                 club={club}
-                onJoinRequest={handleJoinRequest}
+                onJoinRequest={() => handleJoinRequest(club.id, club.slug, club.name)}
               />
             ))}
           </div>
@@ -103,6 +121,13 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
           </div>
         )}
       </main>
+
+      <JoinFeedbackModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        type={modalType}
+        clubName={selectedClubName}
+      />
     </div>
   )
 }

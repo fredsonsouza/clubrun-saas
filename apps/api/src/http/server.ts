@@ -146,11 +146,13 @@ app.register(completeWorkout)
 
 import { getPendingMembers } from './routes/members/get-pending-members'
 import { updateMemberStatus } from './routes/members/update-member-status'
+import { requestJoinClub } from './routes/members/request-join-club'
 
 app.register(getMembers)
 app.register(getPendingMembers)
 app.register(updateMember)
 app.register(updateMemberStatus)
+app.register(requestJoinClub)
 app.register(removeMember)
 
 import { getClubInviteLink } from './routes/invites/get-club-invite-link'
