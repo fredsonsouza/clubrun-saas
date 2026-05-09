@@ -2,7 +2,18 @@
 
 import { updateClub, shutdownClub } from '@/http/update-club'
 import { transferClubOwnership } from '@/http/transfer-club'
+import { activateClubBilling } from '@/http/activate-billing'
 import { revalidatePath } from 'next/cache'
+
+export async function activateBillingAction(slug: string) {
+  try {
+    await activateClubBilling(slug)
+    revalidatePath('/', 'layout')
+    return { success: true, message: 'Plano Pro ativado com sucesso! Bem-vindo de volta.' }
+  } catch (err) {
+    return { success: false, message: 'Erro ao ativar o plano. Tente novamente.' }
+  }
+}
 
 export async function updateClubAction(formData: FormData) {
   const slug = formData.get('slug') as string
@@ -41,15 +52,26 @@ export async function updateClubAction(formData: FormData) {
 export async function transferOwnershipAction({
   slug,
   transferToUserId,
+  leaveAfterTransfer,
 }: {
   slug: string
   transferToUserId: string
+  leaveAfterTransfer: boolean
 }) {
   try {
-    await transferClubOwnership({ slug, transferToUserId })
+    await transferClubOwnership({ slug, transferToUserId, leaveAfterTransfer })
     revalidatePath('/', 'layout')
     return { success: true, message: 'Propriedade transferida com sucesso!' }
   } catch (err) {
+    if (err instanceof Error) {
+      try {
+        const errorData = await (err as any).response?.json()
+        return { success: false, message: errorData?.message || 'Erro ao transferir propriedade.' }
+      } catch (e) {
+        return { success: false, message: err.message || 'Erro ao transferir propriedade.' }
+      }
+    }
+
     return { success: false, message: 'Erro ao transferir propriedade.' }
   }
 }

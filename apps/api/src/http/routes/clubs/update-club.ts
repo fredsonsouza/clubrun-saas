@@ -44,6 +44,12 @@ export async function updateClub(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
+        if (club.status === 'DEACTIVATED') {
+          throw new UnauthorizedError(
+            `This club is deactivated and cannot be updated.`
+          )
+        }
+
         const { 
           name, 
           domain, 

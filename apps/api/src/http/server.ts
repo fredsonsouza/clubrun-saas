@@ -167,7 +167,10 @@ app.register(rejectInvite)
 app.register(revokeInvite)
 app.register(getPendingInvites)
 
+import { activateBilling } from './routes/billing/activate-billing'
+
 app.register(getClubBilling)
+app.register(activateBilling)
 app.register(payInvoice)
 
 import { getExploreClubs } from './routes/clubs/get-explore-clubs'

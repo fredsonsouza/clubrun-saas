@@ -53,6 +53,7 @@ export async function getClubs(app: FastifyInstance) {
             members: {
               some: {
                 userId,
+                status: 'ACTIVE',
               },
             },
           },

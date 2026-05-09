@@ -7,7 +7,7 @@ export default async function CheckoutPage() {
   const { user } = await auth()
 
   if (!user) {
-    redirect('/auth/sign-in?callbackUrl=/checkout')
+    redirect('/auth/sign-in?redirectTo=/checkout')
   }
 
   return (

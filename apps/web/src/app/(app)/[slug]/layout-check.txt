@@ -1,0 +1,47 @@
+import { auth } from '@/auth/auth'
+import { getClub } from '@/http/get-club'
+import { getClubs } from '@/http/get-clubs'
+import { redirect } from 'next/navigation'
+
+interface ClubLayoutProps {
+  children: React.ReactNode
+  params: Promise<{
+    slug: string
+  }>
+}
+
+export default async function ClubLayout({ children, params }: ClubLayoutProps) {
+  const { slug } = await params
+  const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
+
+  // Buscamos os clubes do usuário para saber o seu papel
+  const { clubs } = await getClubs()
+  const userClub = clubs.find((c) => c.slug === slug)
+
+  if (!userClub) {
+    redirect('/')
+  }
+
+  // Buscamos os detalhes do clube para checar o status da assinatura
+  const { club } = await getClub(slug)
+
+  // Se for o dono e a assinatura estiver pendente de atualização (ex: pós transferência),
+  // bloqueia o acesso a qualquer página que não seja o faturamento.
+  const isOwner = userClub.role === 'OWNER'
+  if (isOwner && club.subscriptionStatus === 'PENDING_UPDATE') {
+    // IMPORTANTE: Permitir que ele acesse a página de faturamento
+    // No nosso caso, o faturamento fica em /settings?tab=billing
+    // Como o layout engloba todas as páginas abaixo de /[slug], precisamos checar a URL atual.
+    // No Next.js Server Components, não temos acesso fácil à URL atual no layout,
+    // mas as páginas individuais ainda serão renderizadas.
+    
+    // Na verdade, se eu redirecionar aqui no layout, ele entrará em loop se a página de destino 
+    // também estiver sob este layout.
+  }
+
+  return <>{children}</>
+}

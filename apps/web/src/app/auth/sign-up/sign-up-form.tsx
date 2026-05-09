@@ -34,8 +34,12 @@ export function SignUpForm() {
       const params = new URLSearchParams()
       if (role) params.set('role', role)
       if (plan) params.set('plan', plan)
-      // On success
-      router.push('/auth/sign-in')
+      if (redirectTo) params.set('redirectTo', redirectTo)
+      if (token) params.set('token', token)
+      if (inviteId) params.set('inviteId', inviteId)
+      
+      const queryString = params.toString()
+      router.push(`/auth/sign-in${queryString ? `?${queryString}` : ''}`)
     }
   )
 

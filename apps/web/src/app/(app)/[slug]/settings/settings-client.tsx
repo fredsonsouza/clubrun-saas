@@ -20,6 +20,7 @@ import {
   ChevronDown,
   UserCog,
   RefreshCcw,
+  LayoutDashboard,
   BarChart,
   Users,
   Activity,
@@ -31,6 +32,7 @@ import {
   updateClubAction,
   shutdownClubAction,
   transferOwnershipAction,
+  activateBillingAction,
 } from './actions'
 import { useRouter } from 'next/navigation'
 import {
@@ -70,6 +72,7 @@ interface SettingsClientProps {
     cnpj: string | null
     city: string | null
     state: string | null
+    status: 'ACTIVE' | 'DEACTIVATED'
   }
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   billing: {
@@ -134,7 +137,23 @@ export function SettingsClient({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false)
   const [transferTargetId, setTransferTargetId] = useState('')
+  const [leaveAfterTransfer, setLeaveAfterTransfer] = useState(false)
   const [isTransferring, setIsTransferring] = useState(false)
+  const [isActivating, setIsActivating] = useState(false)
+
+  const handleActivateBilling = async () => {
+    setIsActivating(true)
+    const result = await activateBillingAction(club.slug)
+
+    if (result.success) {
+      toast.success(result.message)
+      // Recarrega para limpar as travas
+      window.location.reload()
+    } else {
+      toast.error(result.message)
+    }
+    setIsActivating(false)
+  }
 
   const admins = members.filter(
     (m) =>
@@ -233,12 +252,18 @@ export function SettingsClient({
     const result = await transferOwnershipAction({
       slug: club.slug,
       transferToUserId: transferTargetId,
+      leaveAfterTransfer,
     })
 
     if (result.success) {
       toast.success(result.message)
       setIsTransferModalOpen(false)
-      window.location.reload()
+      
+      if (leaveAfterTransfer) {
+        router.push('/explore')
+      } else {
+        window.location.reload()
+      }
     } else {
       toast.error(result.message)
     }
@@ -265,12 +290,38 @@ export function SettingsClient({
   }
 
   const isOwner = userRole === 'OWNER'
+  const isBillingPending = isOwner && club.subscriptionStatus === 'PENDING_UPDATE'
+
+  useEffect(() => {
+    if (isBillingPending) {
+      setActiveTab('billing')
+    } else {
+      const searchParams = new URLSearchParams(window.location.search)
+      const tabParam = searchParams.get('tab')
+      if (tabParam === 'billing') {
+        setActiveTab('billing')
+      }
+    }
+  }, [isBillingPending])
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+        {isBillingPending && (
+          <div className="mb-8 flex items-center gap-4 rounded-3xl border border-red-100 bg-red-50 p-6 shadow-sm ring-1 ring-red-200">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600">
+              <CreditCard className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-red-900">Ação Necessária: Atualize o Faturamento</h3>
+              <p className="text-sm font-medium text-red-700">
+                Você é o novo dono deste clube. Para continuar gerenciando o pelotão e permitir que os membros acessem o sistema, você deve cadastrar um método de pagamento válido.
+              </p>
+            </div>
+          </div>
+        )}
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
             <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
@@ -295,51 +346,50 @@ export function SettingsClient({
           </div>
         </div>
 
-        <div className="flex flex-col items-start gap-8 md:flex-row">
-          <aside className="w-full shrink-0 space-y-1 md:w-72">
+        <div className="flex flex-col gap-10 lg:flex-row">
+          <aside className="w-full shrink-0 space-y-2 lg:w-72">
             <button
-              onClick={() => setActiveTab('overview')}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+              onClick={() => !isBillingPending && setActiveTab('overview')}
+              disabled={isBillingPending}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <BarChart
-                className={`h-4 w-4 ${activeTab === 'overview' ? 'text-orange-500' : ''}`}
-              />
+              <LayoutDashboard className="h-4 w-4" />
               Visão Geral
               {activeTab === 'overview' && (
                 <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
               )}
             </button>
             <button
-              onClick={() => setActiveTab('general')}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+              onClick={() => !isBillingPending && setActiveTab('general')}
+              disabled={isBillingPending}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              <Settings
-                className={`h-4 w-4 ${activeTab === 'general' ? 'text-orange-500' : ''}`}
-              />
-              Configurações do Clube
+              <Settings className="h-4 w-4" />
+              Informações Básicas
               {activeTab === 'general' && (
                 <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
               )}
             </button>
             <button
               onClick={() => setActiveTab('billing')}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'billing' ? 'bg-white text-orange-600 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'}`}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'billing' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'ring-2 ring-red-200 bg-red-50' : ''}`}
             >
-              <CreditCard
-                className={`h-4 w-4 ${activeTab === 'billing' ? 'text-orange-500' : ''}`}
-              />
-              Faturação e Plano
+              <CreditCard className="h-4 w-4" />
+              Faturamento & Plano
               {activeTab === 'billing' && (
                 <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
               )}
             </button>
 
-            {(isOwner || userRole === 'ADMIN') && (
+            {userRole === 'OWNER' && (
               <>
-                <div className="mx-4 my-4 h-px bg-gray-200" />
+                <div className="py-4">
+                  <div className="h-px bg-gray-200" />
+                </div>
                 <button
-                  onClick={() => setActiveTab('danger')}
-                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
+                  onClick={() => !isBillingPending && setActiveTab('danger')}
+                  disabled={isBillingPending}
+                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
                   <ShieldAlert className="h-4 w-4" />
                   Zona de Perigo
@@ -583,9 +633,15 @@ export function SettingsClient({
                         <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2.5 py-1 text-[10px] font-black tracking-widest text-orange-600 uppercase">
                           <Zap className="h-3 w-3" /> Plano Pro
                         </span>
-                        <span className="flex items-center gap-1 text-xs font-bold text-green-500">
-                          <CheckCircle2 className="h-3 w-3" /> Ativo
-                        </span>
+                        {isBillingPending ? (
+                          <span className="flex items-center gap-1 text-xs font-bold text-amber-500">
+                            <AlertTriangle className="h-3 w-3" /> Aguardando Pagamento
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-1 text-xs font-bold text-green-500">
+                            <CheckCircle2 className="h-3 w-3" /> Ativo
+                          </span>
+                        )}
                       </div>
                       <h2 className="text-4xl font-black tracking-tight text-gray-900">
                         {new Intl.NumberFormat('pt-BR', {
@@ -598,8 +654,18 @@ export function SettingsClient({
                       </h2>
                     </div>
                     <div className="flex gap-3">
-                      <button className="cursor-pointer rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95">
-                        Gerenciar Assinatura
+                      <button 
+                        onClick={isBillingPending ? handleActivateBilling : undefined}
+                        disabled={isActivating}
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+                      >
+                        {isActivating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : isBillingPending ? (
+                          'Assinar Agora'
+                        ) : (
+                          'Gerenciar Assinatura'
+                        )}
                       </button>
                     </div>
                   </div>
@@ -623,7 +689,7 @@ export function SettingsClient({
                       ></div>
                     </div>
                     <p className="mt-3 text-xs leading-relaxed font-medium text-gray-500">
-                      Sua assinatura cobre {billing.seats.amount} membros
+                       Sua assinatura cobre {billing.seats.amount} membros
                       ativos. O valor unitário é de{' '}
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
@@ -641,22 +707,38 @@ export function SettingsClient({
                       Pagamento
                     </h3>
                     <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-5">
-                      <div className="flex items-center gap-4">
-                        <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-blue-900 text-[10px] font-black text-white italic shadow-sm">
-                          VISA
+                      {isBillingPending ? (
+                        <div className="flex items-center gap-4 text-gray-400">
+                           <div className="flex h-10 w-16 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-[10px] font-black italic">
+                            CARD
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold uppercase">Nenhum cartão</p>
+                            <p className="text-xs font-medium">Cadastre para ativar</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-sm font-bold text-gray-900 uppercase">
-                            Termina em {BILLING_INFO.paymentMethod.last4}
-                          </p>
-                          <p className="text-xs font-medium text-gray-400">
-                            Expira a {BILLING_INFO.paymentMethod.expiry}
-                          </p>
+                      ) : (
+                        <div className="flex items-center gap-4">
+                          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-blue-900 text-[10px] font-black text-white italic shadow-sm">
+                            VISA
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-900 uppercase">
+                              Termina em {BILLING_INFO.paymentMethod.last4}
+                            </p>
+                            <p className="text-xs font-medium text-gray-400">
+                              Expira a {BILLING_INFO.paymentMethod.expiry}
+                            </p>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                    <button className="cursor-pointer text-sm font-bold text-orange-500 transition-colors hover:text-orange-600">
-                      Atualizar cartão de crédito
+                    <button 
+                      onClick={isBillingPending ? handleActivateBilling : undefined}
+                      disabled={isActivating}
+                      className="cursor-pointer text-sm font-bold text-orange-500 transition-colors hover:text-orange-600 disabled:opacity-50"
+                    >
+                      {isActivating ? 'Processando...' : isBillingPending ? 'Cadastrar Cartão de Crédito' : 'Atualizar cartão de crédito'}
                     </button>
                   </div>
 
@@ -738,9 +820,9 @@ export function SettingsClient({
                       </DialogDescription>
                       <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs font-medium text-amber-800">
                         <strong>Importante:</strong> Após a transferência, você
-                        passará a ter o cargo de Administrador e não poderá mais
+                        passará a ter o cargo de Atleta e não poderá mais
                         excluir o clube ou transferi-lo de volta sem a permissão
-                        do novo dono.
+                        do novo dono. O novo dono terá 48h para atualizar os dados de pagamento.
                       </div>
                     </DialogHeader>
 
@@ -782,7 +864,7 @@ export function SettingsClient({
                                   <p className="text-sm font-black text-gray-900">
                                     {admin.name || admin.email}
                                   </p>
-                                  <p className="text-xs font-medium text-gray-500">
+                                  <p className="text-xs font-medium text-gray-500 lowercase">
                                     {admin.role}
                                   </p>
                                 </div>
@@ -797,11 +879,21 @@ export function SettingsClient({
                             Nenhum outro administrador disponível para
                             transferência.
                           </p>
-                          <p className="mt-1 text-xs text-gray-400">
-                            Promova um membro a Administrador primeiro.
-                          </p>
                         </div>
                       )}
+
+                      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                        <input
+                          type="checkbox"
+                          id="leaveAfterTransfer"
+                          checked={leaveAfterTransfer}
+                          onChange={(e) => setLeaveAfterTransfer(e.target.checked)}
+                          className="h-5 w-5 rounded-lg border-gray-300 text-orange-600 focus:ring-orange-500"
+                        />
+                        <label htmlFor="leaveAfterTransfer" className="text-sm font-bold text-gray-700">
+                          Sair do clube após a transferência
+                        </label>
+                      </div>
                     </div>
 
                     <DialogFooter className="mt-2 gap-3">
@@ -835,19 +927,19 @@ export function SettingsClient({
                       <AlertTriangle className="h-6 w-6" />
                     </div>
                     <h2 className="text-xl font-extrabold text-red-900">
-                      Encerrar Clube Permanentemente
+                      Encerrar Atividades do Clube
                     </h2>
                   </div>
                   <p className="mb-8 max-w-xl text-sm leading-relaxed font-medium text-red-700/80">
-                    Esta ação é irreversível. Todos os treinos registrados,
-                    classificações mensais, histórico de membros e configurações
-                    serão apagados para sempre.
+                    O clube entrará em estado de "apenas leitura". Novos treinos não poderão ser postados, 
+                    mas o histórico de todos os membros será preservado. A assinatura Pro será cancelada imediatamente.
                   </p>
                   <button
                     onClick={() => setIsDeleteDialogOpen(true)}
-                    className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95"
+                    disabled={club.status === 'DEACTIVATED'}
+                    className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
                   >
-                    Apagar Tudo Agora
+                    {club.status === 'DEACTIVATED' ? 'Clube já Desativado' : 'Encerrar Atividades Agora'}
                   </button>
                 </div>
 
@@ -862,15 +954,10 @@ export function SettingsClient({
                         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
                           <AlertTriangle className="h-6 w-6" />
                         </div>
-                        Confirmar Exclusão
+                        Confirmar Encerramento
                       </DialogTitle>
                       <DialogDescription className="pt-4 text-base">
-                        Esta ação é{' '}
-                        <span className="font-black text-red-600 underline decoration-2 underline-offset-4">
-                          permanente
-                        </span>{' '}
-                        e não pode ser desfeita. Todos os dados do clube serão
-                        perdidos.
+                        O clube ficará visível apenas para histórico. Todos os membros serão notificados para buscar um novo pelotão.
                       </DialogDescription>
                       <p className="mt-4 text-sm font-bold text-gray-500">
                         Para confirmar, digite o nome do clube abaixo:
@@ -906,7 +993,7 @@ export function SettingsClient({
                             PROCESSAR...
                           </div>
                         ) : (
-                          'CONFIRMAR EXCLUSÃO PERMANENTE'
+                          'CONFIRMAR ENCERRAMENTO GENTIL'
                         )}
                       </button>
                     </DialogFooter>

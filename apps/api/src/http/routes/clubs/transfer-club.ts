@@ -21,6 +21,7 @@ export async function transferClub(app: FastifyInstance) {
           security: [{ bearerAuth: [] }],
           body: z.object({
             transferToUserId: z.uuid(),
+            leaveAfterTransfer: z.boolean().default(false),
           }),
           params: z.object({
             slug: z.string(),
@@ -35,6 +36,12 @@ export async function transferClub(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
+        if (club.status === 'DEACTIVATED') {
+          throw new UnauthorizedError(
+            `This club is deactivated and cannot transfer ownership.`
+          )
+        }
+
         const authClub = clubSchema.parse(club)
 
         const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
@@ -45,45 +52,94 @@ export async function transferClub(app: FastifyInstance) {
           )
         }
 
-        const { transferToUserId } = request.body
+        try {
+          const { transferToUserId, leaveAfterTransfer } = request.body
 
-        const transferToMembership = await prisma.member.findUnique({
-          where: {
-            clubId_userId: {
-              clubId: club.id,
-              userId: transferToUserId,
-            },
-          },
-        })
-
-        if (!transferToMembership) {
-          throw new BadRequestError(`Target user is not a member of this club`)
-        }
-
-        await prisma.$transaction([
-          prisma.member.update({
+          const transferToMembership = await prisma.member.findUnique({
             where: {
               clubId_userId: {
                 clubId: club.id,
                 userId: transferToUserId,
               },
             },
-            data: {
-              role: 'OWNER',
-            },
-          }),
+          })
 
-          prisma.club.update({
-            where: {
-              id: club.id,
-            },
-            data: {
-              ownerId: transferToUserId,
-            },
-          }),
-        ])
+          if (!transferToMembership) {
+            throw new BadRequestError(`Target user is not a member of this club`)
+          }
 
-        return reply.status(204).send()
+          await prisma.$transaction(async (tx) => {
+            // 1. Promover o novo dono
+            await tx.member.update({
+              where: {
+                clubId_userId: {
+                  clubId: club.id,
+                  userId: transferToUserId,
+                },
+              },
+              data: {
+                role: 'OWNER',
+              },
+            })
+
+            // 2. Lidar com o antigo dono
+            if (leaveAfterTransfer) {
+              await tx.member.delete({
+                where: {
+                  clubId_userId: {
+                    clubId: club.id,
+                    userId,
+                  },
+                },
+              })
+            } else {
+              // Rebaixar para ATHLETE
+              await tx.member.update({
+                where: {
+                  clubId_userId: {
+                    clubId: club.id,
+                    userId,
+                  },
+                },
+                data: {
+                  role: 'ATHLETE',
+                },
+              })
+            }
+
+            // 3. Atualizar o dono no registro do clube e limpar dados de faturamento
+            await tx.club.update({
+              where: {
+                id: club.id,
+              },
+              data: {
+                ownerId: transferToUserId,
+                stripeCustomerId: null,
+                stripeSubscriptionId: null,
+                subscriptionStatus: 'PENDING_UPDATE',
+              },
+            })
+
+            // 4. Registrar no AuditLog
+            await tx.auditLog.create({
+              data: {
+                action: 'TRANSFER_OWNERSHIP',
+                entity: 'CLUB',
+                entityId: club.id,
+                userId,
+                payload: {
+                  from: userId,
+                  to: transferToUserId,
+                  leftClub: leaveAfterTransfer,
+                }
+              }
+            })
+          })
+
+          return reply.status(204).send()
+        } catch (error) {
+          throw error
+        }
       }
     )
 }

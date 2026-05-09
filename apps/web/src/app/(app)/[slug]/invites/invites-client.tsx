@@ -106,13 +106,6 @@ export function InvitesClient({
     }
   }
 
-  const handleShareWhatsApp = () => {
-    if (!inviteLink) return
-    const text = encodeURIComponent(
-      `Fala, corredor! 🏃‍♂️\n\nEstou te convidando para entrar no nosso pelotão no *ClubRun*. Clique no link abaixo para participar:\n\n${inviteLink}`
-    )
-    window.open(`https://wa.me/?text=${text}`, '_blank')
-  }
 
   const handleSendInvite = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -232,9 +225,16 @@ export function InvitesClient({
                     {isCopied ? <CheckCircle2 className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                   </button>
                 </div>
-                <button onClick={handleShareWhatsApp} disabled={!inviteLink} className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 text-sm font-bold text-white shadow-lg shadow-[#25D366]/20 transition-all hover:bg-[#128C7E] disabled:opacity-50">
+                <a
+                  href={inviteLink ? `https://api.whatsapp.com/send?text=${encodeURIComponent(
+                    `Fala, corredor! 🏃‍♂️\n\nEstou te convidando para entrar no nosso pelotão no *ClubRun*. Clique no link abaixo para participar:\n\n${inviteLink}`
+                  )}` : '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 text-sm font-bold text-white shadow-lg shadow-[#25D366]/20 transition-all hover:bg-[#128C7E] ${!inviteLink ? 'pointer-events-none opacity-50' : ''}`}
+                >
                   PARTILHAR VIA WHATSAPP
-                </button>
+                </a>
               </div>
             </div>
 

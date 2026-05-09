@@ -71,6 +71,7 @@ model Club {
   city                      String?
   state                     String?
   bannerUrl                 String?   @map("banner_url")
+  status                    ClubStatus @default(ACTIVE)
   createdAt                 DateTime  @default(now()) @map("created_at")
   updatedAt                 DateTime  @updatedAt @map("updated_at")
   ownerId                   String    @map("owner_id")
@@ -83,6 +84,11 @@ model Club {
   workouts                  Workout[]
 
   @@map("clubs")
+}
+
+enum ClubStatus {
+  ACTIVE
+  DEACTIVATED
 }
 
 model Invite {

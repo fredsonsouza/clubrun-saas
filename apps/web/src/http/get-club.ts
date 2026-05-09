@@ -13,7 +13,12 @@ interface GetClubResponse {
     cnpj: string | null
     domain: string | null
     shouldAttachUsersByDomain: boolean
+    status: 'ACTIVE' | 'DEACTIVATED'
+    subscriptionStatus: string | null
     ownerId: string
+  }
+  membership: {
+    role: string
   }
 }
 

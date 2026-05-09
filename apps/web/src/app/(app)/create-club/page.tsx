@@ -10,7 +10,7 @@ export default async function CreateClubPage({
   const { user } = await auth()
   
   if (!user) {
-    redirect('/auth/sign-in')
+    redirect('/auth/sign-in?redirectTo=/create-club')
   }
 
   const resolvedSearchParams = await searchParams

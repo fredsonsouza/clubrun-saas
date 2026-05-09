@@ -55,6 +55,12 @@ export async function createWorkout(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
+        if (club.status === 'DEACTIVATED') {
+          throw new UnauthorizedError(
+            `This club is deactivated and does not allow new workouts.`
+          )
+        }
+
         const { cannot } = getUserPermissions(
           userId, 
           memberShip.role, 

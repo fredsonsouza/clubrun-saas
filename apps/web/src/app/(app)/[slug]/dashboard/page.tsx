@@ -25,22 +25,13 @@ export default async function ClubDashboardPage({
     redirect('/auth/sign-in')
   }
 
-  const { clubs } = await getClubs()
-
-  // Procura se o usuário já é membro do clube
-  const userClub = clubs.find((c) => c.slug === slug)
-
-  if (!userClub) {
-    redirect('/')
-  }
-
   // BUSCA DADOS REAIS DA API
   const [
     { metrics }, 
     { workouts }, 
     { rankings }, 
     { members },
-    { club }
+    { club, membership }
   ] = await Promise.all([
     getClubDashboard({ slug }),
     getWorkouts({ slug, limit: 10 }),
@@ -48,16 +39,22 @@ export default async function ClubDashboardPage({
     getMembers({ slug }),
     getClub(slug)
   ])
+  
+  // Se for o dono e a assinatura estiver pendente (ex: pós transferência), obriga a atualizar billing
+  const isOwner = membership?.role === 'OWNER'
+  if (isOwner && club?.subscriptionStatus === 'PENDING_UPDATE') {
+    redirect(`/${slug}/settings?tab=billing`)
+  }
 
   const clubInfo = {
-    id: userClub.id,
-    name: club.name,
+    id: club?.id,
+    name: club?.name,
     slug: slug,
-    avatarUrl: club.avatarUrl,
-    bannerUrl: club.bannerUrl,
-    description: club.description || `Bem-vindo ao ${club.name}! Treinos e performance em um só lugar.`,
+    avatarUrl: club?.avatarUrl,
+    bannerUrl: club?.bannerUrl,
+    description: club?.description || `Bem-vindo ao ${club?.name}! Treinos e performance em um só lugar.`,
     membersCount: metrics.activeMembers + metrics.inactiveMembers,
-    location: club.city && club.state ? `${club.city}, ${club.state}` : club.city || club.state || 'Localização não definida',
+    location: club?.city && club?.state ? `${club?.city}, ${club?.state}` : club?.city || club?.state || 'Localização não definida',
     monthlyDistance: metrics.totalDistanceMonth,
   }
 
@@ -110,8 +107,8 @@ export default async function ClubDashboardPage({
         avatarUrl: user.avatarUrl,
       }}
       club={clubInfo}
-      userRole={userClub.role as any}
-      isMember={true}
+      userRole={membership?.role as any}
+      isMember={membership?.role !== 'VISITOR'}
       initialFeed={initialFeed}
       ranking={formattedRanking}
       members={formattedMembers}

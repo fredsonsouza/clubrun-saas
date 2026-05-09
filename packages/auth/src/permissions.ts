@@ -77,4 +77,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     // Restrictions
     cannot(['create', 'update', 'delete'], 'Workout')
   },
+  VISITOR(_, { can }) {
+    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'Ranking'])
+  },
 }

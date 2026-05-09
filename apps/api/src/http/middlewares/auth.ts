@@ -45,9 +45,29 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
           }
         },
       })
-      if (!member) {
-        console.error(`[ERROR] Membro não encontrado para User=${userId} no clube ${slug}`)
-        throw new UnauthorizedError(`You're not a member of this club`)
+
+      // Se não for membro OU se o status for PENDING/INACTIVE, retorna como VISITOR
+      if (!member || member.status !== 'ACTIVE') {
+        const [club, user] = await Promise.all([
+          member?.club || prisma.club.findFirst({ where: { slug } }),
+          member?.user || prisma.user.findUnique({ where: { id: userId }, select: { isSystemAdmin: true } })
+        ])
+        
+        if (!club) {
+          throw new UnauthorizedError(`Clube não encontrado.`)
+        }
+
+        return {
+          club,
+          memberShip: {
+            id: member?.id || 'visitor',
+            userId,
+            role: 'VISITOR' as const,
+            status: member?.status || 'INACTIVE',
+            clubId: club.id,
+            isSystemAdmin: user?.isSystemAdmin ?? false,
+          }
+        }
       }
 
       const { club, user, ...memberShip } = member

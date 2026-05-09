@@ -53,6 +53,8 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
     cnpj: club.cnpj || '',
     city: club.city || '',
     state: club.state || '',
+    status: club.status,
+    subscriptionStatus: club.subscriptionStatus,
   }
 
   const { token } = await auth()

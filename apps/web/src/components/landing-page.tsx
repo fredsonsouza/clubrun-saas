@@ -78,6 +78,12 @@ export function LandingPage() {
             >
               Planos
             </a>
+            <Link
+              href="/project-tour"
+              className="cursor-pointer transition-colors hover:text-orange-500"
+            >
+              Tour do Projeto
+            </Link>
           </div>
 
           <div className="hidden items-center gap-4 md:flex">
@@ -131,6 +137,13 @@ export function LandingPage() {
             >
               Planos
             </a>
+            <Link
+              href="/project-tour"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="cursor-pointer rounded-lg p-2 font-bold text-gray-700 hover:bg-gray-50"
+            >
+              Tour do Projeto
+            </Link>
             <div className="my-2 h-px bg-gray-100" />
             <Link
               href="/auth/sign-in"

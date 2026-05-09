@@ -36,6 +36,8 @@ export function SignInForm() {
         router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`)
       } else if (plan) {
         router.push(`/checkout?plan=${plan}${role ? `&role=${role}` : ''}`)
+      } else if (role === 'owner') {
+        router.push('/create-club')
       } else {
         router.push('/')
       }

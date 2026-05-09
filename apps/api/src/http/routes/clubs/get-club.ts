@@ -21,7 +21,7 @@ export async function getClub(app: FastifyInstance) {
         response: {
           200: z.object({
             club: z.object({
-              id: z.uuid(),
+              id: z.string(),
               name: z.string(),
               slug: z.string(),
               domain: z.string().nullable(),
@@ -32,9 +32,14 @@ export async function getClub(app: FastifyInstance) {
               cnpj: z.string().nullable(),
               city: z.string().nullable(),
               state: z.string().nullable(),
+              status: z.enum(['ACTIVE', 'DEACTIVATED']),
+              subscriptionStatus: z.string().nullable(),
               createdAt: z.date(),
               updatedAt: z.date(),
-              ownerId: z.uuid(),
+              ownerId: z.string(),
+            }),
+            membership: z.object({
+              role: z.string(),
             }),
           }),
         },
@@ -42,10 +47,13 @@ export async function getClub(app: FastifyInstance) {
     },
     async (request) => {
       const { slug } = request.params
-      const { club } = await request.getUserMemberShip(slug)
+      const { club, memberShip } = await request.getUserMemberShip(slug)
 
       return {
         club,
+        membership: {
+          role: memberShip.role,
+        },
       }
     }
   )

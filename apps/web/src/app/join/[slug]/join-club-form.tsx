@@ -34,8 +34,8 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
       toast.success('Solicitação enviada com sucesso!')
 
       setTimeout(() => {
-        router.push(`/${club.slug}/dashboard`)
-      }, 3000)
+        router.push('/explore')
+      }, 5000)
     } catch (error) {
       toast.error(
         'Falha ao entrar no clube. Verifique o link ou se você já é membro.'
@@ -61,7 +61,7 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
         </p>
         <div className="flex items-center justify-center gap-2 text-xs font-black tracking-widest text-gray-400 uppercase">
           <Loader2 className="h-4 w-4 animate-spin" />
-          Redirecionando para o clube...
+          Redirecionando...
         </div>
       </div>
     )
