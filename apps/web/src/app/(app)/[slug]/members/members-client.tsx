@@ -18,6 +18,10 @@ import {
   AlertCircle,
   MoreHorizontal,
   Activity,
+  UserX,
+  FileWarning,
+  MessageSquare,
+  DollarSign,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -84,6 +88,10 @@ export function MembersClient({
   const [tab, setTab] = useState<'all' | 'active' | 'overdue' | 'athletes' | 'coaches'>('all')
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
+  
+  // Estados para Justificativa de Remoção
+  const [selectedReasons, setSelectedReasons] = useState<string[]>([])
+  const [removeDescription, setRemoveDescription] = useState('')
 
   const isRestrictedRole = currentUserRole === 'ATHLETE' || currentUserRole === 'COACH'
 
@@ -125,20 +133,37 @@ export function MembersClient({
   const handleRemoveMember = async () => {
     if (!memberToRemove) return
 
+    if (selectedReasons.length === 0) {
+      toast.error('Selecione ao menos um motivo para a remoção.')
+      return
+    }
+
     setIsRemoving(true)
     const result = await removeMemberAction({
       slug: club.slug,
       memberId: memberToRemove.id,
+      reasons: selectedReasons,
+      description: removeDescription,
     })
 
     if (result.success) {
       toast.success(result.message)
       setMembers(members.filter((m) => m.id !== memberToRemove.id))
       setMemberToRemove(null)
+      setSelectedReasons([])
+      setRemoveDescription('')
     } else {
       toast.error(result.message)
     }
     setIsRemoving(false)
+  }
+
+  const toggleReason = (reason: string) => {
+    setSelectedReasons(prev => 
+      prev.includes(reason) 
+        ? prev.filter(r => r !== reason)
+        : [...prev, reason]
+    )
   }
 
   const canEdit =
@@ -397,6 +422,51 @@ export function MembersClient({
                 O atleta perderá acesso imediato aos treinos privados, rankings mensais e histórico de atividades do clube. Esta ação pode ser revertida apenas com um novo convite.
               </p>
             </DialogHeader>
+
+            <div className="mt-6 space-y-6">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Motivos da Remoção</label>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'FINANCIAL', label: 'Financeiro', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50' },
+                    { id: 'INDISCIPLINE', label: 'Indisciplina', icon: UserX, color: 'text-red-600', bg: 'bg-red-50' },
+                    { id: 'RULE_VIOLATION', label: 'Violação Regras', icon: FileWarning, color: 'text-orange-600', bg: 'bg-orange-50' },
+                    { id: 'OTHER', label: 'Outro Motivo', icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50' },
+                  ].map((reason) => (
+                    <button
+                      key={reason.id}
+                      onClick={() => toggleReason(reason.id)}
+                      className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 transition-all active:scale-95 ${
+                        selectedReasons.includes(reason.id)
+                          ? `border-orange-500 bg-white shadow-md ring-4 ring-orange-500/10`
+                          : 'border-gray-50 bg-gray-50/50 hover:border-gray-200'
+                      }`}
+                    >
+                      <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${reason.bg} ${reason.color}`}>
+                        <reason.icon className="h-4 w-4" />
+                      </div>
+                      <span className={`text-xs font-bold ${selectedReasons.includes(reason.id) ? 'text-gray-900' : 'text-gray-500'}`}>
+                        {reason.label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Descrição Opcional</label>
+                  <span className="text-[10px] font-bold text-gray-300">{removeDescription.length}/250</span>
+                </div>
+                <textarea
+                  value={removeDescription}
+                  onChange={(e) => setRemoveDescription(e.target.value.slice(0, 250))}
+                  placeholder="Descreva brevemente o motivo da remoção..."
+                  className="mt-2 h-24 w-full resize-none rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-900 transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
+                />
+              </div>
+            </div>
+
             <DialogFooter className="mt-8 gap-3">
               <button
                 onClick={() => setMemberToRemove(null)}

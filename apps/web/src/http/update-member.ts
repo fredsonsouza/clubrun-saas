@@ -24,9 +24,18 @@ export async function updateMember({
 export async function removeMember({
   slug,
   memberId,
+  reasons,
+  description,
 }: {
   slug: string
   memberId: string
+  reasons: string[]
+  description?: string
 }) {
-  await api.delete(`clubs/${slug}/members/${memberId}`)
+  await api.delete(`clubs/${slug}/members/${memberId}`, {
+    json: {
+      reasons,
+      description,
+    },
+  })
 }

@@ -2,6 +2,7 @@
 
 import { updateMember, removeMember } from '@/http/update-member'
 import { revalidatePath } from 'next/cache'
+import { HTTPError } from 'ky'
 
 export async function updateMemberAction({
   slug,
@@ -21,6 +22,10 @@ export async function updateMemberAction({
     revalidatePath(`/${slug}/members`)
     return { success: true, message: 'Cargo do membro atualizado com sucesso!' }
   } catch (err) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json() as { message: string }
+      return { success: false, message }
+    }
     return { success: false, message: 'Erro ao atualizar cargo do membro.' }
   }
 }
@@ -28,18 +33,28 @@ export async function updateMemberAction({
 export async function removeMemberAction({
   slug,
   memberId,
+  reasons,
+  description,
 }: {
   slug: string
   memberId: string
+  reasons: string[]
+  description?: string
 }) {
   try {
     await removeMember({
       slug,
       memberId,
+      reasons,
+      description,
     })
     revalidatePath(`/${slug}/members`)
     return { success: true, message: 'Membro removido do clube com sucesso!' }
   } catch (err) {
+    if (err instanceof HTTPError) {
+      const { message } = await err.response.json() as { message: string }
+      return { success: false, message }
+    }
     return { success: false, message: 'Erro ao remover membro.' }
   }
 }

@@ -24,6 +24,10 @@ export async function removeMember(app: FastifyInstance) {
             memberId: z.uuid(),
           }),
 
+          body: z.object({
+            reasons: z.array(z.string()),
+            description: z.string().max(250).optional(),
+          }),
           response: {
             204: z.null(),
           },
@@ -31,6 +35,7 @@ export async function removeMember(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug, memberId } = request.params
+        const { reasons, description } = request.body
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
@@ -42,21 +47,8 @@ export async function removeMember(app: FastifyInstance) {
           )
         }
 
-        // Rule: Only allow removal if member has overdue invoices (unless system admin)
-        if (!memberShip.isSystemAdmin) {
-          const overdueInvoice = await prisma.invoice.findFirst({
-            where: {
-              memberId,
-              status: 'OVERDUE',
-            }
-          })
-
-          if (!overdueInvoice) {
-            throw new UnauthorizedError(
-              'Members can only be removed if they have overdue payments.'
-            )
-          }
-        }
+        // Se o motivo for APENAS financeiro, podemos validar se realmente há boleto em atraso
+        // mas para dar flexibilidade ao owner, vamos apenas registrar os motivos no log.
 
         await prisma.member.delete({
           where: {
@@ -70,7 +62,12 @@ export async function removeMember(app: FastifyInstance) {
           entity: 'ATHLETE',
           entityId: memberId,
           userId,
-          payload: { clubId: club.id, slug: club.slug },
+          payload: { 
+            clubId: club.id, 
+            slug: club.slug,
+            reasons,
+            description
+          },
         })
 
         return reply.status(204).send()

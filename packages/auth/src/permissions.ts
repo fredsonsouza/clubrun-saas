@@ -68,8 +68,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
   BILLING(user, { can, cannot }) {
     // Basic member permissions
-    can('get', ['Club', 'User', 'AthleteProfile'])
-    can('get', ['Race', 'RaceResult', 'Ranking'])
+    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'RaceResult', 'Ranking'])
 
     // Billing specific
     can('manage', ['Billing', 'Invoice'])
@@ -78,7 +77,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     cannot(['create', 'update', 'delete'], 'Workout')
   },
   VISITOR(user, { can }) {
-    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'Ranking'])
+    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'RaceResult', 'Ranking'])
     can('update', 'User', { id: { $eq: user.id } })
     can('update', 'AthleteProfile', { userId: { $eq: user.id } })
   },

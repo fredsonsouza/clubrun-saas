@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { BadRequestError } from '../_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
 import { roleSchema } from '@saas/auth'
 import { auth } from '@/http/middlewares/auth'
@@ -35,7 +36,7 @@ export async function updateMember(app: FastifyInstance) {
         const { slug, memberId } = request.params
         const userId = await request.getCurrentUserId()
 
-        const { memberShip } = await request.getUserMemberShip(slug)
+        const { memberShip, club } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
 
@@ -47,11 +48,35 @@ export async function updateMember(app: FastifyInstance) {
 
         const { role, status } = request.body
 
+        // Fetch the member being updated to check their current role and userId
+        const targetMember = await prisma.member.findUnique({
+          where: { id: memberId }
+        })
+
+        if (!targetMember) {
+          throw new BadRequestError('Member not found.')
+        }
+
+        // 1. Prevent self-update of role
+        if (targetMember.userId === userId) {
+          throw new UnauthorizedError("You cannot change your own role.")
+        }
+
+        // 2. MANAGER can only be changed by OWNER
+        if (targetMember.role === 'MANAGER' && memberShip.role !== 'OWNER') {
+          throw new UnauthorizedError("Only the club owner can change a manager's role.")
+        }
+
+        // 3. To promote someone to MANAGER, requester must be OWNER
+        if (role === 'MANAGER' && memberShip.role !== 'OWNER') {
+          throw new UnauthorizedError("Only the club owner can appoint a manager.")
+        }
+
         // If promoting to a unique role, demote existing one
         if (role && ['MANAGER', 'COACH', 'BILLING'].includes(role)) {
           await prisma.member.updateMany({
             where: {
-              clubId: memberShip.clubId,
+              clubId: club.id,
               role,
               id: { not: memberId }
             },
