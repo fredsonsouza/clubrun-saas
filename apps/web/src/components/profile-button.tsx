@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import { ChevronDown, LogOut, User } from 'lucide-react'
+import { ChevronDown, LogOut, User, Settings, CreditCard } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 
 interface ProfileButtonProps {
@@ -79,6 +79,15 @@ export function ProfileButton({ user }: ProfileButtonProps) {
             >
               <User className="h-4 w-4 text-gray-400 transition-colors group-hover:text-orange-500" />{' '}
               Meu Perfil
+            </Link>
+
+            <Link
+              href="/profile/settings"
+              onClick={() => setIsOpen(false)}
+              className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <Settings className="h-4 w-4 text-gray-400 transition-colors group-hover:text-orange-500" />{' '}
+              Minha Conta
             </Link>
           </div>
 

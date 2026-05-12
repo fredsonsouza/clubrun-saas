@@ -12,6 +12,10 @@ import {
   Save,
   Globe,
   Lock,
+  AlertTriangle,
+  Trash2,
+  PauseCircle,
+  Loader2,
 } from 'lucide-react'
 
 import { toast } from 'sonner'
@@ -57,6 +61,9 @@ export function UpdateProfileModal({
     isPublic: initialData?.isPublic ?? true,
   })
   const [isSaving, setIsSaving] = useState(false)
+  const [isAnonymizing, setIsAnonymizing] = useState(false)
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false)
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   if (!isOpen) return null
 
@@ -85,6 +92,23 @@ export function UpdateProfileModal({
       onClose()
     } else {
       toast.error(result.message)
+    }
+  }
+
+  const handleAnonymize = async () => {
+    if (!confirmPassword) {
+      toast.error('Por favor, digite sua senha para confirmar.')
+      return
+    }
+
+    setIsAnonymizing(true)
+    const { anonymizeAccountAction } = await import('@/app/(app)/profile/actions')
+    
+    const result = await anonymizeAccountAction(confirmPassword)
+    
+    if (result && !result.success) {
+      toast.error(result.message)
+      setIsAnonymizing(false)
     }
   }
 
@@ -317,8 +341,90 @@ export function UpdateProfileModal({
                 </label>
               </div>
             </div>
+
+            {/* DANGER ZONE */}
+            <div className="mt-12 rounded-[2rem] border-2 border-red-50 bg-red-50/20 p-6 sm:p-8">
+              <h3 className="flex items-center gap-2 text-xs font-black uppercase tracking-widest text-red-600">
+                <AlertTriangle className="h-4 w-4" /> Zona de Perigo
+              </h3>
+              
+              <div className="mt-6 space-y-4">
+                {/* Desativar */}
+                <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+                  <div>
+                    <h4 className="text-sm font-black text-gray-900">Pausar minha conta</h4>
+                    <p className="text-xs font-medium text-gray-500">Seus dados serão mantidos, mas você terá acesso limitado (Visitante).</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => toast.info('Funcionalidade vinculada ao portal de faturamento Stripe.')}
+                    className="flex items-center gap-2 rounded-xl bg-gray-100 px-4 py-2.5 text-xs font-bold text-gray-600 transition-all hover:bg-gray-200"
+                  >
+                    <PauseCircle className="h-4 w-4" /> Pausar
+                  </button>
+                </div>
+
+                {/* Excluir */}
+                <div className="flex flex-col justify-between gap-4 rounded-2xl bg-white p-4 shadow-sm sm:flex-row sm:items-center">
+                  <div>
+                    <h4 className="text-sm font-black text-red-600">Excluir permanentemente</h4>
+                    <p className="text-xs font-medium text-gray-500">Seus dados pessoais serão anonimizados conforme LGPD. Ação irreversível.</p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setShowConfirmDelete(true)}
+                    className="flex items-center gap-2 rounded-xl bg-red-50 px-4 py-2.5 text-xs font-bold text-red-600 transition-all hover:bg-red-600 hover:text-white"
+                  >
+                    <Trash2 className="h-4 w-4" /> Excluir
+                  </button>
+                </div>
+              </div>
+            </div>
           </form>
         </div>
+
+        {/* CONFIRMAÇÃO DE EXCLUSÃO */}
+        {showConfirmDelete && (
+          <div className="animate-in fade-in fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-md p-4">
+            <div className="animate-in zoom-in-95 w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl">
+              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
+                <AlertTriangle className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-black text-gray-900">Tem certeza absoluta?</h3>
+              <p className="mt-4 text-sm font-medium leading-relaxed text-gray-500">
+                Esta ação irá <span className="font-bold text-red-600">anonimizar permanentemente</span> seus dados pessoais. Seus treinos permanecerão nos clubes, mas não estarão mais vinculados à sua identidade.
+              </p>
+              
+              <div className="mt-8 space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Digite sua senha para confirmar</label>
+                <input 
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 font-bold text-gray-900 focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
+                  placeholder="Sua senha de acesso"
+                />
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <button 
+                  onClick={() => setShowConfirmDelete(false)}
+                  className="flex-1 rounded-xl bg-gray-100 py-3.5 text-sm font-bold text-gray-600 transition-all hover:bg-gray-200"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  onClick={handleAnonymize}
+                  disabled={isAnonymizing}
+                  className="flex-[1.5] flex items-center justify-center gap-2 rounded-xl bg-red-600 py-3.5 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+                >
+                  {isAnonymizing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  EXCLUIR CONTA
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-t border-gray-100 bg-gray-50 px-6 py-5">
           <button

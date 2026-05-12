@@ -25,6 +25,7 @@ export function getProfile(app: FastifyInstance) {
                 avatarUrl: z.string().nullable(),
                 isSystemAdmin: z.boolean(),
                 emailVerifiedAt: z.date().nullable(),
+                hasPassword: z.boolean(),
               }),
             }),
           },
@@ -41,6 +42,7 @@ export function getProfile(app: FastifyInstance) {
             avatarUrl: true,
             isSystemAdmin: true,
             emailVerifiedAt: true,
+            passwordHash: true,
           },
           where: {
             id: userId,
@@ -49,7 +51,18 @@ export function getProfile(app: FastifyInstance) {
         if (!user) {
           throw new BadRequestError('User not found!')
         }
-        return reply.send({ user })
+
+        return reply.send({ 
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatarUrl: user.avatarUrl,
+            isSystemAdmin: user.isSystemAdmin,
+            emailVerifiedAt: user.emailVerifiedAt,
+            hasPassword: !!user.passwordHash
+          }
+        })
       }
     )
 }

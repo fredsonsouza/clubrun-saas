@@ -66,8 +66,11 @@ import { getSystemLogs } from './routes/system/get-system-logs'
 import { getSystemBilling } from './routes/system/get-system-billing'
 import { getUserProfile } from './routes/users/get-user-profile'
 import { uploadImage } from './routes/uploads/upload-image'
+import { anonymizeUser } from './routes/users/anonymize-user'
+import { updatePassword } from './routes/users/update-password'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
+
 
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)
@@ -195,6 +198,8 @@ app.register(getSystemLogs)
 app.register(getSystemBilling)
 app.register(getUserProfile)
 app.register(uploadImage)
+app.register(anonymizeUser)
+app.register(updatePassword)
 
 // app.listen({ port: env.SERVER_PORT }).then(() => {
 //   console.log('HTTP server runnig ✅')
