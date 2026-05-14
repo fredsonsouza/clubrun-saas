@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { subDays } from 'date-fns'
 
 export async function getUserProfile(app: FastifyInstance) {
   app
@@ -37,7 +38,13 @@ export async function getUserProfile(app: FastifyInstance) {
                 gender: z.any().nullable().optional(),
                 instagramUrl: z.string().nullable().optional(),
                 stravaUrl: z.string().nullable().optional(),
+                coverUrl: z.string().nullable().optional(),
               }).nullable(),
+              stats: z.object({
+                avgPace: z.number().optional(),
+                totalDistance: z.number().optional(),
+                totalWorkouts: z.number().optional(),
+              }),
               workouts: z.array(z.any()),
               plannedWorkouts: z.array(z.any()),
             }),
@@ -59,7 +66,19 @@ export async function getUserProfile(app: FastifyInstance) {
             email: true,
             avatarUrl: true,
             isSystemAdmin: true,
-            athleteProfile: true,
+            athleteProfile: {
+              select: {
+                bio: true,
+                city: true,
+                paceAvg: true,
+                weight: true,
+                height: true,
+                gender: true,
+                instagramUrl: true,
+                stravaUrl: true,
+                coverUrl: true,
+              }
+            },
           },
         })
 
@@ -67,6 +86,33 @@ export async function getUserProfile(app: FastifyInstance) {
           console.error(`[ERROR] Usuário não encontrado no banco: ${profileUserId}`)
           throw new BadRequestError('User not found')
         }
+
+        // Calculate stats for the last 30 days
+        const thirtyDaysAgo = subDays(new Date(), 30)
+
+        const workoutsStats = await prisma.workout.aggregate({
+          where: {
+            athleteId: profileUserId,
+            status: 'COMPLETED',
+            date: {
+              gte: thirtyDaysAgo,
+            },
+          },
+          _sum: {
+            distance: true,
+            duration: true,
+          },
+          _count: {
+            id: true,
+          },
+        })
+
+        const totalDistance = workoutsStats._sum.distance || 0
+        const totalDuration = workoutsStats._sum.duration || 0
+        const totalWorkouts = workoutsStats._count.id || 0
+        
+        // Pace is in minutes per km
+        const avgPace = totalDistance > 0 ? totalDuration / totalDistance : 0
 
         const workouts = await prisma.workout.findMany({
           where: {
@@ -106,8 +152,29 @@ export async function getUserProfile(app: FastifyInstance) {
         }) : []
 
         return reply.send({
-          user,
-          athleteProfile: user.athleteProfile,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatarUrl: user.avatarUrl,
+            isSystemAdmin: user.isSystemAdmin,
+          },
+          athleteProfile: user.athleteProfile ? {
+            bio: user.athleteProfile.bio,
+            city: user.athleteProfile.city,
+            paceAvg: user.athleteProfile.paceAvg,
+            weight: user.athleteProfile.weight,
+            height: user.athleteProfile.height,
+            gender: user.athleteProfile.gender,
+            instagramUrl: user.athleteProfile.instagramUrl,
+            stravaUrl: user.athleteProfile.stravaUrl,
+            coverUrl: user.athleteProfile.coverUrl,
+          } : null,
+          stats: {
+            avgPace,
+            totalDistance,
+            totalWorkouts,
+          },
           workouts,
           plannedWorkouts,
         })

@@ -28,8 +28,10 @@ export async function getRaces(app: FastifyInstance) {
                   city: z.string(),
                   date: z.date(),
                   imageUrl: z.string().url().nullable(),
+                  isRegistered: z.boolean(),
                   _count: z.object({
                     results: z.number(),
+                    participants: z.number(),
                   }),
                 })
               ),
@@ -39,6 +41,7 @@ export async function getRaces(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
+        const userId = await request.getCurrentUserId()
         const { club } = await request.getUserMemberShip(slug)
 
         const races = await prisma.race.findMany({
@@ -46,9 +49,18 @@ export async function getRaces(app: FastifyInstance) {
             clubId: club.id,
           },
           include: {
+            participants: {
+              where: {
+                athleteId: userId,
+              },
+              select: {
+                id: true,
+              },
+            },
             _count: {
               select: {
                 results: true,
+                participants: true,
               },
             },
           },
@@ -57,7 +69,15 @@ export async function getRaces(app: FastifyInstance) {
           },
         })
 
-        return reply.status(200).send({ races })
+        const racesWithRegistration = races.map((race) => {
+          const { participants, ...rest } = race
+          return {
+            ...rest,
+            isRegistered: participants.length > 0,
+          }
+        })
+
+        return reply.status(200).send({ races: racesWithRegistration })
       }
     )
 }

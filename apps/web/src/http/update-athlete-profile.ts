@@ -10,6 +10,7 @@ interface UpdateAthleteProfileRequest {
   city?: string
   instagramUrl?: string | null
   stravaUrl?: string | null
+  coverUrl?: string | null
   isPublic?: boolean
 }
 

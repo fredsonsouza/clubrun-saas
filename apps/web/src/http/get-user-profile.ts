@@ -17,7 +17,13 @@ interface GetUserProfileResponse {
     gender: string | null
     instagramUrl: string | null
     stravaUrl: string | null
+    coverUrl: string | null
   } | null
+  stats: {
+    avgPace: number
+    totalDistance: number
+    totalWorkouts: number
+  }
   workouts: {
     id: string
     title: string | null

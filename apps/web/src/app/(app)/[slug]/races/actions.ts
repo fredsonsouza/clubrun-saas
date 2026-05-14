@@ -11,6 +11,7 @@ export async function createRaceAction(formData: FormData) {
   const city = formData.get('city') as string
   const dateStr = formData.get('date') as string
   const imageUrl = formData.get('imageUrl') as string
+  const routeData = formData.get('routeData') as string
 
   try {
     await createRace({
@@ -20,6 +21,7 @@ export async function createRaceAction(formData: FormData) {
       city,
       date: new Date(dateStr),
       imageUrl: imageUrl || null,
+      routeData: routeData ? JSON.parse(routeData) : null,
     })
 
     revalidatePath(`/${slug}/races`)

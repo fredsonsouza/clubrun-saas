@@ -8,6 +8,7 @@ interface GetRaceResponse {
     city: string
     date: string
     imageUrl: string | null
+    routeData: any | null
   }
 }
 

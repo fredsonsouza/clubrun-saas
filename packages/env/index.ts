@@ -13,7 +13,9 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI: z.string().url().optional(),
     RESEND_API_KEY: z.string().optional(),
   },
-  client: {},
+  client: {
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z.string().optional(),
+  },
   shared: {
     NEXT_PUBLIC_APP_URL: z.url().default('http://localhost:3000'),
     NEXT_PUBLIC_API_URL: z.url().default('http://localhost:3333'),
@@ -28,9 +30,11 @@ export const env = createEnv({
       process.env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
   },
 
   emptyStringAsUndefined: true,
-  skipValidation: !!process.env.SKIP_ENV_VALIDATION || typeof window !== 'undefined',
+  skipValidation:
+    !!process.env.SKIP_ENV_VALIDATION || typeof window !== 'undefined',
 })

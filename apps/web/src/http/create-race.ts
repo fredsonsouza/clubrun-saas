@@ -7,6 +7,7 @@ interface CreateRaceRequest {
   city: string
   date: Date
   imageUrl?: string | null
+  routeData?: any | null
 }
 
 export async function createRace({
@@ -16,6 +17,7 @@ export async function createRace({
   city,
   date,
   imageUrl,
+  routeData,
 }: CreateRaceRequest) {
   const result = await api
     .post(`clubs/${slug}/races`, {
@@ -25,6 +27,7 @@ export async function createRace({
         city,
         date,
         imageUrl,
+        routeData,
       },
     })
     .json<{ raceId: string }>()

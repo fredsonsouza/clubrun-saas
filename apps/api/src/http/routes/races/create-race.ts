@@ -23,6 +23,7 @@ export async function createRace(app: FastifyInstance) {
             city: z.string(),
             date: z.coerce.date(),
             imageUrl: z.string().url().nullish(),
+            routeData: z.any().nullish(),
           }),
           params: z.object({
             slug: z.string(),
@@ -55,7 +56,7 @@ export async function createRace(app: FastifyInstance) {
           }
         }
 
-        const { name, distance, city, date, imageUrl } = request.body
+        const { name, distance, city, date, imageUrl, routeData } = request.body
 
         const race = await prisma.race.create({
           data: {
@@ -64,6 +65,7 @@ export async function createRace(app: FastifyInstance) {
             city,
             date,
             imageUrl,
+            routeData,
             clubId: club.id,
           },
         })

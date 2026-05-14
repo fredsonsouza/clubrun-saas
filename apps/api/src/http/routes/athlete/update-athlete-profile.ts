@@ -27,6 +27,7 @@ export async function updateAthleteProfile(app: FastifyInstance) {
             instagramUrl: z.string().nullable().optional(), // Changed from z.url() to z.string() to be more flexible
             youtubeUrl: z.string().nullable().optional(),
             stravaUrl: z.string().nullable().optional(),
+            coverUrl: z.string().url().nullable().optional(),
             isPublic: z.boolean().optional(),
           }),
         },

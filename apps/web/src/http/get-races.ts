@@ -8,8 +8,10 @@ interface GetRacesResponse {
     city: string
     date: string
     imageUrl: string | null
+    isRegistered: boolean
     _count: {
       results: number
+      participants: number
     }
   }[]
 }

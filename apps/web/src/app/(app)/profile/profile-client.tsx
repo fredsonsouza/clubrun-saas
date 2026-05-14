@@ -13,6 +13,9 @@ import {
   AlertCircle,
   ExternalLink,
   CheckCircle2,
+  TrendingUp,
+  Trophy,
+  Navigation,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { WorkoutCard, Workout } from '@/components/workout-card'
@@ -41,12 +44,32 @@ interface ProfileClientProps {
     gender: string | null
     instagramUrl: string | null
     stravaUrl: string | null
+    coverUrl: string | null
     isPublic: boolean
   } | null
+  stats: {
+    avgPace: number
+    totalDistance: number
+    totalWorkouts: number
+  }
   workouts: Workout[]
   plannedWorkouts: Workout[]
   isOwnProfile: boolean
   token?: string
+}
+
+function formatPace(pace: number): string {
+  if (!pace || pace === 0) return '0:00'
+  const minutes = Math.floor(pace)
+  const seconds = Math.round((pace - minutes) * 60)
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
+}
+
+function formatDistance(meters: number): string {
+  if (meters >= 1000) {
+    return `${(meters / 1000).toFixed(1)} km`
+  }
+  return `${meters.toFixed(0)} m`
 }
 
 export function ProfileClient({
@@ -55,6 +78,7 @@ export function ProfileClient({
   athleteProfile,
   workouts,
   plannedWorkouts,
+  stats,
   isOwnProfile,
   token,
 }: ProfileClientProps) {
@@ -128,47 +152,77 @@ export function ProfileClient({
         )}
 
         {/* BANNER E CABEÇALHO DO PERFIL */}
-        <div className="mb-8 overflow-hidden rounded-[2rem] border border-gray-100 bg-white shadow-sm">
+        <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
           {/* Capa Dinâmica */}
-          <div className="relative h-40 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 sm:h-48">
+          <div 
+            className="relative h-48 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 sm:h-64"
+            style={athleteProfile?.coverUrl ? { backgroundImage: `url(${athleteProfile.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          >
+            <div className="absolute inset-0 bg-black/20"></div>
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
           </div>
 
           <div className="relative px-6 pb-8 md:px-10">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
-              <div className="-mt-16 flex flex-col items-center gap-6 md:-mt-20 md:flex-row md:items-end">
+              <div className="-mt-20 flex flex-col items-center gap-6 md:-mt-24 md:flex-row md:items-end">
                 <div className="relative z-10 group">
-                  <div className={`relative h-32 w-32 rounded-full border-4 border-white bg-white shadow-xl transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}>
+                  <div className={`relative h-36 w-36 rounded-full border-4 border-white bg-white shadow-2xl transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}>
                     <Avatar className="h-full w-full">
                       <AvatarImage src={user.avatarUrl || ''} className="object-cover" />
-                      <AvatarFallback className="text-3xl font-black text-gray-400">
+                      <AvatarFallback className="text-4xl font-black text-gray-400">
                         {user.name?.charAt(0) || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </div>
                   <div
-                    className="absolute right-1 bottom-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-orange-500 shadow-md"
+                    className="absolute right-2 bottom-2 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-orange-500 shadow-md"
                     title="Atleta Verificado"
                   >
-                    <Target className="h-3.5 w-3.5 text-white" />
+                    <Trophy className="h-4 w-4 text-white" />
                   </div>
                 </div>
                 
-                <div className="pb-1 text-center md:text-left">
-                  <h1 className="text-3xl font-black text-gray-900 tracking-tight md:text-4xl">
+                <div className="pb-2 text-center md:text-left">
+                  <h1 className="text-4xl font-black text-gray-900 tracking-tight md:text-5xl">
                     {user.name || 'Atleta Sem Nome'}
                   </h1>
-                  <p className="mt-1.5 flex items-center justify-center gap-1.5 font-bold text-gray-400 text-xs md:justify-start uppercase tracking-[0.2em]">
-                    <MapPin className="h-3.5 w-3.5 text-orange-500" /> {athleteProfile?.city || 'Localização não definida'}
+                  <p className="mt-2 flex items-center justify-center gap-1.5 font-bold text-gray-400 text-[10px] md:justify-start uppercase tracking-[0.3em]">
+                    <MapPin className="h-3 w-3 text-orange-500" /> {athleteProfile?.city || 'Localização não definida'}
                   </p>
                 </div>
               </div>
 
+              {/* STATS BAR (Last 30 days) */}
+              <div className="flex items-center justify-center gap-4 border-t border-gray-50 pt-6 md:border-t-0 md:pt-0">
+                <div className="flex items-center gap-8 rounded-3xl bg-gray-50/80 px-8 py-4 backdrop-blur-sm">
+                  <div className="text-center">
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                      <Timer className="h-3 w-3 text-orange-500" /> Pace <span className="text-[7px] text-gray-300">(30d)</span>
+                    </span>
+                    <p className="text-lg font-black text-gray-900">{formatPace(stats.avgPace)} <span className="text-[10px] font-bold text-gray-400">/km</span></p>
+                  </div>
+                  <div className="h-8 w-px bg-gray-200"></div>
+                  <div className="text-center">
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                      <TrendingUp className="h-3 w-3 text-green-500" /> KM <span className="text-[7px] text-gray-300">(30d)</span>
+                    </span>
+                    <p className="text-lg font-black text-gray-900">{formatDistance(stats.totalDistance)}</p>
+                  </div>
+                  <div className="h-8 w-px bg-gray-200"></div>
+                  <div className="text-center">
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                      <Activity className="h-3 w-3 text-blue-500" /> Treinos
+                    </span>
+                    <p className="text-lg font-black text-gray-900">{stats.totalWorkouts}</p>
+                  </div>
+                </div>
+              </div>
+
               {isOwnProfile && (
-                <div className="flex justify-center md:pb-1">
+                <div className="flex justify-center md:pb-2">
                   <button 
                     onClick={() => setIsUpdateModalOpen(true)}
-                    className="cursor-pointer group flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-3.5 text-sm font-black text-white shadow-lg shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
+                    className="cursor-pointer group flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 text-xs font-black text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
                   >
                     <Edit3 className="h-4 w-4 transition-transform group-hover:rotate-12" /> 
                     EDITAR PERFIL
@@ -177,7 +231,7 @@ export function ProfileClient({
               )}
             </div>
 
-            <p className="mt-6 max-w-2xl text-center font-medium leading-relaxed text-gray-600 md:text-left">
+            <p className="mt-8 max-w-3xl text-center text-sm font-medium leading-relaxed text-gray-500 md:text-left">
               {athleteProfile?.bio || (isOwnProfile ? 'Você ainda não escreveu sua bio. Conte um pouco sobre sua jornada no atletismo!' : 'Este atleta ainda não escreveu uma biografia.')}
             </p>
           </div>

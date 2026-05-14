@@ -13,6 +13,12 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { Header } from '@/components/header'
+import dynamic from 'next/dynamic'
+
+const MapView = dynamic(() => import('@/components/map-view').then(mod => mod.MapView), { 
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full animate-pulse rounded-[3rem] bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">Carregando percurso...</div>
+})
 
 interface Result {
   id: string
@@ -44,6 +50,7 @@ interface RaceDetailsClientProps {
     city: string
     date: string
     imageUrl: string | null
+    routeData: any | null
   }
   results: Result[]
 }
@@ -68,7 +75,7 @@ export function RaceDetailsClient({
   race,
   results,
 }: RaceDetailsClientProps) {
-  const raceDate = new Date(race.date).toLocaleDateString('pt-PT', {
+  const raceDate = new Date(race.date).toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: 'long',
     year: 'numeric',
@@ -134,6 +141,13 @@ export function RaceDetailsClient({
             </div>
           </div>
         </div>
+
+        {/* MAP SECTION */}
+        {race.routeData && (
+          <div className="mb-12">
+            <MapView routeData={race.routeData} />
+          </div>
+        )}
 
         {/* LEADERBOARD SECTION */}
         <div className="space-y-6">

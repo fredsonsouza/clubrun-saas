@@ -29,29 +29,32 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
   }
 
   const { races } = await getRaces(slug)
-
-  const today = startOfDay(new Date())
+  const now = new Date()
 
   const upcoming = races
-    .filter((race) => isAfter(new Date(race.date), today) || new Date(race.date).toDateString() === today.toDateString())
+    .filter((race) => isAfter(new Date(race.date), now))
     .map((race) => ({
       ...race,
       status: 'UPCOMING' as const,
-      registeredCount: race._count.results,
+      registeredCount: race._count.participants,
       location: race.city,
-      date: new Date(race.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }),
-      distances: [`${race.distance}k`]
+      date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
+      time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      distances: [`${race.distance}km`],
+      isRegistered: race.isRegistered
     }))
 
   const past = races
-    .filter((race) => isBefore(new Date(race.date), today))
+    .filter((race) => isBefore(new Date(race.date), now))
     .map((race) => ({
       ...race,
       status: 'COMPLETED' as const,
-      registeredCount: race._count.results,
+      registeredCount: race._count.participants,
       location: race.city,
-      date: new Date(race.date).toLocaleDateString('pt-PT', { day: '2-digit', month: 'short', year: 'numeric' }),
-      distances: [`${race.distance}k`]
+      date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
+      time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      distances: [`${race.distance}km`],
+      isRegistered: race.isRegistered
     }))
 
   const clubInfo = {

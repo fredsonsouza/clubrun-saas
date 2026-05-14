@@ -12,7 +12,7 @@ export default async function ProfilePage() {
   }
 
   // Fetch real profile data for the current user
-  const { user, athleteProfile, workouts, plannedWorkouts } = await getUserProfile(currentUser.id)
+  const { user, athleteProfile, stats, workouts, plannedWorkouts } = await getUserProfile(currentUser.id)
 
   const formatWorkout = (w: any) => ({
     ...w,
@@ -38,7 +38,8 @@ export default async function ProfilePage() {
         avatarUrl: currentUser.avatarUrl,
       }}
       user={user}
-      athleteProfile={athleteProfile ? { ...athleteProfile, isPublic: true } : null}
+      athleteProfile={athleteProfile}
+      stats={stats}
       workouts={formattedWorkouts}
       plannedWorkouts={formattedPlannedWorkouts}
       isOwnProfile={true}

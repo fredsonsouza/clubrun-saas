@@ -58,6 +58,9 @@ import { getRaces } from './routes/races/get-races'
 import { getRace } from './routes/races/get-race'
 import { createRaceResult } from './routes/races/create-race-result'
 import { getRaceResults } from './routes/races/get-race-results'
+import { updateRace } from './routes/races/update-race'
+import { deleteRace } from './routes/races/delete-race'
+import { toggleRaceRegistration } from './routes/races/toggle-race-registration'
 import { approveInvite } from './routes/invites/approve-invite'
 import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
 import { getSystemStats } from './routes/system/get-system-stats'
@@ -190,6 +193,9 @@ app.register(getClubPublicInfo)
 app.register(createRace)
 app.register(getRaces)
 app.register(getRace)
+app.register(updateRace)
+app.register(deleteRace)
+app.register(toggleRaceRegistration)
 app.register(createRaceResult)
 app.register(getRaceResults)
 app.register(getSystemStats)
