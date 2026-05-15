@@ -16,6 +16,9 @@ import {
 import { toast } from 'sonner'
 import { createRaceAction } from '@/app/(app)/[slug]/races/actions'
 import dynamic from 'next/dynamic'
+import { DatePicker } from './date-picker'
+import { WarningModal } from './warning-modal'
+import { addHours, isBefore, parse } from 'date-fns'
 
 const MapEditor = dynamic(() => import('./map-editor').then(mod => mod.MapEditor), { 
   ssr: false,
@@ -41,12 +44,14 @@ export function CreateRaceModal({
   const [distance, setDistance] = useState('')
   const [selectedState, setSelectedState] = useState('')
   const [selectedCity, setSelectedCity] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(new Date().toLocaleDateString('pt-BR'))
   const [time, setTime] = useState('06:00')
   const [imageUrl, setImageUrl] = useState('')
   const [routeData, setRouteData] = useState<any>(null)
   const [mapCenter, setMapCenter] = useState<{ longitude: number; latitude: number } | undefined>(undefined)
   const [isLoading, setIsLoading] = useState(false)
+  const [showWarning, setShowWarning] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
 
   // IBGE States & Cities
   const [ufs, setUfs] = useState<{ id: number; sigla: string; nome: string }[]>([])
@@ -114,17 +119,31 @@ export function CreateRaceModal({
     e.preventDefault()
     setIsLoading(true)
 
+    // Validation: Min 24h in advance
+    let formattedDate = date
+    if (date.includes('/')) {
+      const [day, month, year] = date.split('/')
+      formattedDate = `${year}-${month}-${day}`
+    }
+
+    const raceDateTime = parse(`${formattedDate} ${time}`, 'yyyy-MM-dd HH:mm', new Date())
+    const minDate = addHours(new Date(), 24)
+
+    if (isBefore(raceDateTime, minDate)) {
+      setWarningMessage('Para garantir uma organização impecável, as corridas devem ser cadastradas com no mínimo 24 horas de antecedência. Por favor, ajuste a data ou o horário.')
+      setShowWarning(true)
+      setIsLoading(false)
+      return
+    }
+
     const formData = new FormData()
-    formData.append('slug', slug)
-    formData.append('name', name)
-    formData.append('distance', distance)
     
     // Pattern: City, UF
     const location = `${selectedCity}, ${selectedState}`
     formData.append('city', location)
     
-    const fullDate = `${date}T${time}:00`
-    formData.append('date', fullDate)
+    // Already formatted above for validation
+    formData.append('date', `${formattedDate}T${time}:00`)
     formData.append('imageUrl', imageUrl)
     if (routeData) {
       formData.append('routeData', JSON.stringify(routeData))
@@ -216,28 +235,33 @@ export function CreateRaceModal({
                     <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
                       <CalendarIcon className="h-3.5 w-3.5 text-orange-500" /> Hora
                     </label>
-                    <input
-                      type="time"
-                      required
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
-                      className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        required
+                        value={time}
+                        onChange={(e) => {
+                          let val = e.target.value.replace(/\D/g, '')
+                          if (val.length > 4) val = val.slice(0, 4)
+                          if (val.length > 2) val = val.replace(/(\d{2})(\d{2})/, '$1:$2')
+                          setTime(val)
+                        }}
+                        placeholder="06:00"
+                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 pr-12 pl-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
+                      />
+                      <span className="absolute top-1/2 right-12 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">
+                        h
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
-                    <CalendarIcon className="h-3.5 w-3.5 text-orange-500" /> Data da Prova
-                  </label>
-                  <input
-                    type="date"
-                    required
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
-                  />
-                </div>
+                <DatePicker 
+                  label="Data da Prova"
+                  value={date}
+                  onChange={setDate}
+                  required
+                />
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
@@ -335,6 +359,12 @@ export function CreateRaceModal({
           </button>
         </footer>
       </div>
+      <WarningModal
+        isOpen={showWarning}
+        title="Atenção ao Prazo"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
+      />
     </div>
   )
 }

@@ -40,6 +40,10 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       location: race.city,
       date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
       time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      rawDate: race.date,
+      participants: race.participants.map(p => ({
+        avatarUrl: p.athlete.avatarUrl
+      })),
       distances: [`${race.distance}km`],
       isRegistered: race.isRegistered
     }))
@@ -53,6 +57,10 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       location: race.city,
       date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
       time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      rawDate: race.date,
+      participants: race.participants.map(p => ({
+        avatarUrl: p.athlete.avatarUrl
+      })),
       distances: [`${race.distance}km`],
       isRegistered: race.isRegistered
     }))

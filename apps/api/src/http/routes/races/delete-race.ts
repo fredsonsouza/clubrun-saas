@@ -28,9 +28,9 @@ export async function deleteRace(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug, raceId } = request.params
-        const { membership, club } = await request.getUserMemberShip(slug)
+        const { memberShip, club } = await request.getUserMemberShip(slug)
 
-        if (membership.role !== 'OWNER' && membership.role !== 'MANAGER') {
+        if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
           throw new UnauthorizedError('Only owners and managers can delete races.')
         }
 

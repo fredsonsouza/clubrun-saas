@@ -2,6 +2,8 @@
 
 import { createRace } from '@/http/create-race'
 import { createRaceResult } from '@/http/create-race-result'
+import { updateRace } from '@/http/update-race'
+import { deleteRace } from '@/http/delete-race'
 import { revalidatePath } from 'next/cache'
 
 export async function createRaceAction(formData: FormData) {
@@ -29,6 +31,50 @@ export async function createRaceAction(formData: FormData) {
     return { success: true, message: 'Prova criada com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao criar a prova.' }
+  }
+}
+
+export async function updateRaceAction(formData: FormData) {
+  const slug = formData.get('slug') as string
+  const raceId = formData.get('raceId') as string
+  const name = formData.get('name') as string
+  const distance = Number(formData.get('distance'))
+  const city = formData.get('city') as string
+  const dateStr = formData.get('date') as string
+  const imageUrl = formData.get('imageUrl') as string
+  const routeData = formData.get('routeData') as string
+
+  try {
+    await updateRace(slug, raceId, {
+      name,
+      distance,
+      city,
+      date: new Date(dateStr).toISOString(),
+      imageUrl: imageUrl || null,
+      routeData: routeData ? JSON.parse(routeData) : null,
+    })
+
+    revalidatePath(`/${slug}/races`)
+    revalidatePath(`/${slug}/races/${raceId}`)
+
+    return { success: true, message: 'Prova atualizada com sucesso!' }
+  } catch (err) {
+    return { success: false, message: 'Erro ao atualizar a prova.' }
+  }
+}
+
+export async function deleteRaceAction(formData: FormData) {
+  const slug = formData.get('slug') as string
+  const raceId = formData.get('raceId') as string
+
+  try {
+    await deleteRace(slug, raceId)
+
+    revalidatePath(`/${slug}/races`)
+
+    return { success: true, message: 'Prova excluída com sucesso!' }
+  } catch (err) {
+    return { success: false, message: 'Erro ao excluir a prova.' }
   }
 }
 

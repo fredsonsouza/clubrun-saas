@@ -29,6 +29,14 @@ export async function getRaces(app: FastifyInstance) {
                   date: z.date(),
                   imageUrl: z.string().url().nullable(),
                   isRegistered: z.boolean(),
+                  participants: z.array(
+                    z.object({
+                      athlete: z.object({
+                        id: z.string().uuid(),
+                        avatarUrl: z.string().url().nullable(),
+                      }),
+                    })
+                  ),
                   _count: z.object({
                     results: z.number(),
                     participants: z.number(),
@@ -50,11 +58,14 @@ export async function getRaces(app: FastifyInstance) {
           },
           include: {
             participants: {
-              where: {
-                athleteId: userId,
-              },
+              take: 5,
               select: {
-                id: true,
+                athlete: {
+                  select: {
+                    id: true,
+                    avatarUrl: true,
+                  },
+                },
               },
             },
             _count: {
@@ -69,13 +80,24 @@ export async function getRaces(app: FastifyInstance) {
           },
         })
 
-        const racesWithRegistration = races.map((race) => {
-          const { participants, ...rest } = race
-          return {
-            ...rest,
-            isRegistered: participants.length > 0,
-          }
-        })
+        // Check if user is registered for each race
+        const racesWithRegistration = await Promise.all(
+          races.map(async (race) => {
+            const isRegistered = await prisma.raceParticipant.findUnique({
+              where: {
+                raceId_athleteId: {
+                  raceId: race.id,
+                  athleteId: userId,
+                },
+              },
+            })
+
+            return {
+              ...race,
+              isRegistered: !!isRegistered,
+            }
+          })
+        )
 
         return reply.status(200).send({ races: racesWithRegistration })
       }
