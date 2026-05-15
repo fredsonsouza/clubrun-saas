@@ -8,11 +8,20 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      delete: vi.fn(),
     },
     club: {
       update: vi.fn(),
     },
-    $transaction: vi.fn((actions) => Promise.all(actions)),
+    auditLog: {
+      create: vi.fn(),
+    },
+    $transaction: vi.fn((arg) => {
+      if (typeof arg === 'function') {
+        return arg(prisma)
+      }
+      return Promise.all(arg)
+    }),
   },
 }))
 
@@ -43,6 +52,10 @@ describe('Transfer Club Ownership (Unit)', () => {
       clubId: 'club-id',
     } as any)
 
+    vi.mocked(prisma.member.update).mockResolvedValue({} as any)
+    vi.mocked(prisma.club.update).mockResolvedValue({} as any)
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
+
     const response = await app.inject({
       method: 'PATCH',
       url: '/clubs/acme-club/owner',
@@ -57,7 +70,12 @@ describe('Transfer Club Ownership (Unit)', () => {
     expect(response.statusCode).toBe(204)
     expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: 'club-id' },
-      data: { ownerId: targetUserId },
+      data: {
+        ownerId: targetUserId,
+        stripeCustomerId: null,
+        stripeSubscriptionId: null,
+        subscriptionStatus: 'PENDING_UPDATE',
+      },
     })
   })
 

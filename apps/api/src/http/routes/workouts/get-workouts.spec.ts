@@ -61,6 +61,11 @@ describe('Get Workouts (Unit)', () => {
           name: 'John Doe',
           avatarUrl: null,
         },
+        club: {
+          name: 'Test Club',
+          slug: 'test-club',
+          avatarUrl: null,
+        },
       },
     ] as any)
 

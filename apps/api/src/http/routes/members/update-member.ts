@@ -48,6 +48,10 @@ export async function updateMember(app: FastifyInstance) {
 
         const { role, status } = request.body
 
+        if (role === 'VISITOR') {
+          throw new BadRequestError('Cannot update member role to VISITOR.')
+        }
+
         // Fetch the member being updated to check their current role and userId
         const targetMember = await prisma.member.findUnique({
           where: { id: memberId }
@@ -77,7 +81,7 @@ export async function updateMember(app: FastifyInstance) {
           await prisma.member.updateMany({
             where: {
               clubId: club.id,
-              role,
+              role: role as any,
               id: { not: memberId }
             },
             data: {

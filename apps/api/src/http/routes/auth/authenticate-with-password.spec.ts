@@ -6,7 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
-      findUnique: vi.fn(),
+      findFirst: vi.fn(),
     },
   },
 }))
@@ -21,7 +21,7 @@ describe('Authenticate with Password (Unit)', () => {
   })
 
   it('should be able to authenticate with e-mail & password', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    vi.mocked(prisma.user.findFirst).mockResolvedValue({
       id: '4f88e178-57d5-4537-8e68-c1d00c4c4af5',
       email: 'john@example.com',
       passwordHash: 'hashed-password',
@@ -33,7 +33,7 @@ describe('Authenticate with Password (Unit)', () => {
       method: 'POST',
       url: '/sessions/password',
       body: {
-        email: 'john@example.com',
+        login: 'john@example.com',
         password: 'password123',
       },
     })
@@ -43,13 +43,13 @@ describe('Authenticate with Password (Unit)', () => {
   })
 
   it('should not be able to authenticate with non-existing user', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
+    vi.mocked(prisma.user.findFirst).mockResolvedValue(null)
 
     const response = await app.inject({
       method: 'POST',
       url: '/sessions/password',
       body: {
-        email: 'non-existing@example.com',
+        login: 'non-existing@example.com',
         password: 'password123',
       },
     })
@@ -59,7 +59,7 @@ describe('Authenticate with Password (Unit)', () => {
   })
 
   it('should not be able to authenticate with wrong password', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    vi.mocked(prisma.user.findFirst).mockResolvedValue({
       id: '4f88e178-57d5-4537-8e68-c1d00c4c4af5',
       email: 'john@example.com',
       passwordHash: 'hashed-password',
@@ -71,7 +71,7 @@ describe('Authenticate with Password (Unit)', () => {
       method: 'POST',
       url: '/sessions/password',
       body: {
-        email: 'john@example.com',
+        login: 'john@example.com',
         password: 'wrong-password',
       },
     })
@@ -81,7 +81,7 @@ describe('Authenticate with Password (Unit)', () => {
   })
 
   it('should not be able to authenticate if user has no password (social login only)', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+    vi.mocked(prisma.user.findFirst).mockResolvedValue({
       id: '4f88e178-57d5-4537-8e68-c1d00c4c4af5',
       email: 'john@example.com',
       passwordHash: null,
@@ -91,7 +91,7 @@ describe('Authenticate with Password (Unit)', () => {
       method: 'POST',
       url: '/sessions/password',
       body: {
-        email: 'john@example.com',
+        login: 'john@example.com',
         password: 'password123',
       },
     })

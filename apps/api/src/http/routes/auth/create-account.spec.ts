@@ -12,6 +12,15 @@ vi.mock('@/lib/prisma', () => ({
     club: {
       findFirst: vi.fn(),
     },
+    invite: {
+      findFirst: vi.fn(),
+    },
+    token: {
+      create: vi.fn(),
+    },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }))
 
@@ -27,14 +36,18 @@ describe('Create Account (Unit)', () => {
   it('should be able to create a new account', async () => {
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
     vi.mocked(hash).mockResolvedValue('hashed-password' as any)
-    vi.mocked(prisma.user.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-id', email: 'john@example.com', username: 'johndoe' } as any)
+    vi.mocked(prisma.token.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
 
     const response = await app.inject({
       method: 'POST',
       url: '/users',
       body: {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'john@example.com',
         password: 'password123',
       },
@@ -45,6 +58,7 @@ describe('Create Account (Unit)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           name: 'John Doe',
+          username: 'johndoe',
           email: 'john@example.com',
           passwordHash: 'hashed-password',
         }),
@@ -58,14 +72,18 @@ describe('Create Account (Unit)', () => {
       id: 'club-id',
       domain: 'acme.com',
     } as any)
+    vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
     vi.mocked(hash).mockResolvedValue('hashed-password' as any)
-    vi.mocked(prisma.user.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-id', email: 'john@acme.com', username: 'johndoe' } as any)
+    vi.mocked(prisma.token.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
 
     const response = await app.inject({
       method: 'POST',
       url: '/users',
       body: {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'john@acme.com',
         password: 'password123',
       },
@@ -76,9 +94,9 @@ describe('Create Account (Unit)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           members_on: {
-            create: {
-              clubId: 'club-id',
-            },
+            create: [
+              { clubId: 'club-id' }
+            ],
           },
         }),
       })
@@ -93,6 +111,7 @@ describe('Create Account (Unit)', () => {
       url: '/users',
       body: {
         name: 'John Doe',
+        username: 'johndoe',
         email: 'john@example.com',
         password: 'password123',
       },

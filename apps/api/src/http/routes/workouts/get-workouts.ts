@@ -22,7 +22,7 @@ export async function getWorkouts(app: FastifyInstance) {
           }),
           querystring: z.object({
             page: z.coerce.number().min(1).default(1),
-            limit: z.coerce.number().min(1).max(50).default(20),
+            limit: z.coerce.number().min(1).max(100).default(20),
             status: z.enum(['PLANNED', 'COMPLETED']).default('COMPLETED'),
             athleteId: z.string().uuid().optional(),
           }),
@@ -47,6 +47,11 @@ export async function getWorkouts(app: FastifyInstance) {
                   athlete: z.object({
                     id: z.string().uuid(),
                     name: z.string().nullable(),
+                    avatarUrl: z.string().nullable(),
+                  }),
+                  club: z.object({
+                    name: z.string(),
+                    slug: z.string(),
                     avatarUrl: z.string().nullable(),
                   }),
                 })
@@ -109,6 +114,13 @@ export async function getWorkouts(app: FastifyInstance) {
                 select: {
                   id: true,
                   name: true,
+                  avatarUrl: true,
+                },
+              },
+              club: {
+                select: {
+                  name: true,
+                  slug: true,
                   avatarUrl: true,
                 },
               },

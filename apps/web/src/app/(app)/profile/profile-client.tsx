@@ -22,6 +22,19 @@ import { WorkoutCard, Workout } from '@/components/workout-card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { UpdateProfileModal } from '@/components/update-profile-modal'
 import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
+import { RescheduleWorkoutModal } from '@/components/reschedule-workout-modal'
+import { deleteWorkoutAction } from './actions'
+import { toast } from 'sonner'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { AlertTriangle, Loader2 } from 'lucide-react'
 
 interface ProfileClientProps {
   currentUser: {
@@ -45,7 +58,7 @@ interface ProfileClientProps {
     instagramUrl: string | null
     stravaUrl: string | null
     coverUrl: string | null
-    isPublic: boolean
+    isPublic?: boolean
   } | null
   stats: {
     avgPace: number
@@ -84,7 +97,10 @@ export function ProfileClient({
 }: ProfileClientProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
+  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false)
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
+  const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [activeTab, setActiveTab] = useState<'activities' | 'planned'>('activities')
 
   // Cálculo de Progresso do Perfil
@@ -106,6 +122,31 @@ export function ProfileClient({
   const handleOpenCompleteModal = (workout: Workout) => {
     setSelectedWorkout(workout)
     setIsCompleteModalOpen(true)
+  }
+
+  const handleOpenRescheduleModal = (workoutId: string) => {
+    const workout = plannedWorkouts.find(w => w.id === workoutId)
+    if (workout) {
+      setSelectedWorkout(workout)
+      setIsRescheduleModalOpen(true)
+    }
+  }
+
+  const handleDeleteWorkout = async () => {
+    if (!workoutToDelete) return
+    setIsDeleting(true)
+    const result = await deleteWorkoutAction({
+      slug: workoutToDelete.club.slug,
+      workoutId: workoutToDelete.id,
+    })
+
+    if (result.success) {
+      toast.success(result.message)
+      setWorkoutToDelete(null)
+    } else {
+      toast.error(result.message)
+    }
+    setIsDeleting(false)
   }
 
   return (
@@ -337,6 +378,10 @@ export function ProfileClient({
                       workout={workout}
                       currentUserId={currentUser.id}
                       userRole="ATHLETE"
+                      onDelete={(id) => {
+                        const w = workouts.find(x => x.id === id)
+                        if (w) setWorkoutToDelete(w)
+                      }}
                     />
                   ))
                 ) : (
@@ -366,6 +411,11 @@ export function ProfileClient({
                         currentUserId={currentUser.id}
                         userRole="ATHLETE"
                         onComplete={handleOpenCompleteModal}
+                        onEdit={handleOpenRescheduleModal}
+                        onDelete={(id) => {
+                          const w = plannedWorkouts.find(x => x.id === id)
+                          if (w) setWorkoutToDelete(w)
+                        }}
                       />
                     </div>
                   ))
@@ -401,6 +451,64 @@ export function ProfileClient({
           // Revalidação já é feita na action
         }}
       />
+
+      <RescheduleWorkoutModal
+        isOpen={isRescheduleModalOpen}
+        workout={selectedWorkout}
+        onClose={() => setIsRescheduleModalOpen(false)}
+        onSuccess={() => {
+          // Revalidação já é feita na action
+        }}
+      />
+
+      {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
+      <Dialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3 text-red-600">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+                <AlertTriangle className="h-6 w-6" />
+              </div>
+              Confirmar Exclusão
+            </DialogTitle>
+            <DialogDescription className="pt-4 text-base">
+              Tem certeza que deseja remover este treino?
+            </DialogDescription>
+            {workoutToDelete?.status === 'COMPLETED' && (
+              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+                Esta ação é irreversível e os pontos gerados por esta atividade serão removidos do ranking mensal do clube.
+              </p>
+            )}
+            {workoutToDelete?.status === 'PLANNED' && (
+              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+                Este treino planejado será removido da sua agenda.
+              </p>
+            )}
+          </DialogHeader>
+          <DialogFooter className="mt-8 gap-3">
+            <button
+              onClick={() => setWorkoutToDelete(null)}
+              className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleDeleteWorkout}
+              disabled={isDeleting}
+              className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+            >
+              {isDeleting ? (
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  EXCLUINDO...
+                </div>
+              ) : (
+                'CONFIRMAR EXCLUSÃO'
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

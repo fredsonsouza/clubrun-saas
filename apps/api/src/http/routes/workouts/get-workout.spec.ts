@@ -45,6 +45,8 @@ describe('Get Workout (Unit)', () => {
       duration: 3600,
       pace: 6,
       type: 'EASY',
+      status: 'COMPLETED',
+      assignmentMode: null,
       date: new Date(),
       notes: null,
       imageUrl: null,

@@ -74,6 +74,11 @@ export default async function ClubDashboardPage({
       id: w.athlete.id,
       name: w.athlete.name || 'Atleta',
       avatarUrl: w.athlete.avatarUrl,
+    },
+    club: {
+      name: club?.name || '',
+      slug: slug,
+      avatarUrl: club?.avatarUrl || null,
     }
   }))
 

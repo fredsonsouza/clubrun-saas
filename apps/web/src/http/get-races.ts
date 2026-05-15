@@ -9,6 +9,12 @@ interface GetRacesResponse {
     date: string
     imageUrl: string | null
     isRegistered: boolean
+    participants: {
+      athlete: {
+        id: string
+        avatarUrl: string | null
+      }
+    }[]
     _count: {
       results: number
       participants: number

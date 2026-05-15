@@ -216,6 +216,17 @@ export function DashboardClient({
                 <span className="flex items-center gap-1.5 transition-colors hover:text-orange-500">
                   <Activity className="h-3.5 w-3.5 text-orange-500" /> Ativo Recentemente
                 </span>
+                {isMember && (userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER' || userRole === 'COACH') && (
+                  <>
+                    <div className="h-1 w-1 rounded-full bg-gray-300"></div>
+                    <Link
+                      href={`/${club.slug}/dashboard/reports`}
+                      className="flex items-center gap-1.5 text-orange-500 font-black transition-colors hover:text-orange-600"
+                    >
+                      <BarChart3 className="h-3.5 w-3.5" /> RELATÓRIOS DE PERFORMANCE
+                    </Link>
+                  </>
+                )}
                 {isMember && (userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER') && (
                   <>
                     <div className="h-1 w-1 rounded-full bg-gray-300"></div>
@@ -262,16 +273,18 @@ export function DashboardClient({
               </h2>
             </div>
 
-            {feed.length > 0 ? (
-              feed.map((workout) => (
-                <WorkoutCard
-                  key={workout.id}
-                  workout={workout}
-                  currentUserId={user.id}
-                  userRole={userRole}
-                  onDelete={(id) => setWorkoutToDelete(id)}
-                />
-              ))
+            {feed.filter(w => w.status === 'COMPLETED').length > 0 ? (
+              feed
+                .filter(w => w.status === 'COMPLETED')
+                .map((workout) => (
+                  <WorkoutCard
+                    key={workout.id}
+                    workout={workout}
+                    currentUserId={user.id}
+                    userRole={userRole}
+                    onDelete={(id) => setWorkoutToDelete(id)}
+                  />
+                ))
             ) : (
               <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
                 <Flame className="mb-4 h-10 w-10 text-gray-300" />

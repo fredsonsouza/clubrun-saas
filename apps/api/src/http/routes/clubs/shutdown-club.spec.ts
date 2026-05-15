@@ -4,11 +4,16 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn((promises) => Promise.all(promises)),
     member: {
       findFirst: vi.fn(),
     },
     club: {
+      update: vi.fn(),
       delete: vi.fn(),
+    },
+    auditLog: {
+      create: vi.fn(),
     },
   },
 }))
@@ -33,6 +38,9 @@ describe('Shutdown Club (Unit)', () => {
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club', ownerId: userId },
     } as any)
 
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.club.update).mockResolvedValue({} as any)
+
     const response = await app.inject({
       method: 'DELETE',
       url: '/clubs/acme-club',
@@ -42,8 +50,9 @@ describe('Shutdown Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.club.delete).toHaveBeenCalledWith({
+    expect(prisma.club.update).toHaveBeenCalledWith({
       where: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7' },
+      data: { status: 'DEACTIVATED' },
     })
   })
 

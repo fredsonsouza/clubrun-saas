@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import { fastify } from 'fastify'
 import fastifyCors from '@fastify/cors'
 import fastifySwagger from '@fastify/swagger'
@@ -5,10 +7,6 @@ import fastifySwaggerUi from '@fastify/swagger-ui'
 import fastifyJwt from '@fastify/jwt'
 import fastifyStatic from '@fastify/static'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
 
 import {
   jsonSchemaTransform,
@@ -16,17 +14,16 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+
 import { createAccount } from './routes/auth/create-account'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
 import { getProfile } from './routes/auth/get-profile'
 import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
-import { errorHandler } from './error-handle'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resetPassword } from './routes/auth/reset-password'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
 import { verifyEmail } from './routes/auth/verify-email'
 import { resendVerification } from './routes/auth/resend-verification'
-import { env } from '@saas/env'
 import { createClub } from './routes/clubs/create-club'
 import { getMemberShip } from './routes/clubs/get-membership'
 import { getClub } from './routes/clubs/get-club'
@@ -72,8 +69,10 @@ import { uploadImage } from './routes/uploads/upload-image'
 import { anonymizeUser } from './routes/users/anonymize-user'
 import { updatePassword } from './routes/users/update-password'
 
-export const app = fastify().withTypeProvider<ZodTypeProvider>()
+import { errorHandler } from './error-handle'
+import { env } from '@saas/env'
 
+export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)

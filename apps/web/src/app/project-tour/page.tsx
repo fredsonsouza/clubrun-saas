@@ -190,7 +190,7 @@ export default function ProjectTourPage() {
                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
                
                <div className={`relative h-32 w-32 rounded-3xl bg-gradient-to-br ${slides[currentSlide].color} flex items-center justify-center shadow-2xl transform transition-transform group-hover:scale-110 group-hover:rotate-3 duration-500`}>
-                 {React.cloneElement(slides[currentSlide].icon as React.ReactElement, { className: "h-16 w-16 text-white" })}
+                 {React.cloneElement(slides[currentSlide].icon as React.ReactElement<any>, { className: "h-16 w-16 text-white" })}
                </div>
 
                <div className="relative space-y-4">

@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify/types/instance'
 import { randomBytes } from 'node:crypto'
 import z from 'zod'
 import { env } from '@saas/env'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function getClubInviteLink(app: FastifyInstance) {
   app
@@ -33,7 +34,11 @@ export async function getClubInviteLink(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('create', 'Invite')) {
           throw new UnauthorizedError(`You're not allowed to manage invites`)

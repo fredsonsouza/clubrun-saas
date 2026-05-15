@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import {
   X,
-  Activity,
+  Activity as ActivityIcon,
   Timer,
   MapPin,
   Globe,
@@ -11,11 +11,23 @@ import {
   Flame,
   ChevronDown,
   Calendar as CalendarIcon,
-  Loader2,
   Users as UsersIcon,
+  AlertTriangle,
+  Map as MapIcon,
+  Loader2,
+  CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createWorkoutAction } from '@/app/(app)/[slug]/dashboard/actions'
+import { DatePicker } from './date-picker'
+import { WarningModal } from './warning-modal'
+import { isBefore, startOfDay, parseISO, parse, addHours, isSameDay } from 'date-fns'
+import dynamic from 'next/dynamic'
+
+const MapEditor = dynamic(() => import('./map-editor').then(mod => mod.MapEditor), { 
+  ssr: false,
+  loading: () => <div className="h-[300px] w-full animate-pulse rounded-2xl bg-gray-50 flex items-center justify-center text-xs font-bold text-gray-300 uppercase tracking-widest">Carregando mapa...</div>
+})
 
 interface CreateWorkoutModalProps {
   isOpen: boolean
@@ -36,84 +48,48 @@ export function CreateWorkoutModal({
 }: CreateWorkoutModalProps) {
   const [title, setTitle] = useState('')
   const [distance, setDistance] = useState('')
-  const [duration, setDuration] = useState('') // Agora aceita MM:SS ou HH:MM:SS
+  const [duration, setDuration] = useState('')
   const [type, setType] = useState('EASY')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [time, setTime] = useState('06:00')
   const [notes, setNotes] = useState('')
   const [visibility, setVisibility] = useState('PUBLIC')
   const [athleteId, setAthleteId] = useState<string>('')
   const [assignmentMode, setAssignmentMode] = useState<'GOAL' | 'FREE'>('GOAL')
   const [isLoading, setIsLoading] = useState(false)
+  const [showWarning, setShowWarning] = useState(false)
+  const [warningMessage, setWarningMessage] = useState('')
+  const [routeData, setRouteData] = useState<any>(null)
 
-  const isCoach = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER'
   const canPrescribe = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN'
   const isPrescribing = !!athleteId && athleteId !== ''
 
-  // Helper para converter HH:MM:SS ou MM:SS para segundos
   const timeToSeconds = (timeStr: string) => {
     if (!timeStr) return 0
     const parts = timeStr.split(':').map(Number)
-    if (parts.length === 3) {
-      // MM:SS:CC (centésimos de segundo)
-      return (parts[0] || 0) * 60 + (parts[1] || 0) + ((parts[2] || 0) / 100)
-    }
-    if (parts.length === 2) {
-      return (parts[0] || 0) * 60 + (parts[1] || 0)
-    }
-    return (parts[0] || 0) * 60
+    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
+    if (parts.length === 2) return parts[0] * 60 + parts[1]
+    return parts[0] * 60
   }
 
-  // Reatividade em tempo real: Cálculo do pace enquanto o usuário digita
   const pace = useMemo(() => {
     const d = parseFloat(distance) || 0
     const totalSeconds = timeToSeconds(duration)
-    
     if (d <= 0 || totalSeconds <= 0) return '0:00'
-    
     const paceInSecondsPerKm = totalSeconds / d
     const mins = Math.floor(paceInSecondsPerKm / 60)
     const secs = Math.floor(paceInSecondsPerKm % 60)
-    const millis = Math.round((paceInSecondsPerKm % 1) * 100)
-    
-    if (millis > 0) {
-      return `${mins}:${secs.toString().padStart(2, '0')}:${millis.toString().padStart(2, '0')}`
-    }
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }, [distance, duration])
 
-  const handleDurationBlur = () => {
-    if (!duration) return
-    
-    // Remove tudo que não for dígito
-    const digits = duration.replace(/\D/g, '')
-    
-    if (digits.length === 2) {
-      setDuration(`${digits}:00`)
-    } else if (digits.length === 3) {
-      setDuration(`${digits.slice(0, 2)}:${digits.slice(2)}0`)
-    } else if (digits.length === 4) {
-      setDuration(`${digits.slice(0, 2)}:${digits.slice(2)}`)
-    } else if (digits.length === 5) {
-      // 5 dígitos: MM:SS:C -> MM:SS:C0
-      setDuration(`${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4)}0`)
-    } else if (digits.length >= 6) {
-      setDuration(`${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`)
-    }
-  }
-
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    let val = e.target.value
-    // Permite apenas números e dois pontos
-    val = val.replace(/[^0-9:]/g, '')
-    
-    // Auto-inserção do : após 2 dígitos e 4 dígitos
+    let val = e.target.value.replace(/[^0-9:]/g, '')
     const digits = val.replace(/\D/g, '')
     if (digits.length > 2 && digits.length <= 4) {
       val = `${digits.slice(0, 2)}:${digits.slice(2)}`
     } else if (digits.length > 4) {
       val = `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`
     }
-    
     setDuration(val)
   }
 
@@ -123,21 +99,49 @@ export function CreateWorkoutModal({
     e.preventDefault()
     setIsLoading(true)
 
+    let formattedDate = date
+    if (date.includes('/')) {
+      const [day, month, year] = date.split('/')
+      formattedDate = `${year}-${month}-${day}`
+    }
+
+    if (isPrescribing) {
+      const workoutDate = startOfDay(parseISO(formattedDate))
+      const today = startOfDay(new Date())
+
+      if (isBefore(workoutDate, today)) {
+        setWarningMessage('Treinos prescritos devem ser para hoje ou datas futuras.')
+        setShowWarning(true)
+        setIsLoading(false)
+        return
+      }
+
+      if (isSameDay(workoutDate, today)) {
+        const workoutDateTime = parse(`${formattedDate} ${time}`, 'yyyy-MM-dd HH:mm', new Date())
+        if (isBefore(workoutDateTime, addHours(new Date(), 2))) {
+          setWarningMessage('Treinos para o mesmo dia devem ser prescritos com no mínimo 2h de antecedência.')
+          setShowWarning(true)
+          setIsLoading(false)
+          return
+        }
+      }
+    }
+
     const totalSeconds = timeToSeconds(duration)
     const d = parseFloat(distance) || 0
-    const paceValue = d > 0 ? totalSeconds / d / 60 : 0 // pace em minutos decimais para o banco
+    const paceValue = d > 0 ? totalSeconds / d / 60 : 0 
 
     const formData = new FormData()
     formData.append('slug', slug)
-    formData.append('title', title || `Treino de ${TYPE_CONFIG[type as any]?.label || 'Corrida'}`)
+    formData.append('title', title || `Treino de ${type}`)
     formData.append('distance', distance)
-    if (totalSeconds > 0) {
-      formData.append('duration', totalSeconds.toString())
-    }
+    if (totalSeconds > 0) formData.append('duration', totalSeconds.toString())
     formData.append('pace', paceValue.toString())
     formData.append('type', type)
-    formData.append('date', date)
+    formData.append('date', `${formattedDate}T${time}:00`)
     formData.append('notes', notes)
+    formData.append('visibility', visibility)
+    if (routeData) formData.append('routeData', JSON.stringify(routeData))
     formData.append('status', isPrescribing ? 'PLANNED' : 'COMPLETED')
     
     if (isPrescribing) {
@@ -149,317 +153,161 @@ export function CreateWorkoutModal({
 
     if (result.success) {
       toast.success(result.message)
-      setTitle('')
-      setDistance('')
-      setDuration('')
-      setNotes('')
-      setType('EASY')
-      setAthleteId('')
       onSuccess?.()
       onClose()
     } else {
       toast.error(result.message)
     }
-
     setIsLoading(false)
   }
 
-  const TYPE_CONFIG: any = {
-    EASY: { label: 'Rodagem Leve' },
-    INTERVAL: { label: 'Treino de Tiro' },
-    TEMPO: { label: 'Ritmo / Tempo' },
-    LONG: { label: 'Longão' },
-    RECOVERY: { label: 'Regenerativo' },
-    RACE: { label: 'Prova' },
-    STRENGTH: { label: 'Fortalecimento' },
-    WALK: { label: 'Caminhada' },
-  }
-
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
-      <div
-        className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-        onClick={onClose}
-      />
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200">
+      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-200">
+      <div className="animate-in zoom-in-95 relative flex max-h-[95vh] w-full max-w-5xl flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-5">
-          <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
-              <Activity className="h-4 w-4" />
+          <h2 className="flex items-center gap-3 text-xl font-black text-gray-900">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
+              <ActivityIcon className="h-5 w-5" />
             </div>
-            {isPrescribing ? 'Prescrever Treino' : 'Registrar Novo Treino'}
+            {isPrescribing ? 'Prescrever Treino' : 'Registrar Atividade'}
           </h2>
-          <button
-            onClick={onClose}
-            className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
-          >
+          <button onClick={onClose} className="rounded-full bg-gray-50 p-2 text-gray-500 hover:bg-gray-100">
             <X className="h-5 w-5" />
           </button>
         </header>
 
-        <div className="overflow-y-auto bg-white p-6 md:p-8">
-          <form id="workout-form" onSubmit={handleSubmit} className="space-y-6">
-            {/* SELECIONAR ATLETA (Para Coaches/Owners) */}
-            {canPrescribe && (
-              <div className="space-y-4 rounded-2xl bg-orange-50/50 p-4 border border-orange-100">
-                <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-orange-600 uppercase">
-                    <UsersIcon className="h-3.5 w-3.5" /> Prescrever Para
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={athleteId}
-                      onChange={(e) => setAthleteId(e.target.value)}
-                      className="w-full cursor-pointer appearance-none rounded-xl border border-orange-100 bg-white px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                    >
-                      <option value="">Para mim mesmo (Treino Concluído)</option>
-                      {members.map(member => (
-                        <option key={member.id} value={member.userId}>
-                          {member.name}
-                        </option>
-                      ))}
-                    </select>
-                    <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-orange-400" />
-                  </div>
-                </div>
-
-                {isPrescribing && (
-                  <div className="space-y-3 pt-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-orange-400">
-                      Tipo de Prescrição
-                    </label>
-                    <div className="flex p-1 bg-white rounded-xl border border-orange-100">
-                      <button
-                        type="button"
-                        onClick={() => setAssignmentMode('GOAL')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${assignmentMode === 'GOAL' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-orange-500'}`}
-                      >
-                        <Timer className="h-3.5 w-3.5" />
-                        Meta (Fixo)
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAssignmentMode('FREE')}
-                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold transition-all ${assignmentMode === 'FREE' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-orange-500'}`}
-                      >
-                        <Activity className="h-3.5 w-3.5" />
-                        Livre (Flexível)
-                      </button>
-                    </div>
-                    <p className="text-[10px] text-orange-400 font-medium px-1 leading-relaxed">
-                      {assignmentMode === 'GOAL' 
-                        ? 'O atleta deverá tentar cumprir a distância e o tempo exatos sugeridos.' 
-                        : 'Apenas a distância é sugerida. O atleta registrará o tempo quando concluir.'}
-                    </p>
-                  </div>
+        <div className="flex-1 overflow-y-auto">
+          <form id="workout-form" onSubmit={handleSubmit} className="p-6 md:p-8">
+            <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
+              <div className="space-y-6">
+                {canPrescribe && (
+                   <div className="space-y-1.5">
+                     <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-orange-600 uppercase">
+                       <UsersIcon className="h-3.5 w-3.5" /> Prescrever Para
+                     </label>
+                     <select
+                       value={athleteId}
+                       onChange={(e) => setAthleteId(e.target.value)}
+                       className="w-full rounded-2xl border border-orange-100 bg-orange-50/50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+                     >
+                       <option value="">Para mim mesmo (Concluído)</option>
+                       {members.map(m => (
+                         <option key={m.id} value={m.userId}>{m.name}</option>
+                       ))}
+                     </select>
+                   </div>
                 )}
-              </div>
-            )}
 
-            {/* TÍTULO */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <MapPin className="h-3.5 w-3.5 text-orange-500" /> Título
-                (Opcional)
-              </label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Treino de velocidade na pista"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-              />
-            </div>
-
-            {/* DATA DO TREINO */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <CalendarIcon className="h-3.5 w-3.5 text-orange-500" /> Data da Atividade
-              </label>
-              <input
-                type="date"
-                required
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-              />
-            </div>
-
-            {/* TIPO DE TREINO (Obrigatório) */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <Activity className="h-3.5 w-3.5 text-orange-500" /> Tipo de
-                Treino
-              </label>
-              <div className="relative">
-                <select
-                  required
-                  value={type}
-                  onChange={(e) => setType(e.target.value)}
-                  className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                >
-                  <option value="EASY">Rodagem Leve / Easy Run</option>
-                  <option value="INTERVAL">Treino de Tiro / Intervalado</option>
-                  <option value="TEMPO">Ritmo / Tempo Run</option>
-                  <option value="LONG">Longão / Long Run</option>
-                  <option value="RECOVERY">Regenerativo / Recovery</option>
-                  <option value="RACE">Prova / Prova Oficial</option>
-                  <option value="STRENGTH">Fortalecimento / Strength</option>
-                  <option value="WALK">Caminhada / Walk</option>
-                </select>
-                <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {/* DISTÂNCIA */}
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                  <Activity className="h-3.5 w-3.5 text-orange-500" /> Distância
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    step="0.01"
-                    required
-                    value={distance}
-                    onChange={(e) => setDistance(e.target.value)}
-                    placeholder="0.00"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-12 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-                  />
-                  <span className="absolute top-1/2 right-4 -translate-y-1/2 font-bold text-gray-400">
-                    km
-                  </span>
-                </div>
-              </div>
-
-              {/* TEMPO */}
-              <div className="space-y-1.5">
-                <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                  <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo
-                </label>
-                <div className="relative">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Título do Treino</label>
                   <input
                     type="text"
-                    required={!isPrescribing || assignmentMode === 'GOAL'}
-                    value={duration}
-                    onChange={handleDurationChange}
-                    onBlur={handleDurationBlur}
-                    placeholder={isPrescribing && assignmentMode === 'FREE' ? "Livre" : "Ex: 15:25"}
-                    disabled={isPrescribing && assignmentMode === 'FREE'}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pr-20 pl-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50 disabled:bg-gray-100"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Ex: Rodagem de 10km"
+                    className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
                   />
-                  <span className="absolute top-1/2 right-4 -translate-y-1/2 font-bold text-gray-400">
-                    {isPrescribing && assignmentMode === 'FREE' ? '' : 'tempo'}
-                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <DatePicker label="Data" value={date} onChange={setDate} required />
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Hora</label>
+                    <input
+                      type="text"
+                      required
+                      value={time}
+                      onChange={(e) => {
+                        let val = e.target.value.replace(/\D/g, '')
+                        if (val.length > 4) val = val.slice(0, 4)
+                        if (val.length > 2) val = val.replace(/(\d{2})(\d{2})/, '$1:$2')
+                        setTime(val)
+                      }}
+                      className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Distância (km)</label>
+                    <input
+                      type="number" step="0.1" required
+                      value={distance} onChange={(e) => setDistance(e.target.value)}
+                      className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-mono text-xl font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Duração (MM:SS)</label>
+                    <input
+                      type="text" required
+                      value={duration} onChange={handleDurationChange}
+                      className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-mono text-xl font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Tipo de Treino</label>
+                  <select
+                    value={type} onChange={(e) => setType(e.target.value)}
+                    className="w-full appearance-none rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+                  >
+                    <option value="EASY">Rodagem Leve</option>
+                    <option value="INTERVAL">Intervalado</option>
+                    <option value="TEMPO">Ritmo / Tempo</option>
+                    <option value="LONG">Longão</option>
+                    <option value="RECOVERY">Regenerativo</option>
+                  </select>
                 </div>
               </div>
-            </div>
 
-            {/* QUADRO DE PACE REACTIVO */}
-            {(!isPrescribing || assignmentMode === 'GOAL') && (
-              <div className="relative flex items-center justify-between overflow-hidden rounded-xl border border-orange-100 bg-orange-50 p-4">
-                <div className="absolute top-0 right-0 h-24 w-24 rounded-full bg-orange-500/10 blur-xl" />
-                <span className="text-[10px] font-bold tracking-wider text-orange-600 uppercase">
-                  {isPrescribing ? 'Ritmo Alvo (Pace)' : 'Pace Médio Calculado'}
-                </span>
-                <div className="relative z-10 flex items-baseline gap-1">
-                  <span className="font-mono text-3xl font-light tracking-tight text-orange-600">
-                    {pace}
-                  </span>
-                  <span className="text-sm font-bold text-orange-500/70">
-                    /km
-                  </span>
+              <div className="flex flex-col space-y-4 lg:h-full">
+                <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                  <MapIcon className="h-3.5 w-3.5 text-orange-500" /> Percurso (Opcional)
+                </label>
+                <div className="flex-1 overflow-hidden min-h-[350px] border border-gray-100 rounded-3xl">
+                  <MapEditor onChange={setRouteData} />
                 </div>
-              </div>
-            )}
-
-            {/* NOTAS / DESCRIÇÃO */}
-            <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <Flame className="h-3.5 w-3.5 text-orange-500" /> Notas (Opcional)
-              </label>
-              <textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Como se sentiu hoje?"
-                rows={3}
-                className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
-              />
-            </div>
-
-            {/* PRIVACIDADE */}
-            <div className="space-y-3">
-              <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">
-                Privacidade
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <label className="group relative cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="PUBLIC"
-                    className="peer sr-only"
-                    checked={visibility === 'PUBLIC'}
-                    onChange={(e) => setVisibility(e.target.value)}
-                  />
-                  <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:ring-1">
-                    <Globe className="h-5 w-5 shrink-0 text-orange-500" />
-                    <div>
-                      <span className="block text-sm font-bold text-gray-900">
-                        Público
-                      </span>
-                    </div>
+                <div className="flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50 p-5 mt-auto">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Pace Estimado</span>
+                    <p className="text-[9px] font-medium text-orange-400">Minutos por km</p>
                   </div>
-                </label>
-                <label className="group relative cursor-pointer">
-                  <input
-                    type="radio"
-                    name="visibility"
-                    value="PRIVATE"
-                    className="peer sr-only"
-                    checked={visibility === 'PRIVATE'}
-                    onChange={(e) => setVisibility(e.target.value)}
-                  />
-                  <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 transition-all peer-checked:border-orange-500 peer-checked:bg-orange-50 peer-checked:ring-1">
-                    <Lock className="h-5 w-5 shrink-0 text-gray-400 peer-checked:text-orange-500" />
-                    <div>
-                      <span className="block text-sm font-bold text-gray-900">
-                        Privado
-                      </span>
-                    </div>
+                  <div className="flex items-baseline gap-1 text-orange-600">
+                    <span className="font-mono text-3xl font-black">{pace}</span>
+                    <span className="text-sm font-bold opacity-70">/km</span>
                   </div>
-                </label>
+                </div>
               </div>
             </div>
           </form>
         </div>
 
-        <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-t border-gray-100 bg-gray-50 px-6 py-5">
+        <footer className="flex items-center justify-end gap-4 border-t border-gray-100 bg-gray-50 px-8 py-6">
+          <button onClick={onClose} className="h-14 rounded-2xl px-8 font-bold text-gray-600 hover:bg-gray-200/50">Cancelar</button>
           <button
-            type="button"
-            onClick={onClose}
-            className="cursor-pointer h-11 rounded-xl px-5 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
+            type="submit" form="workout-form" disabled={isLoading}
+            className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-orange-500 px-10 font-black text-white shadow-xl shadow-orange-500/20 hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
-            Cancelar
-          </button>
-          <button
-            type="submit"
-            form="workout-form"
-            disabled={isLoading}
-            className="cursor-pointer flex h-11 items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
+            {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (
               <>
-                <Flame className="h-4 w-4" /> Registrar no Pelotão
+                <CheckCircle2 className="h-6 w-6" />
+                {isPrescribing ? 'PRESCREVER AGORA' : 'REGISTRAR NO PELOTÃO'}
               </>
             )}
           </button>
         </footer>
       </div>
+      <WarningModal
+        isOpen={showWarning}
+        title="Agendamento Inválido"
+        message={warningMessage}
+        onClose={() => setShowWarning(false)}
+      />
     </div>
   )
 }

@@ -7,6 +7,7 @@ import {
   Timer,
   CheckCircle2,
   Loader2,
+  Target,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { completeWorkoutAction } from '@/app/(app)/profile/actions'
@@ -28,6 +29,15 @@ export function CompleteWorkoutModal({
   const [distance, setDistance] = useState('')
   const [duration, setDuration] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+
+  const formatDuration = (totalSeconds: number) => {
+    const sRaw = Number(totalSeconds) || 0
+    const h = Math.floor(sRaw / 3600)
+    const m = Math.floor((sRaw % 3600) / 60)
+    const s = Math.floor(sRaw % 60)
+    if (h > 0) return `${h}h ${m}m ${s}s`
+    return `${m}m ${s}s`
+  }
 
   // Initialize with workout values if it's a GOAL
   React.useEffect(() => {
@@ -85,6 +95,7 @@ export function CompleteWorkoutModal({
     const paceValue = d > 0 ? totalSeconds / d / 60 : 0
 
     const formData = new FormData()
+    formData.append('slug', workout.club.slug)
     formData.append('workoutId', workout.id)
     formData.append('distance', distance)
     formData.append('duration', totalSeconds.toString())
@@ -119,17 +130,30 @@ export function CompleteWorkoutModal({
         </header>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-            <h4 className="text-xs font-black uppercase tracking-widest text-orange-600 mb-1">Prescrição</h4>
-            <p className="text-sm font-bold text-gray-900">{workout.title}</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {workout.distance}km • {workout.durationInSeconds > 0 ? `${Math.floor(workout.durationInSeconds / 60)}min` : 'Tempo Livre'}
-            </p>
+          <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/50 p-5">
+            <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-orange-500/5 blur-xl" />
+            <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 mb-2">
+              <Target className="h-3 w-3" /> Meta do Treinador
+            </h4>
+            <p className="text-base font-black text-gray-900 leading-tight">{workout.title}</p>
+            <div className="mt-3 flex items-center gap-4">
+               <div className="flex flex-col">
+                 <span className="text-[10px] font-bold text-gray-400 uppercase">Distância</span>
+                 <span className="text-sm font-black text-gray-700">{workout.distance}km</span>
+               </div>
+               <div className="h-6 w-px bg-orange-200/50" />
+               <div className="flex flex-col">
+                 <span className="text-[10px] font-bold text-gray-400 uppercase">Tempo Sugerido</span>
+                 <span className="text-sm font-black text-gray-700">{workout.durationInSeconds > 0 ? formatDuration(workout.durationInSeconds) : 'Livre'}</span>
+               </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">Distância Real</label>
+              <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                <Activity className="h-3.5 w-3.5 text-orange-500" /> Distância Real
+              </label>
               <div className="relative">
                 <input
                   type="number"
@@ -137,14 +161,16 @@ export function CompleteWorkoutModal({
                   required
                   value={distance}
                   onChange={(e) => setDistance(e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 px-4 font-mono text-xl font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
                 />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">km</span>
+                <span className="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">km</span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold tracking-wider text-gray-500 uppercase">Tempo Real</label>
+              <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo Real
+              </label>
               <div className="relative">
                 <input
                   type="text"
@@ -152,23 +178,36 @@ export function CompleteWorkoutModal({
                   placeholder="00:00"
                   value={duration}
                   onChange={handleDurationChange}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 px-4 font-mono text-xl font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 px-5 font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-gray-50 p-4">
-            <span className="text-xs font-bold text-gray-500 uppercase">Pace Final</span>
-            <span className="font-mono text-2xl font-black text-orange-600">{pace} <span className="text-xs">/km</span></span>
+          <div className="flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50 p-5">
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Pace Médio Final</span>
+              <p className="text-xs font-medium text-orange-400">Calculado automaticamente</p>
+            </div>
+            <div className="flex items-baseline gap-1 text-orange-600">
+              <span className="font-mono text-3xl font-black">{pace}</span>
+              <span className="text-sm font-bold opacity-70">/km</span>
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-orange-500 font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
-            {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'CONCLUIR ATIVIDADE'}
+            {isLoading ? (
+              <Loader2 className="h-6 w-6 animate-spin" />
+            ) : (
+              <>
+                <CheckCircle2 className="h-6 w-6 transition-transform group-hover:scale-110" />
+                CONCLUIR ATIVIDADE AGORA
+              </>
+            )}
           </button>
         </form>
       </div>

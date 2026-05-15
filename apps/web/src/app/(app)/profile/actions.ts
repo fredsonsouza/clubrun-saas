@@ -54,6 +54,7 @@ export async function updateProfileAction(data: {
   city?: string
   instagramUrl?: string | null
   stravaUrl?: string | null
+  coverUrl?: string | null
   isPublic?: boolean
 }) {
   try {
@@ -68,17 +69,17 @@ export async function updateProfileAction(data: {
 }
 
 export async function completeWorkoutAction(formData: FormData) {
+  const slug = formData.get('slug') as string
   const workoutId = formData.get('workoutId') as string
   const distance = Number(formData.get('distance'))
   const duration = Number(formData.get('duration'))
   const pace = Number(formData.get('pace'))
 
   try {
-    await api.patch(`workouts/${workoutId}/complete`, {
+    await api.patch(`clubs/${slug}/workouts/${workoutId}/complete`, {
       json: {
         distance,
         duration,
-        pace,
       }
     })
 
@@ -88,5 +89,52 @@ export async function completeWorkoutAction(formData: FormData) {
   } catch (err) {
     console.error(err)
     return { success: false, message: 'Erro ao finalizar o treino. Tente novamente.' }
+  }
+}
+
+export async function deleteWorkoutAction({
+  slug,
+  workoutId,
+}: {
+  slug: string
+  workoutId: string
+}) {
+  try {
+    await api.delete(`clubs/${slug}/workouts/${workoutId}`)
+    revalidatePath('/', 'layout')
+    return { success: true, message: 'Treino removido com sucesso.' }
+  } catch (err) {
+    return { success: false, message: 'Erro ao remover treino.' }
+  }
+}
+
+export async function updateWorkoutAction(formData: FormData) {
+  const slug = formData.get('slug') as string
+  const workoutId = formData.get('workoutId') as string
+  const title = formData.get('title') as string
+  const distance = Number(formData.get('distance'))
+  const duration = formData.get('duration') ? Number(formData.get('duration')) : null
+  const pace = formData.get('pace') ? Number(formData.get('pace')) : null
+  const type = formData.get('type') as string
+  const date = formData.get('date') as string
+
+  try {
+    await api.put(`clubs/${slug}/workouts/${workoutId}`, {
+      json: {
+        title,
+        distance,
+        duration,
+        pace,
+        type,
+        date,
+      },
+    })
+
+    revalidatePath('/', 'layout')
+
+    return { success: true, message: 'Treino atualizado com sucesso!' }
+  } catch (err) {
+    console.error(err)
+    return { success: false, message: 'Erro ao atualizar o treino.' }
   }
 }

@@ -4,7 +4,6 @@ import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function anonymizeUser(app: FastifyInstance) {
   app
@@ -37,7 +36,7 @@ export async function anonymizeUser(app: FastifyInstance) {
           throw new BadRequestError('User not found.')
         }
 
-        // TODO: Verify password here if needed. 
+        // TODO: Verify password here if needed.
         // For now, since it's a simulation/onboarding flow, we check if password was provided.
         // In a real app, use bcrypt.compare(password, user.passwordHash)
 

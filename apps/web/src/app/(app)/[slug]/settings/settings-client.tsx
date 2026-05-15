@@ -73,6 +73,7 @@ interface SettingsClientProps {
     city: string | null
     state: string | null
     status: 'ACTIVE' | 'DEACTIVATED'
+    subscriptionStatus: string | null
   }
   userRole: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   billing: {

@@ -32,6 +32,8 @@ describe('Get Profile (Unit)', () => {
       email: 'john@example.com',
       avatarUrl: 'http://example.com/avatar.jpg',
       isSystemAdmin: false,
+      emailVerifiedAt: null,
+      passwordHash: null,
     } as any)
 
     const response = await app.inject({
@@ -50,6 +52,8 @@ describe('Get Profile (Unit)', () => {
         email: 'john@example.com',
         avatarUrl: 'http://example.com/avatar.jpg',
         isSystemAdmin: false,
+        emailVerifiedAt: null,
+        hasPassword: false,
       },
     })
   })

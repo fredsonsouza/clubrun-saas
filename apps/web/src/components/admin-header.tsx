@@ -19,6 +19,7 @@ import { ProfileButton } from './profile-button'
 
 interface AdminHeaderProps {
   user: {
+    id?: string
     name: string | null
     email: string
     avatarUrl: string | null

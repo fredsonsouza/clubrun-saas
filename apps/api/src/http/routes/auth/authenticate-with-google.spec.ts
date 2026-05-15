@@ -7,9 +7,13 @@ vi.mock('@/lib/prisma', () => ({
     user: {
       findUnique: vi.fn(),
       create: vi.fn(),
+      update: vi.fn(),
     },
     account: {
       findUnique: vi.fn(),
+      create: vi.fn(),
+    },
+    auditLog: {
       create: vi.fn(),
     },
   },
@@ -69,6 +73,12 @@ describe('Authenticate with Google (Unit)', () => {
         name: 'John Doe',
         email: 'john@example.com',
         avatarUrl: 'http://example.com/avatar.jpg',
+        emailVerifiedAt: expect.any(Date),
+        athleteProfile: {
+          create: {
+            isPublic: true,
+          },
+        },
       },
     })
   })
@@ -118,8 +128,14 @@ describe('Authenticate with Google (Unit)', () => {
     }
 
     vi.mocked(prisma.user.findUnique).mockResolvedValue(existingUser as any)
+    vi.mocked(prisma.user.update).mockResolvedValue({
+      id: 'existing-id',
+      email: 'john@example.com',
+      emailVerifiedAt: new Date(),
+    } as any)
     vi.mocked(prisma.account.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.account.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
 
     const response = await app.inject({
       method: 'POST',

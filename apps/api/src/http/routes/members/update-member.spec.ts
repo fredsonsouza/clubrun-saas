@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({
   prisma: {
     member: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       update: vi.fn(),
       updateMany: vi.fn(),
     },
@@ -35,6 +36,12 @@ describe('Update Member (Unit)', () => {
       role: 'OWNER',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
       user: { isSystemAdmin: false }
+    } as any)
+
+    vi.mocked(prisma.member.findUnique).mockResolvedValue({
+      id: memberIdToUpdate,
+      userId: 'some-other-user-id',
+      role: 'ATHLETE',
     } as any)
 
     const response = await app.inject({
@@ -71,6 +78,12 @@ describe('Update Member (Unit)', () => {
       clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
       user: { isSystemAdmin: false }
+    } as any)
+
+    vi.mocked(prisma.member.findUnique).mockResolvedValue({
+      id: memberIdToUpdate,
+      userId: 'some-other-user-id',
+      role: 'ATHLETE',
     } as any)
 
     const response = await app.inject({

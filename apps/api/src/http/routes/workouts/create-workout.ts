@@ -6,6 +6,7 @@ import z from 'zod'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { BadRequestError } from '../_errors/bad-request-error'
 import { createAuditLog } from '@/utils/audit-log'
 
 export async function createWorkout(app: FastifyInstance) {
@@ -39,6 +40,7 @@ export async function createWorkout(app: FastifyInstance) {
             ]),
             date: z.coerce.date(),
             notes: z.string().nullish(),
+            routeData: z.any().optional(),
           }),
           params: z.object({
             slug: z.string(),
@@ -87,6 +89,28 @@ export async function createWorkout(app: FastifyInstance) {
           )
         }
 
+        const { routeData } = request.body
+
+        // Business Rule: 2h Lead Time for Prescriptions on the same day
+        if (isPrescribing) {
+          const now = new Date()
+          const workoutDate = new Date(date)
+          
+          const isSameDay = 
+            now.getFullYear() === workoutDate.getFullYear() &&
+            now.getMonth() === workoutDate.getMonth() &&
+            now.getDate() === workoutDate.getDate()
+
+          if (isSameDay) {
+            const twoHoursInMs = 2 * 60 * 60 * 1000
+            if (workoutDate.getTime() - now.getTime() < twoHoursInMs) {
+              throw new BadRequestError(
+                'Para manter a organização, treinos para o mesmo dia devem ser prescritos com no mínimo 2h de antecedência.'
+              )
+            }
+          }
+        }
+
         const workout = await prisma.workout.create({
           data: {
             title,
@@ -96,6 +120,8 @@ export async function createWorkout(app: FastifyInstance) {
             pace,
             type,
             notes,
+            routeData,
+            originalDate: isPrescribing ? date : null,
             status: isPrescribing ? 'PLANNED' : status,
             assignmentMode: isPrescribing ? (assignmentMode || 'FREE') : null,
             slug: `${createSlug(title)}-${Date.now()}`,

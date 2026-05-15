@@ -11,7 +11,12 @@ import {
   Edit2,
   Globe,
   Lock,
+  Calendar as CalendarIcon,
+  AlertCircle,
+  MoreVertical,
+  Navigation,
 } from 'lucide-react'
+import { isBefore, isToday, startOfDay, parseISO } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 export type WorkoutType =
@@ -36,9 +41,18 @@ export interface Workout {
   status: 'PLANNED' | 'COMPLETED'
   assignmentMode?: 'GOAL' | 'FREE' | null
   createdAt: string
+  date?: string
+  notes?: string | null
+  routeData?: any | null
+  rescheduleCount?: number
   author: {
     id: string
     name: string
+    avatarUrl?: string | null
+  }
+  club: {
+    name: string
+    slug: string
     avatarUrl?: string | null
   }
 }
@@ -162,14 +176,19 @@ export function WorkoutCard({
 
   const config = TYPE_CONFIG[workout.type] || TYPE_CONFIG.EASY
 
+  // Check if can complete today
+  const workoutDate = startOfDay(new Date(dateStr))
+  const today = startOfDay(new Date())
+  const canComplete = isToday(workoutDate) || isBefore(workoutDate, today)
+
   return (
-    <article className={`shadow-soft-card group relative overflow-hidden rounded-[1.5rem] border transition-colors ${isPlanned ? 'border-orange-200 bg-orange-50/10' : 'border-gray-100 bg-white hover:border-orange-200'}`}>
+    <article className={`shadow-soft-card group relative overflow-hidden rounded-[1.5rem] border transition-all duration-300 ${isPlanned ? 'border-orange-200 bg-orange-50/10 hover:shadow-lg hover:shadow-orange-500/5' : 'border-gray-100 bg-white hover:border-orange-200 hover:shadow-xl hover:shadow-gray-200/50'}`}>
       {/* BADGES DE STATUS (Canto superior direito) */}
       <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
         {isPlanned && (
           <div className="flex items-center gap-1.5 rounded-full bg-orange-500 px-2.5 py-1 text-[10px] font-black tracking-wider uppercase text-white shadow-lg shadow-orange-500/20">
             <Target className="h-3 w-3" />
-            Prescrito
+            Agenda
           </div>
         )}
         <div
@@ -178,6 +197,25 @@ export function WorkoutCard({
           <Activity className="h-3 w-3" />
           {config.label}
         </div>
+        
+        {isPlanned && isAuthor && (
+           <div className="flex items-center gap-1 ml-2">
+             <button
+               onClick={() => onEdit?.(workout.id)}
+               title="Reagendar"
+               className="p-1.5 rounded-lg bg-white/80 border border-orange-100 text-orange-500 hover:bg-orange-500 hover:text-white transition-all shadow-sm"
+             >
+               <CalendarIcon className="h-3.5 w-3.5" />
+             </button>
+             <button
+               onClick={() => onDelete?.(workout.id)}
+               title="Pular Treino"
+               className="p-1.5 rounded-lg bg-white/80 border border-orange-100 text-gray-400 hover:bg-red-50 hover:text-red-500 transition-all shadow-sm"
+             >
+               <Trash2 className="h-3.5 w-3.5" />
+             </button>
+           </div>
+        )}
       </div>
 
       {/* CABEÇALHO DO TREINO */}
@@ -193,16 +231,23 @@ export function WorkoutCard({
             </AvatarFallback>
           </Avatar>
           <div>
-            <h3 className="text-sm font-bold text-gray-900 group-hover/author:text-orange-500 transition-colors">
-              {workout.author.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-gray-900 group-hover/author:text-orange-500 transition-colors">
+                {workout.author.name}
+              </h3>
+              {workout.rescheduleCount && workout.rescheduleCount > 0 && (
+                <span className="rounded bg-orange-100 px-1 py-0.5 text-[8px] font-black text-orange-600 uppercase">
+                  {workout.rescheduleCount}x Reagendado
+                </span>
+              )}
+            </div>
             <div className="mt-0.5 flex items-center gap-2 text-xs font-medium text-gray-500">
-              <span>
+              <span className="flex items-center gap-1">
+                <CalendarIcon className="h-3 w-3 text-orange-400" />
                 {new Date(dateStr).toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit',
+                  ...(isPlanned ? {} : { hour: '2-digit', minute: '2-digit' })
                 })}
               </span>
               <span>•</span>
@@ -214,6 +259,7 @@ export function WorkoutCard({
             </div>
           </div>
         </Link>
+
 
         {/* AÇÕES DE PERMISSÃO */}
         {canModify && !isPlanned && (
@@ -262,6 +308,11 @@ export function WorkoutCard({
             </span>
             <span className="text-sm font-bold text-gray-500">km</span>
           </div>
+          {workout.routeData && (
+            <button className="mt-2 flex items-center gap-1.5 text-[10px] font-black text-orange-600 uppercase tracking-wider hover:text-orange-700">
+              <Navigation className="h-3 w-3" /> Ver Percurso
+            </button>
+          )}
         </div>
         <div className="border-l-2 border-gray-100 pl-3">
           <span className="block text-[10px] font-bold tracking-wider text-gray-400 uppercase">
@@ -286,14 +337,21 @@ export function WorkoutCard({
 
       {/* FEEDBACK SOCIAL OU BOTÃO DE FINALIZAR */}
       {isPlanned && isAuthor ? (
-        <div className="flex items-center gap-3 border-t border-orange-100 bg-orange-50 px-5 py-4">
+        <div className="flex flex-col gap-3 border-t border-orange-100 bg-orange-50 px-5 py-4">
           <button 
             onClick={() => onComplete?.(workout)}
-            className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+            disabled={!canComplete}
+            className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-50 disabled:bg-gray-400 disabled:shadow-none"
           >
             <CheckCircle2 className="h-4 w-4" />
-            FINALIZAR TREINO
+            {canComplete ? 'FINALIZAR TREINO' : `DISPONÍVEL EM ${new Date(dateStr).toLocaleDateString('pt-BR')}`}
           </button>
+          {!canComplete && (
+            <div className="flex items-center gap-2 text-[10px] font-bold text-orange-400 justify-center">
+              <AlertCircle className="h-3 w-3" />
+              Você só poderá finalizar este treino na data agendada.
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">

@@ -18,12 +18,12 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
     request.getUserMemberShip = async (slug: string) => {
       const userId = await request.getCurrentUserId()
 
+      /* Temporariamente desativado para facilitar o desenvolvimento
       const userFromDb = await prisma.user.findUnique({
         where: { id: userId },
         select: { emailVerifiedAt: true },
       })
 
-      /* Temporariamente desativado para facilitar o desenvolvimento
       if (!userFromDb?.emailVerifiedAt) {
         throw new UnauthorizedError('Por favor, verifique seu e-mail para acessar os recursos do clube.')
       }
@@ -47,7 +47,8 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
       })
 
       // Se não for membro OU se o status for PENDING/INACTIVE, retorna como VISITOR
-      if (!member || member.status !== 'ACTIVE') {
+      const isVisitor = !member || member.status === 'PENDING' || member.status === 'INACTIVE'
+      if (isVisitor) {
         const [club, user] = await Promise.all([
           member?.club || prisma.club.findFirst({ where: { slug } }),
           member?.user || prisma.user.findUnique({ where: { id: userId }, select: { isSystemAdmin: true } })

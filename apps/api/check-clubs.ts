@@ -1,6 +1,5 @@
-import { PrismaClient } from './generated/prisma/client'
+import { prisma } from './src/lib/prisma'
 
-const prisma = new PrismaClient()
 
 async function main() {
   const clubs = await prisma.club.findMany({

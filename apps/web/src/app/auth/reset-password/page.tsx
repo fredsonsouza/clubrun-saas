@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useFormState } from '@/hooks/use-form-state'
 import { resetPasswordAction } from './actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -7,7 +8,7 @@ import { AlertTriangle, Loader2, Flame, CheckCircle2, ArrowRight } from 'lucide-
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const code = searchParams.get('code')
 
@@ -138,5 +139,19 @@ export default function ResetPasswordPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6 font-sans">
+          <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   )
 }

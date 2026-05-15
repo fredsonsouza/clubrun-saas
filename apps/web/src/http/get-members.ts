@@ -19,10 +19,8 @@ interface GetMembersResponse {
 export async function getMembers({ slug }: GetMembersRequest) {
   const result = await api
     .get(`clubs/${slug}/members?t=${new Date().getTime()}`, {
-      fetchOptions: {
-        next: {
-          revalidate: 0,
-        },
+      next: {
+        revalidate: 0,
       },
     })
     .json<GetMembersResponse>()

@@ -4,7 +4,13 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    user: {
+      findUnique: vi.fn(),
+    },
     member: {
+      findFirst: vi.fn(),
+    },
+    club: {
       findFirst: vi.fn(),
     },
     workout: {
@@ -97,7 +103,7 @@ describe('Create Workout (Unit)', () => {
         duration: 1800,
         pace: 6.0,
         type: 'INTERVAL',
-        date: new Date().toISOString(),
+        date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         athleteId: athleteUserId,
       },
     })
@@ -117,6 +123,8 @@ describe('Create Workout (Unit)', () => {
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue({ id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'not-member-club' } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({ isSystemAdmin: false } as any)
 
     const response = await app.inject({
       method: 'POST',

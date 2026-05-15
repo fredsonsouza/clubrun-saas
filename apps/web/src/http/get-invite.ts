@@ -1,5 +1,5 @@
 import { api } from './api-client'
-import { Role } from '@saas/auth'
+type Role = 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING' | 'VISITOR'
 
 interface GetInviteResponse {
   invite: {

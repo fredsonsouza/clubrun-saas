@@ -37,6 +37,7 @@ export async function getMyWorkouts(app: FastifyInstance) {
                 clubId: z.uuid(),
                 club: z.object({
                   name: z.string(),
+                  slug: z.string(),
                   avatarUrl: z.string().nullable(),
                 }),
                 createdAt: z.coerce.date(),
@@ -68,7 +69,7 @@ export async function getMyWorkouts(app: FastifyInstance) {
         prisma.workout.findMany({
           where,
           include: {
-            club: { select: { name: true, avatarUrl: true } },
+            club: { select: { name: true, slug: true, avatarUrl: true } },
           },
           orderBy: { date: 'desc' },
           take: limit,

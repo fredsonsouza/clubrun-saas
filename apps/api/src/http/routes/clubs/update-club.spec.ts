@@ -11,6 +11,9 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       update: vi.fn(),
     },
+    auditLog: {
+      create: vi.fn(),
+    },
   },
 }))
 
@@ -34,6 +37,7 @@ describe('Update Club (Unit)', () => {
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club', ownerId: userId },
     } as any)
 
+    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
     vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
 
     const response = await app.inject({

@@ -25,6 +25,8 @@ export async function updateWorkout(app: FastifyInstance) {
             duration: z.number().nullable(),
             pace: z.number().nullable(),
             type: z.string(),
+            date: z.coerce.date().optional(),
+            routeData: z.any().optional(),
           }),
           params: z.object({
             slug: z.string(),
@@ -66,7 +68,38 @@ export async function updateWorkout(app: FastifyInstance) {
           )
         }
 
-        const { title, distance, duration, pace, type } = request.body
+        const { title, distance, duration, pace, type, date, routeData } = request.body
+
+        // Logic for Rescheduling and Lead Time
+        let updatedRescheduleCount = workout.rescheduleCount
+        if (date && new Date(date).getTime() !== new Date(workout.date).getTime()) {
+          // Check limit: 3 reschedules
+          if (workout.rescheduleCount >= 3) {
+            throw new BadRequestError(
+              'Você já atingiu o limite máximo de 3 reagendamentos para este treino. Por favor, entre em contato com seu treinador.'
+            )
+          }
+
+          // Rule: 2h Lead Time if moving to today or if today is the day
+          const now = new Date()
+          const newDate = new Date(date)
+          
+          const isTodayTarget = 
+            now.getFullYear() === newDate.getFullYear() &&
+            now.getMonth() === newDate.getMonth() &&
+            now.getDate() === newDate.getDate()
+
+          if (isTodayTarget) {
+            const twoHoursInMs = 2 * 60 * 60 * 1000
+            if (newDate.getTime() - now.getTime() < twoHoursInMs) {
+              throw new BadRequestError(
+                'Reagendamentos para o mesmo dia devem ser feitos com no mínimo 2h de antecedência do novo horário.'
+              )
+            }
+          }
+
+          updatedRescheduleCount += 1
+        }
 
         await prisma.workout.update({
           where: {
@@ -78,6 +111,9 @@ export async function updateWorkout(app: FastifyInstance) {
             duration,
             pace,
             type,
+            date,
+            routeData,
+            rescheduleCount: updatedRescheduleCount,
           },
         })
 

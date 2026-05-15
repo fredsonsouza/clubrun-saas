@@ -39,7 +39,7 @@ describe('Get My Workouts (Unit)', () => {
         status: 'COMPLETED',
         assignmentMode: null,
         clubId: clubId,
-        club: { name: 'Acme Club', avatarUrl: null },
+        club: { name: 'Acme Club', slug: 'acme-club', avatarUrl: null },
         createdAt: new Date(),
       },
     ] as any)

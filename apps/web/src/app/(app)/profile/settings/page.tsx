@@ -11,7 +11,12 @@ export default async function ProfileSettingsPage() {
 
   return (
     <div className="space-y-4">
-      <ProfileSettingsClient user={user} />
+      <ProfileSettingsClient
+        user={{
+          ...user,
+          id: user.id!,
+        }}
+      />
     </div>
   )
 }

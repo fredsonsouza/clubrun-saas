@@ -157,6 +157,9 @@ model Workout {
   notes          String?
   visibility     Visibility     @default(PUBLIC)
   imageUrl       String?
+  routeData      Json?          @map("route_data")
+  rescheduleCount Int           @default(0) @map("reschedule_count")
+  originalDate   DateTime?      @map("original_date")
   createdAt      DateTime       @default(now()) @map("created_at")
   clubId         String         @map("club_id")
   athleteId      String         @map("athlete_id")
