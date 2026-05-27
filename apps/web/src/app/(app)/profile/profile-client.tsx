@@ -25,13 +25,13 @@ import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
 import { RescheduleWorkoutModal } from '@/components/reschedule-workout-modal'
 import { deleteWorkoutAction } from './actions'
 import { toast } from 'sonner'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { AlertTriangle, Loader2 } from 'lucide-react'
@@ -101,7 +101,9 @@ export function ProfileClient({
   const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
   const [workoutToDelete, setWorkoutToDelete] = useState<Workout | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
-  const [activeTab, setActiveTab] = useState<'activities' | 'planned'>('activities')
+  const [activeTab, setActiveTab] = useState<'activities' | 'planned'>(
+    'activities'
+  )
 
   // Cálculo de Progresso do Perfil
   const profileProgress = useMemo(() => {
@@ -125,7 +127,7 @@ export function ProfileClient({
   }
 
   const handleOpenRescheduleModal = (workoutId: string) => {
-    const workout = plannedWorkouts.find(w => w.id === workoutId)
+    const workout = plannedWorkouts.find((w) => w.id === workoutId)
     if (workout) {
       setSelectedWorkout(workout)
       setIsRescheduleModalOpen(true)
@@ -154,29 +156,40 @@ export function ProfileClient({
       <Header user={currentUser} />
 
       <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
-        
         {/* BARRA DE PROGRESSO DO PERFIL (Apenas se próprio e incompleto) */}
         {isOwnProfile && (
           <div className="mb-8 overflow-hidden rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className={`flex h-10 w-10 items-center justify-center rounded-full ${profileProgress === 100 ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}>
-                  {profileProgress === 100 ? <CheckCircle2 className="h-5 w-5" /> : <Activity className="h-5 w-5" />}
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-full ${profileProgress === 100 ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'}`}
+                >
+                  {profileProgress === 100 ? (
+                    <CheckCircle2 className="h-5 w-5" />
+                  ) : (
+                    <Activity className="h-5 w-5" />
+                  )}
                 </div>
                 <div>
                   <h4 className="text-sm font-bold text-gray-900">
-                    {profileProgress === 100 ? 'Perfil Completo!' : 'Complete seu perfil'}
+                    {profileProgress === 100
+                      ? 'Perfil Completo!'
+                      : 'Complete seu perfil'}
                   </h4>
                   <p className="text-xs font-medium text-gray-400">
-                    {profileProgress === 100 ? 'Sua jornada no Club Run está devidamente documentada.' : 'Preencha seus dados para melhorar sua experiência.'}
+                    {profileProgress === 100
+                      ? 'Sua jornada no Club Run está devidamente documentada.'
+                      : 'Preencha seus dados para melhorar sua experiência.'}
                   </p>
                 </div>
               </div>
-              <span className="text-lg font-black text-orange-500">{profileProgress}%</span>
+              <span className="text-lg font-black text-orange-500">
+                {profileProgress}%
+              </span>
             </div>
-            
+
             <div className="relative h-2 w-full overflow-hidden rounded-full bg-gray-100">
-              <div 
+              <div
                 className="absolute top-0 left-0 h-full bg-orange-500 transition-all duration-1000 ease-out"
                 style={{ width: `${profileProgress}%` }}
               />
@@ -184,9 +197,21 @@ export function ProfileClient({
 
             {profileProgress < 100 && (
               <div className="mt-4 flex flex-wrap gap-2">
-                {!athleteProfile?.bio && <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">Bio pendente</span>}
-                {!athleteProfile?.city && <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">Localização pendente</span>}
-                {!athleteProfile?.weight && <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">Dados físicos</span>}
+                {!athleteProfile?.bio && (
+                  <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">
+                    Bio pendente
+                  </span>
+                )}
+                {!athleteProfile?.city && (
+                  <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">
+                    Localização pendente
+                  </span>
+                )}
+                {!athleteProfile?.weight && (
+                  <span className="rounded-lg bg-gray-50 px-2.5 py-1 text-[10px] font-bold text-gray-500">
+                    Dados físicos
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -195,9 +220,17 @@ export function ProfileClient({
         {/* BANNER E CABEÇALHO DO PERFIL */}
         <div className="mb-8 overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-xl shadow-gray-200/50">
           {/* Capa Dinâmica */}
-          <div 
-            className="relative h-48 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 sm:h-64"
-            style={athleteProfile?.coverUrl ? { backgroundImage: `url(${athleteProfile.coverUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+          <div
+            className="relative h-48 bg-linear-to-r from-orange-400 via-orange-500 to-orange-600 sm:h-64"
+            style={
+              athleteProfile?.coverUrl
+                ? {
+                    backgroundImage: `url(${athleteProfile.coverUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }
+                : {}
+            }
           >
             <div className="absolute inset-0 bg-black/20"></div>
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
@@ -206,10 +239,15 @@ export function ProfileClient({
           <div className="relative px-6 pb-8 md:px-10">
             <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
               <div className="-mt-20 flex flex-col items-center gap-6 md:-mt-24 md:flex-row md:items-end">
-                <div className="relative z-10 group">
-                  <div className={`relative h-36 w-36 rounded-full border-4 border-white bg-white shadow-2xl transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}>
+                <div className="group relative z-10">
+                  <div
+                    className={`relative h-36 w-36 rounded-full border-4 border-white bg-white shadow-2xl transition-transform duration-300 group-hover:scale-105 ${isProfileIncomplete ? 'ring-4 ring-orange-400 ring-offset-4 ring-offset-white' : ''}`}
+                  >
                     <Avatar className="h-full w-full">
-                      <AvatarImage src={user.avatarUrl || ''} className="object-cover" />
+                      <AvatarImage
+                        src={user.avatarUrl || ''}
+                        className="object-cover"
+                      />
                       <AvatarFallback className="text-4xl font-black text-gray-400">
                         {user.name?.charAt(0) || 'U'}
                       </AvatarFallback>
@@ -222,13 +260,14 @@ export function ProfileClient({
                     <Trophy className="h-4 w-4 text-white" />
                   </div>
                 </div>
-                
+
                 <div className="pb-2 text-center md:text-left">
-                  <h1 className="text-4xl font-black text-gray-900 tracking-tight md:text-5xl">
+                  <h1 className="text-4xl font-black tracking-tight text-gray-900 md:text-5xl">
                     {user.name || 'Atleta Sem Nome'}
                   </h1>
-                  <p className="mt-2 flex items-center justify-center gap-1.5 font-bold text-gray-400 text-[10px] md:justify-start uppercase tracking-[0.3em]">
-                    <MapPin className="h-3 w-3 text-orange-500" /> {athleteProfile?.city || 'Localização não definida'}
+                  <p className="mt-2 flex items-center justify-center gap-1.5 text-[10px] font-bold tracking-[0.3em] text-gray-400 uppercase md:justify-start">
+                    <MapPin className="h-3 w-3 text-orange-500" />{' '}
+                    {athleteProfile?.city || 'Localização não definida'}
                   </p>
                 </div>
               </div>
@@ -237,43 +276,57 @@ export function ProfileClient({
               <div className="flex items-center justify-center gap-4 border-t border-gray-50 pt-6 md:border-t-0 md:pt-0">
                 <div className="flex items-center gap-8 rounded-3xl bg-gray-50/80 px-8 py-4 backdrop-blur-sm">
                   <div className="text-center">
-                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      <Timer className="h-3 w-3 text-orange-500" /> Pace <span className="text-[7px] text-gray-300">(30d)</span>
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black tracking-widest text-gray-400 uppercase">
+                      <Timer className="h-3 w-3 text-orange-500" /> Pace{' '}
+                      <span className="text-[7px] text-gray-300">(30d)</span>
                     </span>
-                    <p className="text-lg font-black text-gray-900">{formatPace(stats.avgPace)} <span className="text-[10px] font-bold text-gray-400">/km</span></p>
+                    <p className="text-lg font-black text-gray-900">
+                      {formatPace(stats.avgPace)}{' '}
+                      <span className="text-[10px] font-bold text-gray-400">
+                        /km
+                      </span>
+                    </p>
                   </div>
                   <div className="h-8 w-px bg-gray-200"></div>
                   <div className="text-center">
-                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
-                      <TrendingUp className="h-3 w-3 text-green-500" /> KM <span className="text-[7px] text-gray-300">(30d)</span>
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black tracking-widest text-gray-400 uppercase">
+                      <TrendingUp className="h-3 w-3 text-green-500" /> KM{' '}
+                      <span className="text-[7px] text-gray-300">(30d)</span>
                     </span>
-                    <p className="text-lg font-black text-gray-900">{formatDistance(stats.totalDistance)}</p>
+                    <p className="text-lg font-black text-gray-900">
+                      {formatDistance(stats.totalDistance)}
+                    </p>
                   </div>
                   <div className="h-8 w-px bg-gray-200"></div>
                   <div className="text-center">
-                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black uppercase tracking-widest text-gray-400">
+                    <span className="mb-1 flex items-center justify-center gap-1 text-[9px] font-black tracking-widest text-gray-400 uppercase">
                       <Activity className="h-3 w-3 text-blue-500" /> Treinos
                     </span>
-                    <p className="text-lg font-black text-gray-900">{stats.totalWorkouts}</p>
+                    <p className="text-lg font-black text-gray-900">
+                      {stats.totalWorkouts}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {isOwnProfile && (
                 <div className="flex justify-center md:pb-2">
-                  <button 
+                  <button
                     onClick={() => setIsUpdateModalOpen(true)}
-                    className="cursor-pointer group flex items-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 text-xs font-black text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
+                    className="group flex cursor-pointer items-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 text-xs font-black text-white shadow-xl shadow-gray-900/10 transition-all hover:bg-orange-500 hover:shadow-orange-500/20 active:scale-95"
                   >
-                    <Edit3 className="h-4 w-4 transition-transform group-hover:rotate-12" /> 
+                    <Edit3 className="h-4 w-4 transition-transform group-hover:rotate-12" />
                     EDITAR PERFIL
                   </button>
                 </div>
               )}
             </div>
 
-            <p className="mt-8 max-w-3xl text-center text-sm font-medium leading-relaxed text-gray-500 md:text-left">
-              {athleteProfile?.bio || (isOwnProfile ? 'Você ainda não escreveu sua bio. Conte um pouco sobre sua jornada no atletismo!' : 'Este atleta ainda não escreveu uma biografia.')}
+            <p className="mt-8 max-w-3xl text-center text-sm leading-relaxed font-medium text-gray-500 md:text-left">
+              {athleteProfile?.bio ||
+                (isOwnProfile
+                  ? 'Você ainda não escreveu sua bio. Conte um pouco sobre sua jornada no atletismo!'
+                  : 'Este atleta ainda não escreveu uma biografia.')}
             </p>
           </div>
         </div>
@@ -281,26 +334,35 @@ export function ProfileClient({
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12">
           {/* COLUNA ESQUERDA: Estatísticas e Links */}
           <div className="space-y-6 lg:col-span-4">
-            
             {/* Informações Físicas */}
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+            <div className="rounded-4xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
               <h2 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
                 <Activity className="h-5 w-5 text-orange-500" /> Perfil Físico
               </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-2xl border border-gray-50 bg-gray-50/50 p-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-gray-400">Peso</span>
-                  <p className="text-xl font-black text-gray-900">{athleteProfile?.weight || '--'} <span className="text-xs font-bold text-gray-400">kg</span></p>
+                  <span className="block text-[10px] font-black tracking-wider text-gray-400 uppercase">
+                    Peso
+                  </span>
+                  <p className="text-xl font-black text-gray-900">
+                    {athleteProfile?.weight || '--'}{' '}
+                    <span className="text-xs font-bold text-gray-400">kg</span>
+                  </p>
                 </div>
                 <div className="rounded-2xl border border-gray-50 bg-gray-50/50 p-4">
-                  <span className="block text-[10px] font-black uppercase tracking-wider text-gray-400">Altura</span>
-                  <p className="text-xl font-black text-gray-900">{athleteProfile?.height || '--'} <span className="text-xs font-bold text-gray-400">cm</span></p>
+                  <span className="block text-[10px] font-black tracking-wider text-gray-400 uppercase">
+                    Altura
+                  </span>
+                  <p className="text-xl font-black text-gray-900">
+                    {athleteProfile?.height || '--'}{' '}
+                    <span className="text-xs font-bold text-gray-400">cm</span>
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Redes Sociais */}
-            <div className="rounded-[2rem] border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
+            <div className="rounded-4xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
               <h2 className="mb-5 flex items-center gap-2 text-lg font-extrabold text-gray-900">
                 <LinkIcon className="h-5 w-5 text-gray-400" /> Conexões
               </h2>
@@ -309,13 +371,15 @@ export function ProfileClient({
                   <a
                     href={athleteProfile.instagramUrl}
                     target="_blank"
-                    className="cursor-pointer group flex items-center gap-3 rounded-xl border border-transparent p-3 transition-colors hover:border-pink-100 hover:bg-pink-50"
+                    className="group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent p-3 transition-colors hover:border-pink-100 hover:bg-pink-50"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-pink-100 text-pink-600 transition-colors group-hover:bg-pink-200">
                       <Instagram className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold tracking-wider text-gray-400 uppercase">Instagram</p>
+                      <p className="text-xs font-bold tracking-wider text-gray-400 uppercase">
+                        Instagram
+                      </p>
                       <p className="text-sm font-bold text-gray-900 transition-colors group-hover:text-pink-700">
                         @{athleteProfile.instagramUrl.split('/').pop()}
                       </p>
@@ -327,13 +391,15 @@ export function ProfileClient({
                   <a
                     href={athleteProfile.stravaUrl}
                     target="_blank"
-                    className="cursor-pointer group flex items-center gap-3 rounded-xl border border-transparent p-3 transition-colors hover:border-orange-100 hover:bg-orange-50"
+                    className="group flex cursor-pointer items-center gap-3 rounded-xl border border-transparent p-3 transition-colors hover:border-orange-100 hover:bg-orange-50"
                   >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 text-orange-600 transition-colors group-hover:bg-orange-200">
                       <Activity className="h-5 w-5" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-xs font-bold tracking-wider text-gray-400 uppercase">Strava</p>
+                      <p className="text-xs font-bold tracking-wider text-gray-400 uppercase">
+                        Strava
+                      </p>
                       <p className="text-sm font-bold text-gray-900 transition-colors group-hover:text-orange-700">
                         Perfil Strava
                       </p>
@@ -341,9 +407,12 @@ export function ProfileClient({
                     <ExternalLink className="h-3 w-3 text-gray-300" />
                   </a>
                 )}
-                {!athleteProfile?.instagramUrl && !athleteProfile?.stravaUrl && (
-                  <p className="text-xs font-bold text-gray-400 text-center py-4 italic">Nenhuma rede social vinculada.</p>
-                )}
+                {!athleteProfile?.instagramUrl &&
+                  !athleteProfile?.stravaUrl && (
+                    <p className="py-4 text-center text-xs font-bold text-gray-400 italic">
+                      Nenhuma rede social vinculada.
+                    </p>
+                  )}
               </div>
             </div>
           </div>
@@ -351,17 +420,17 @@ export function ProfileClient({
           {/* COLUNA DIREITA: Feed Pessoal */}
           <div className="space-y-6 lg:col-span-8">
             <div className="mb-2 flex items-center justify-between">
-              <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-2xl">
+              <div className="flex items-center gap-1 rounded-2xl bg-gray-100 p-1">
                 <button
                   onClick={() => setActiveTab('activities')}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'activities' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                  className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition-all ${activeTab === 'activities' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                 >
                   <Calendar className="h-4 w-4" /> ATIVIDADES
                 </button>
                 {isOwnProfile && (
                   <button
                     onClick={() => setActiveTab('planned')}
-                    className={`flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-black transition-all ${activeTab === 'planned' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                    className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition-all ${activeTab === 'planned' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                   >
                     <Target className="h-4 w-4" /> MEUS TREINOS
                   </button>
@@ -379,7 +448,7 @@ export function ProfileClient({
                       currentUserId={currentUser.id}
                       userRole="ATHLETE"
                       onDelete={(id) => {
-                        const w = workouts.find(x => x.id === id)
+                        const w = workouts.find((x) => x.id === id)
                         if (w) setWorkoutToDelete(w)
                       }}
                     />
@@ -387,15 +456,19 @@ export function ProfileClient({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
                     <Activity className="mb-4 h-10 w-10 text-gray-300" />
-                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">Sem atividades recentes</h3>
+                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">
+                      Sem atividades recentes
+                    </h3>
                     <p className="text-sm font-medium text-gray-500">
-                      {isOwnProfile ? 'Você ainda não registrou nenhum treino. Vamos começar?' : 'Este atleta ainda não registrou atividades no clube.'}
+                      {isOwnProfile
+                        ? 'Você ainda não registrou nenhum treino. Vamos começar?'
+                        : 'Este atleta ainda não registrou atividades no clube.'}
                     </p>
                   </div>
                 )}
 
                 {workouts.length > 0 && (
-                  <button className="cursor-pointer w-full rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600 focus:ring-2 focus:ring-orange-500/50 focus:outline-none">
+                  <button className="w-full cursor-pointer rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600 focus:ring-2 focus:ring-orange-500/50 focus:outline-none">
                     Ver histórico completo
                   </button>
                 )}
@@ -405,7 +478,7 @@ export function ProfileClient({
                 {plannedWorkouts.length > 0 ? (
                   plannedWorkouts.map((workout) => (
                     <div key={workout.id} className="relative">
-                      <div className="absolute -left-2 top-4 bottom-4 w-1 bg-orange-400 rounded-full shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
+                      <div className="absolute top-4 bottom-4 -left-2 w-1 rounded-full bg-orange-400 shadow-[0_0_10px_rgba(251,146,60,0.5)]"></div>
                       <WorkoutCard
                         workout={workout}
                         currentUserId={currentUser.id}
@@ -413,7 +486,7 @@ export function ProfileClient({
                         onComplete={handleOpenCompleteModal}
                         onEdit={handleOpenRescheduleModal}
                         onDelete={(id) => {
-                          const w = plannedWorkouts.find(x => x.id === id)
+                          const w = plannedWorkouts.find((x) => x.id === id)
                           if (w) setWorkoutToDelete(w)
                         }}
                       />
@@ -422,9 +495,12 @@ export function ProfileClient({
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
                     <Target className="mb-4 h-10 w-10 text-gray-300" />
-                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">Nenhum treino prescrito</h3>
+                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">
+                      Nenhum treino prescrito
+                    </h3>
                     <p className="text-sm font-medium text-gray-500">
-                      Fale com seu treinador para receber planilhas e metas personalizadas.
+                      Fale com seu treinador para receber planilhas e metas
+                      personalizadas.
                     </p>
                   </div>
                 )}
@@ -435,7 +511,7 @@ export function ProfileClient({
       </main>
 
       {/* MODAIS */}
-      <UpdateProfileModal 
+      <UpdateProfileModal
         isOpen={isUpdateModalOpen}
         onClose={() => setIsUpdateModalOpen(false)}
         user={user}
@@ -462,7 +538,10 @@ export function ProfileClient({
       />
 
       {/* MODAL DE CONFIRMAÇÃO DE EXCLUSÃO */}
-      <Dialog open={!!workoutToDelete} onOpenChange={(open) => !open && setWorkoutToDelete(null)}>
+      <Dialog
+        open={!!workoutToDelete}
+        onOpenChange={(open) => !open && setWorkoutToDelete(null)}
+      >
         <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-3 text-red-600">
@@ -475,12 +554,13 @@ export function ProfileClient({
               Tem certeza que deseja remover este treino?
             </DialogDescription>
             {workoutToDelete?.status === 'COMPLETED' && (
-              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
-                Esta ação é irreversível e os pontos gerados por esta atividade serão removidos do ranking mensal do clube.
+              <p className="mt-2 text-sm leading-relaxed font-medium text-gray-500">
+                Esta ação é irreversível e os pontos gerados por esta atividade
+                serão removidos do ranking mensal do clube.
               </p>
             )}
             {workoutToDelete?.status === 'PLANNED' && (
-              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+              <p className="mt-2 text-sm leading-relaxed font-medium text-gray-500">
                 Este treino planejado será removido da sua agenda.
               </p>
             )}
@@ -488,14 +568,14 @@ export function ProfileClient({
           <DialogFooter className="mt-8 gap-3">
             <button
               onClick={() => setWorkoutToDelete(null)}
-              className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+              className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
             >
               Cancelar
             </button>
             <button
               onClick={handleDeleteWorkout}
               disabled={isDeleting}
-              className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+              className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
             >
               {isDeleting ? (
                 <div className="flex items-center justify-center gap-2">

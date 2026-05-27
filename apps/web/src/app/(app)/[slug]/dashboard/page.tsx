@@ -35,7 +35,7 @@ export default async function ClubDashboardPage({
   ] = await Promise.all([
     getClubDashboard({ slug }),
     getWorkouts({ slug, limit: 10 }),
-    getClubRanking({ slug, type: 'monthly' }),
+    getClubRanking({ slug, type: 'monthly' }).catch(() => ({ rankings: [] })),
     getMembers({ slug }),
     getClub(slug)
   ])

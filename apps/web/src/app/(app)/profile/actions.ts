@@ -7,6 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { HTTPError } from 'ky'
 import { deleteCookie } from 'cookies-next'
+import { cookies } from 'next/headers'
 
 import { updatePassword } from '@/http/update-password'
 
@@ -28,9 +29,10 @@ export async function anonymizeAccountAction(password: string) {
     await anonymizeUser(password)
     
     // Invalidate session
-    // Since this is a Server Action, we can use cookies().delete() but let's just redirect
-    // Actually, redirecting to a logout-like route or just / is enough if the token is invalid now
-    // But let's try to clear cookies
+    const cookieStore = await cookies()
+    cookieStore.delete('token')
+    
+    return { success: true, message: 'Sua conta foi excluída e todos os dados foram anonimizados.' }
   } catch (err) {
     if (err instanceof HTTPError) {
       const { message } = await err.response.json() as { message: string }
@@ -38,10 +40,6 @@ export async function anonymizeAccountAction(password: string) {
     }
     return { success: false, message: 'Erro ao processar exclusão. Tente novamente.' }
   }
-
-  // Clear cookie and redirect
-  // We can't easily clear cookies-next from server action without 'cookies' from next/headers
-  // I'll do it in the client-side after the action returns success if needed, or just redirect
 }
 
 export async function updateProfileAction(data: {

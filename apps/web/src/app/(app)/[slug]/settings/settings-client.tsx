@@ -111,6 +111,36 @@ const INVOICES = [
   { id: 'inv-001', date: '01 Mar 2026', amount: 'R$ 99,00', status: 'PAID' },
 ]
 
+const FALLBACK_UFS = [
+  { id: 11, sigla: 'RO', nome: 'Rondônia' },
+  { id: 12, sigla: 'AC', nome: 'Acre' },
+  { id: 13, sigla: 'AM', nome: 'Amazonas' },
+  { id: 14, sigla: 'RR', nome: 'Roraima' },
+  { id: 15, sigla: 'PA', nome: 'Pará' },
+  { id: 16, sigla: 'AP', nome: 'Amapá' },
+  { id: 17, sigla: 'TO', nome: 'Tocantins' },
+  { id: 21, sigla: 'MA', nome: 'Maranhão' },
+  { id: 22, sigla: 'PI', nome: 'Piauí' },
+  { id: 23, sigla: 'CE', nome: 'Ceará' },
+  { id: 24, sigla: 'RN', nome: 'Rio Grande do Norte' },
+  { id: 25, sigla: 'PB', nome: 'Paraíba' },
+  { id: 26, sigla: 'PE', nome: 'Pernambuco' },
+  { id: 27, sigla: 'AL', nome: 'Alagoas' },
+  { id: 28, sigla: 'SE', nome: 'Sergipe' },
+  { id: 29, sigla: 'BA', nome: 'Bahia' },
+  { id: 31, sigla: 'MG', nome: 'Minas Gerais' },
+  { id: 32, sigla: 'ES', nome: 'Espírito Santo' },
+  { id: 33, sigla: 'RJ', nome: 'Rio de Janeiro' },
+  { id: 35, sigla: 'SP', nome: 'São Paulo' },
+  { id: 41, sigla: 'PR', nome: 'Paraná' },
+  { id: 42, sigla: 'SC', nome: 'Santa Catarina' },
+  { id: 43, sigla: 'RS', nome: 'Rio Grande do Sul' },
+  { id: 50, sigla: 'MS', nome: 'Mato Grosso do Sul' },
+  { id: 51, sigla: 'MT', nome: 'Mato Grosso' },
+  { id: 52, sigla: 'GO', nome: 'Goiás' },
+  { id: 53, sigla: 'DF', nome: 'Distrito Federal' }
+]
+
 export function SettingsClient({
   user,
   club,
@@ -180,7 +210,8 @@ export function SettingsClient({
         const data = await response.json()
         setUfs(data)
       } catch (error) {
-        console.error('Erro ao carregar UFs:', error)
+        console.error('Erro ao carregar UFs da API, usando fallback:', error)
+        setUfs(FALLBACK_UFS)
       } finally {
         setIsLoadingUfs(false)
       }
@@ -388,9 +419,8 @@ export function SettingsClient({
                   <div className="h-px bg-gray-200" />
                 </div>
                 <button
-                  onClick={() => !isBillingPending && setActiveTab('danger')}
-                  disabled={isBillingPending}
-                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => setActiveTab('danger')}
+                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
                 >
                   <ShieldAlert className="h-4 w-4" />
                   Zona de Perigo
@@ -581,6 +611,9 @@ export function SettingsClient({
                             ? 'Carregando cidades...'
                             : 'Selecione a Cidade'}
                         </option>
+                        {city && !cities.some((c) => c.nome === city) && (
+                          <option value={city}>{city}</option>
+                        )}
                         {cities.map((c) => (
                           <option key={c.id} value={c.nome}>
                             {c.nome}
