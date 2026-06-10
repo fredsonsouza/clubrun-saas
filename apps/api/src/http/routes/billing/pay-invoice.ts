@@ -6,6 +6,7 @@ import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
 import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function payInvoice(app: FastifyInstance) {
   app
@@ -55,6 +56,15 @@ export async function payInvoice(app: FastifyInstance) {
             paidAt: new Date(),
           },
         })
+
+        createAuditLog({
+          action: 'INVOICE_PAID',
+          entity: 'INVOICE',
+          entityId: invoiceId,
+          userId,
+          payload: { amount: invoice.amount, status: 'PAID' },
+        })
+
         return reply.status(204).send()
       }
     )

@@ -77,6 +77,7 @@ describe('Authenticate with Google (Unit)', () => {
         athleteProfile: {
           create: {
             isPublic: true,
+            birthDate: new Date('2000-01-01T00:00:00.000Z'),
           },
         },
       },

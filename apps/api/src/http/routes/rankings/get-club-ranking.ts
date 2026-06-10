@@ -44,17 +44,39 @@ export async function getClubeRanking(app: FastifyInstance) {
           week: null,  // Default
         }
 
+        let startDate: Date
+        let endDate: Date
+
         switch (type) {
-          case 'weekly':
-            whereClause.week = week ?? getISOWeek(new Date())
-            whereClause.month = undefined // We want ANY month for this week
+          case 'weekly': {
+            const currentWeek = week ?? getISOWeek(new Date())
+            whereClause.week = currentWeek
+            whereClause.month = undefined // Queremos qualquer mês para esta semana
+
+            // Calcular início (segunda-feira) e fim (domingo) exatos da semana ISO no ano específico
+            const jan4 = new Date(year, 0, 4)
+            const dayOfJan4 = jan4.getDay() || 7
+            const startOfFirstWeek = new Date(jan4.getTime() - (dayOfJan4 - 1) * 24 * 3600 * 1000)
+            
+            startDate = new Date(startOfFirstWeek.getTime() + (currentWeek - 1) * 7 * 24 * 3600 * 1000)
+            startDate.setHours(0, 0, 0, 0)
+            
+            endDate = new Date(startDate.getTime() + 7 * 24 * 3600 * 1000)
             break
-          case 'monthly':
-            whereClause.month = month ?? getMonth(new Date()) + 1
+          }
+          case 'monthly': {
+            const currentMonth = month ?? getMonth(new Date()) + 1
+            whereClause.month = currentMonth
+
+            startDate = new Date(year, currentMonth - 1, 1, 0, 0, 0, 0)
+            endDate = new Date(year, currentMonth, 1, 0, 0, 0, 0)
             break
-          case 'yearly':
-            // Both month and week already null
+          }
+          case 'yearly': {
+            startDate = new Date(year, 0, 1, 0, 0, 0, 0)
+            endDate = new Date(year + 1, 0, 1, 0, 0, 0, 0)
             break
+          }
         }
 
         const rankingsRaw = await prisma.ranking.findMany({
@@ -73,40 +95,51 @@ export async function getClubeRanking(app: FastifyInstance) {
           },
         })
 
-        // Enhance with real distance and workout count from workouts table
-        const rankings = await Promise.all(rankingsRaw.map(async (r) => {
-          const stats = await prisma.workout.aggregate({
-            where: {
-              athleteId: r.athlete.id,
-              clubId: club.id,
-              date: {
-                gte: new Date(year, (month || 1) - 1, 1),
-                lt: new Date(year, (month || 12), 1),
-              }
-            },
-            _sum: {
-              distance: true,
-              duration: true,
-            },
-            _count: {
-              id: true,
-            }
-          })
+        // Obter estatísticas agregadas dos treinos concluídos em lote único (Resolve o problema de N+1)
+        const athleteIds = rankingsRaw.map((r) => r.athleteId)
 
-          const totalDistance = stats._sum.distance || 0
-          const totalSeconds = stats._sum.duration || 0
-          
-          // Pace em minutos decimais: (totalSeconds / 60) / totalDistance
-          const paceAvg = totalDistance > 0 ? (totalSeconds / 60) / totalDistance : 0
+        const workoutsStats = athleteIds.length > 0 ? await prisma.workout.groupBy({
+          by: ['athleteId'],
+          where: {
+            athleteId: { in: athleteIds },
+            clubId: club.id,
+            status: 'COMPLETED',
+            date: {
+              gte: startDate,
+              lt: endDate,
+            },
+          },
+          _sum: {
+            distance: true,
+            duration: true,
+          },
+          _count: {
+            id: true,
+          },
+        }) : []
+
+        // Mapear estatísticas para acesso O(1) rápido
+        const statsMap = new Map<string, { distance: number; duration: number; count: number }>()
+        workoutsStats.forEach((ws) => {
+          statsMap.set(ws.athleteId, {
+            distance: ws._sum.distance || 0,
+            duration: ws._sum.duration || 0,
+            count: ws._count.id || 0,
+          })
+        })
+
+        const rankings = rankingsRaw.map((r) => {
+          const stats = statsMap.get(r.athleteId) || { distance: 0, duration: 0, count: 0 }
+          const paceAvg = stats.distance > 0 ? (stats.duration / 60) / stats.distance : 0
 
           return {
             ...r,
-            distance: totalDistance,
-            duration: totalSeconds,
-            workoutsCount: stats._count.id || 0,
+            distance: stats.distance,
+            duration: stats.duration,
+            workoutsCount: stats.count,
             paceAvg,
           }
-        }))
+        })
 
         return reply.send({ rankings })
       }

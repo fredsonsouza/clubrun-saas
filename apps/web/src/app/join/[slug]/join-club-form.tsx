@@ -6,6 +6,7 @@ import { ArrowRight, Loader2, CheckCircle2, Flame } from 'lucide-react'
 import { joinClub } from '@/http/join-club'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 
 interface JoinClubFormProps {
   club: {
@@ -25,8 +26,20 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+    }
+  }, [])
 
   const handleJoin = async () => {
+    if (!isSubscribed) {
+      setIsIncentiveOpen(true)
+      return
+    }
     setIsLoading(true)
     try {
       await joinClub(club.slug, token)
@@ -137,6 +150,13 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
           <span className="font-bold text-gray-900">{user.email}</span>
         </p>
       </div>
+
+      <SubscriptionIncentiveModal
+        isOpen={isIncentiveOpen}
+        onClose={() => setIsIncentiveOpen(false)}
+        clubName={club.name}
+        clubSlug={club.slug}
+      />
     </div>
   )
 }

@@ -15,9 +15,18 @@ interface GetUserProfileResponse {
     weight: number | null
     height: number | null
     gender: string | null
+    birthDate: string
     instagramUrl: string | null
     stravaUrl: string | null
     coverUrl: string | null
+    shoes: string | null
+    shoesMaxDistance: number | null
+    shoesRemainingDistance: number | null
+    watch: string | null
+    hasMedicalConditions: boolean
+    medicalConditions: string | null
+    isPremium?: boolean
+    isStravaConnected?: boolean
   } | null
   stats: {
     avgPace: number
@@ -34,6 +43,10 @@ interface GetUserProfileResponse {
     visibility: string
     status: 'PLANNED' | 'COMPLETED'
     assignmentMode: 'GOAL' | 'FREE' | null
+    targetDistance: number | null
+    targetDuration: number | null
+    syncSource: string | null
+    stravaActivityId: string | null
     club: {
       name: string
       slug: string
@@ -49,6 +62,10 @@ interface GetUserProfileResponse {
     visibility: string
     status: 'PLANNED' | 'COMPLETED'
     assignmentMode: 'GOAL' | 'FREE' | null
+    targetDistance: number | null
+    targetDuration: number | null
+    syncSource: string | null
+    stravaActivityId: string | null
     club: {
       name: string
       slug: string

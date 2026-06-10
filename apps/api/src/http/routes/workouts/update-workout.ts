@@ -101,6 +101,39 @@ export async function updateWorkout(app: FastifyInstance) {
           updatedRescheduleCount += 1
         }
 
+        const oldDistance = workout.distance
+        const distanceDifference = distance - oldDistance
+
+        if (workout.status === 'COMPLETED' && workout.shoesUsed) {
+          const athleteProfile = await prisma.athleteProfile.findUnique({
+            where: { userId: workout.athleteId },
+            select: {
+              shoes: true,
+              shoesRemainingDistance: true,
+            },
+          })
+
+          if (athleteProfile && athleteProfile.shoes === workout.shoesUsed) {
+            if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+              if (distanceDifference > athleteProfile.shoesRemainingDistance) {
+                throw new BadRequestError(
+                  `A alteração excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). O máximo permitido para este ajuste é +${athleteProfile.shoesRemainingDistance.toFixed(1)} km.`
+                )
+              }
+            }
+
+            // Ajusta o restante do calçado
+            await prisma.athleteProfile.update({
+              where: { userId: workout.athleteId },
+              data: {
+                shoesRemainingDistance: {
+                  decrement: distanceDifference,
+                },
+              },
+            })
+          }
+        }
+
         await prisma.workout.update({
           where: {
             id: workoutId,

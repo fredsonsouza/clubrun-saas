@@ -25,7 +25,7 @@ export async function updateAthleteRanking(
   referenceDate: Date
 ) {
   const year = getYear(referenceDate)
-  const month = getMonth(referenceDate)
+  const month = getMonth(referenceDate) + 1
   const week = getISOWeek(referenceDate)
 
   const periods: RankingPeriod[] = [

@@ -11,7 +11,7 @@ vi.mock('@/lib/prisma', () => ({
       findMany: vi.fn(),
     },
     workout: {
-      aggregate: vi.fn(),
+      groupBy: vi.fn(),
     },
   },
 }))
@@ -41,6 +41,7 @@ describe('Get Club Ranking (Unit)', () => {
       {
         id: 'ranking-1',
         points: 100,
+        athleteId: 'athlete-1',
         athlete: {
           id: 'athlete-1',
           name: 'Athlete One',
@@ -49,10 +50,13 @@ describe('Get Club Ranking (Unit)', () => {
       },
     ] as any)
 
-    vi.mocked(prisma.workout.aggregate).mockResolvedValue({
-      _sum: { distance: 50 },
-      _count: { id: 5 },
-    } as any)
+    vi.mocked(prisma.workout.groupBy).mockResolvedValue([
+      {
+        athleteId: 'athlete-1',
+        _sum: { distance: 50, duration: 15000 },
+        _count: { id: 5 },
+      }
+    ] as any)
 
     const response = await app.inject({
       method: 'GET',
@@ -88,7 +92,7 @@ describe('Get Club Ranking (Unit)', () => {
     } as any)
 
     vi.mocked(prisma.ranking.findMany).mockResolvedValue([])
-    vi.mocked(prisma.workout.aggregate).mockResolvedValue({ _sum: {}, _count: {} } as any)
+    vi.mocked(prisma.workout.groupBy).mockResolvedValue([])
 
     await app.inject({
       method: 'GET',

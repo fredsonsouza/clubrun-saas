@@ -30,6 +30,7 @@ model User {
   rankings       Ranking[]
   tokens         Token[]
   workouts       Workout[]
+  workoutReactions WorkoutReaction[]
 
   @@map("users")
 }
@@ -124,21 +125,39 @@ model Member {
 }
 
 model AthleteProfile {
-  id           String    @id @default(uuid())
-  paceAvg      Float?
-  weight       Float?
-  height       Int?
-  gender       Gender?
-  birthDate    DateTime?
-  bio          String?
-  city         String?
-  instagramUrl String?   @map("instagram_url")
-  youtubeUrl   String?   @map("youtube_url")
-  stravaUrl    String?   @map("strava_url")
-  coverUrl     String?   @map("cover_url")
-  isPublic     Boolean   @default(true) @map("is_public")
-  userId       String    @unique @map("user_id")
-  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                    String    @id @default(uuid())
+  paceAvg               Float?
+  weight                Float?
+  height                Int?
+  gender                Gender?
+  birthDate             DateTime  @default("2000-01-01T00:00:00.000Z") @map("birth_date")
+  bio                   String?
+  city                  String?
+  instagramUrl          String?   @map("instagram_url")
+  youtubeUrl            String?   @map("youtube_url")
+  stravaUrl             String?   @map("strava_url")
+  coverUrl              String?   @map("cover_url")
+  isPublic              Boolean   @default(true) @map("is_public")
+  isPremium             Boolean   @default(false) @map("is_premium")
+
+  // Equipamentos vestíveis (opcionais)
+  shoes                 String?   @map("shoes")
+  watch                 String?   @map("watch")
+  shoesMaxDistance       Float?    @map("shoes_max_distance")
+  shoesRemainingDistance Float?    @map("shoes_remaining_distance")
+
+  // Dados Médicos (Resguardo)
+  hasMedicalConditions  Boolean   @default(false) @map("has_medical_conditions")
+  medicalConditions     String?   @map("medical_conditions")
+
+  // Conexão Strava (Simulada)
+  stravaAthleteId      String?   @unique @map("strava_athlete_id")
+  stravaAccessToken    String?   @map("strava_access_token")
+  stravaRefreshToken   String?   @map("strava_refresh_token")
+  stravaTokenExpiresAt DateTime? @map("strava_token_expires_at")
+
+  userId                String    @unique @map("user_id")
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("athlete_profiles")
 }
@@ -160,6 +179,17 @@ model Workout {
   routeData      Json?          @map("route_data")
   rescheduleCount Int           @default(0) @map("reschedule_count")
   originalDate   DateTime?      @map("original_date")
+  
+  // Metas Originais para cálculo de desvio
+  targetDistance Float?         @map("target_distance")
+  targetDuration Float?         @map("target_duration")
+
+  // Link Strava
+  stravaActivityId String?      @unique @map("strava_activity_id")
+  syncSource       String?      @default("MANUAL") @map("sync_source")
+  shoesUsed        String?      @map("shoes_used")
+  reactions      WorkoutReaction[]
+
   createdAt      DateTime       @default(now()) @map("created_at")
   clubId         String         @map("club_id")
   athleteId      String         @map("athlete_id")
@@ -181,6 +211,11 @@ enum WorkoutMode {
   FREE
 }
 
+enum RacePaymentStatus {
+  PENDING
+  CONFIRMED
+}
+
 model Race {
   id        String       @id @default(uuid())
   name      String
@@ -199,12 +234,13 @@ model Race {
 }
 
 model RaceParticipant {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now()) @map("created_at")
-  raceId    String   @map("race_id")
-  athleteId String   @map("athlete_id")
-  athlete   User     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  race      Race     @relation(fields: [raceId], references: [id], onDelete: Cascade)
+  id            String            @id @default(uuid())
+  createdAt     DateTime          @default(now()) @map("created_at")
+  raceId        String            @map("race_id")
+  athleteId     String            @map("athlete_id")
+  paymentStatus RacePaymentStatus @default(PENDING) @map("payment_status")
+  athlete       User              @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  race          Race              @relation(fields: [raceId], references: [id], onDelete: Cascade)
 
   @@unique([raceId, athleteId])
   @@map("race_participants")
@@ -215,6 +251,7 @@ model RaceResult {
   time      Int
   position  Int?
   pace      Float?
+  shoesUsed String?  @map("shoes_used")
   createdAt DateTime @default(now()) @map("created_at")
   raceId    String   @map("race_id")
   athleteId String   @map("athlete_id")
@@ -327,4 +364,18 @@ enum WorkoutType {
   RACE
   STRENGTH
   WALK
+}
+
+model WorkoutReaction {
+  id        String   @id @default(uuid())
+  type      String   // "LIKE", "FIRE", "CLAP", "TROPHY"
+  createdAt DateTime @default(now()) @map("created_at")
+  workoutId String   @map("workout_id")
+  userId    String   @map("user_id")
+
+  workout   Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutId, userId])
+  @@map("workout_reactions")
 }

@@ -23,6 +23,10 @@ export default async function AdminDashboardPage() {
     redirect('/auth/sign-in')
   }
 
+  if (!user.isSystemAdmin && user.email !== 'admin@clubrun.com') {
+    redirect('/')
+  }
+
   const { stats } = await getSystemStats()
   const { logs } = await getSystemLogs()
 

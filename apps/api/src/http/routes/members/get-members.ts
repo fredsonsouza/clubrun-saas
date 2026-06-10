@@ -33,6 +33,12 @@ export async function getMembers(app: FastifyInstance) {
                   avatarUrl: z.string().nullable(),
                   overdue: z.boolean(),
                   paceAvg: z.number().nullable(),
+                  birthDate: z.any().nullable().optional(),
+                  shoes: z.string().nullable().optional(),
+                  watch: z.string().nullable().optional(),
+                  hasMedicalConditions: z.boolean().optional(),
+                  medicalConditions: z.string().nullable().optional(),
+                  joinedAt: z.string().datetime(),
                 })
               ),
             }),
@@ -82,6 +88,12 @@ export async function getMembers(app: FastifyInstance) {
             avatarUrl: m.user.avatarUrl || null,
             paceAvg: m.user.athleteProfile?.paceAvg || null,
             overdue: isPrivileged ? m.invoices.some(i => i.status === 'OVERDUE') : false,
+            birthDate: m.user.athleteProfile?.birthDate || null,
+            shoes: m.user.athleteProfile?.shoes || null,
+            watch: m.user.athleteProfile?.watch || null,
+            hasMedicalConditions: m.user.athleteProfile?.hasMedicalConditions || false,
+            medicalConditions: isPrivileged ? (m.user.athleteProfile?.medicalConditions || null) : null,
+            joinedAt: m.createdAt.toISOString(),
           }
         })
 

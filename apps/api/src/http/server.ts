@@ -19,6 +19,7 @@ import { createAccount } from './routes/auth/create-account'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
 import { getProfile } from './routes/auth/get-profile'
 import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
+import { subscribeAthlete } from './routes/athlete/subscribe-athlete'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resetPassword } from './routes/auth/reset-password'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
@@ -58,6 +59,8 @@ import { getRaceResults } from './routes/races/get-race-results'
 import { updateRace } from './routes/races/update-race'
 import { deleteRace } from './routes/races/delete-race'
 import { toggleRaceRegistration } from './routes/races/toggle-race-registration'
+import { getRaceParticipants } from './routes/races/get-race-participants'
+import { updateRacePaymentStatus } from './routes/races/update-race-payment-status'
 import { approveInvite } from './routes/invites/approve-invite'
 import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
 import { getSystemStats } from './routes/system/get-system-stats'
@@ -68,6 +71,8 @@ import { getUserProfile } from './routes/users/get-user-profile'
 import { uploadImage } from './routes/uploads/upload-image'
 import { anonymizeUser } from './routes/users/anonymize-user'
 import { updatePassword } from './routes/users/update-password'
+import { connectStrava } from './routes/users/connect-strava'
+import { disconnectStrava } from './routes/users/disconnect-strava'
 
 import { errorHandler } from './error-handle'
 import { env } from '@saas/env'
@@ -122,11 +127,13 @@ app.register(fastifyStatic, {
 })
 
 import { completeWorkout } from './routes/workouts/complete-workout'
+import { toggleWorkoutReaction } from './routes/workouts/toggle-workout-reaction'
 
 app.register(createAccount)
 app.register(authenticateWithPassword)
 app.register(getProfile)
 app.register(updateAthleteProfile)
+app.register(subscribeAthlete)
 app.register(requestPasswordRecovery)
 app.register(resetPassword)
 app.register(authenticateWithGoogle)
@@ -148,6 +155,7 @@ app.register(getWorkouts)
 app.register(updateWorkout)
 app.register(getMyWorkouts)
 app.register(completeWorkout)
+app.register(toggleWorkoutReaction)
 
 import { getPendingMembers } from './routes/members/get-pending-members'
 import { updateMemberStatus } from './routes/members/update-member-status'
@@ -195,6 +203,8 @@ app.register(getRace)
 app.register(updateRace)
 app.register(deleteRace)
 app.register(toggleRaceRegistration)
+app.register(getRaceParticipants)
+app.register(updateRacePaymentStatus)
 app.register(createRaceResult)
 app.register(getRaceResults)
 app.register(getSystemStats)
@@ -205,6 +215,8 @@ app.register(getUserProfile)
 app.register(uploadImage)
 app.register(anonymizeUser)
 app.register(updatePassword)
+app.register(connectStrava)
+app.register(disconnectStrava)
 
 // app.listen({ port: env.SERVER_PORT }).then(() => {
 //   console.log('HTTP server runnig ✅')

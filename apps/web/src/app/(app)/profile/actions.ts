@@ -10,6 +10,28 @@ import { deleteCookie } from 'cookies-next'
 import { cookies } from 'next/headers'
 
 import { updatePassword } from '@/http/update-password'
+import { connectStrava } from '@/http/connect-strava'
+import { disconnectStrava } from '@/http/disconnect-strava'
+
+export async function connectStravaAction(code?: string) {
+  try {
+    const res = await connectStrava(code)
+    revalidatePath('/profile')
+    return { success: true, isStravaConnected: res.isStravaConnected }
+  } catch (err) {
+    return { success: false, message: 'Erro ao conectar com o Strava.' }
+  }
+}
+
+export async function disconnectStravaAction() {
+  try {
+    const res = await disconnectStrava()
+    revalidatePath('/profile')
+    return { success: true, isStravaConnected: res.isStravaConnected }
+  } catch (err) {
+    return { success: false, message: 'Erro ao desconectar do Strava.' }
+  }
+}
 
 export async function updatePasswordAction(currentPassword: string, newPassword: string) {
   try {
@@ -48,12 +70,18 @@ export async function updateProfileAction(data: {
   weight?: number
   height?: number
   gender?: 'MALE' | 'FEMALE' | 'OTHER'
+  birthDate?: Date
   bio?: string
   city?: string
   instagramUrl?: string | null
   stravaUrl?: string | null
   coverUrl?: string | null
   isPublic?: boolean
+  shoes?: string | null
+  shoesMaxDistance?: number | null
+  watch?: string | null
+  hasMedicalConditions?: boolean
+  medicalConditions?: string | null
 }) {
   try {
     await updateAthleteProfile(data)
@@ -72,12 +100,16 @@ export async function completeWorkoutAction(formData: FormData) {
   const distance = Number(formData.get('distance'))
   const duration = Number(formData.get('duration'))
   const pace = Number(formData.get('pace'))
+  const stravaActivityId = formData.get('stravaActivityId') as string | null
+  const syncSource = formData.get('syncSource') as string | null
 
   try {
     await api.patch(`clubs/${slug}/workouts/${workoutId}/complete`, {
       json: {
         distance,
         duration,
+        ...(stravaActivityId ? { stravaActivityId } : {}),
+        ...(syncSource ? { syncSource } : {}),
       }
     })
 

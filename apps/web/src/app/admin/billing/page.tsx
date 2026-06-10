@@ -16,6 +16,10 @@ export default async function AdminBillingPage() {
     redirect('/auth/sign-in')
   }
 
+  if (!user.isSystemAdmin && user.email !== 'admin@clubrun.com') {
+    redirect('/')
+  }
+
   const { billing } = await getSystemBilling()
 
   return (

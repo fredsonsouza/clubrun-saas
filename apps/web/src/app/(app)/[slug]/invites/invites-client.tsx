@@ -264,7 +264,10 @@ export function InvitesClient({
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 focus:border-orange-500 focus:outline-none"
                 >
                   <option value="ATHLETE">Atleta (Membro Comum)</option>
-                  <option value="MANAGER">Administrador (Treinador/Staff)</option>
+                  <option value="COACH">Treinador (Staff Técnico)</option>
+                  <option value="MANAGER">Gestor (Staff Administrativo)</option>
+                  <option value="ADMIN">Administrador (Acesso Geral)</option>
+                  <option value="BILLING">Financeiro (Gestão de Contas)</option>
                 </select>
                 <button type="submit" disabled={isSending || !emailToInvite} className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white hover:bg-gray-800 disabled:opacity-70">
                   {isSending ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Send className="h-4 w-4" /> Enviar Convite</>}

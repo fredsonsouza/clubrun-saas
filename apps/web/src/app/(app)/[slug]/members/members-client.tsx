@@ -22,9 +22,13 @@ import {
   FileWarning,
   MessageSquare,
   DollarSign,
+  Crown,
+  HeartPulse,
+  Watch,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { ShoeIcon } from '@/components/shoe-icon'
 import { toast } from 'sonner'
 import { updateMemberAction, removeMemberAction } from './actions'
 import { 
@@ -44,6 +48,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { BirthdayCardModal } from '@/components/birthday-card-modal'
 
 interface Member {
   id: string
@@ -56,6 +61,11 @@ interface Member {
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'TRIAL'
   overdue: boolean
   paceAvg?: number | null
+  birthDate?: string | null
+  shoes?: string | null
+  watch?: string | null
+  hasMedicalConditions?: boolean
+  medicalConditions?: string | null
 }
 
 interface MembersClientProps {
@@ -85,27 +95,87 @@ export function MembersClient({
 }: MembersClientProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState('')
-  const [tab, setTab] = useState<'all' | 'active' | 'overdue' | 'athletes' | 'coaches'>('all')
+  const [tab, setTab] = useState<'all' | 'active' | 'overdue' | 'athletes' | 'coaches' | 'birthdays'>('all')
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
   
+  // Estados para o Card de Aniversário
+  const [isCardModalOpen, setIsCardModalOpen] = useState(false)
+  const [selectedAthleteForCard, setSelectedAthleteForCard] = useState<{
+    name: string
+    avatarUrl: string | null
+    clubName: string
+  } | null>(null)
+
   // Estados para Justificativa de Remoção
   const [selectedReasons, setSelectedReasons] = useState<string[]>([])
   const [removeDescription, setRemoveDescription] = useState('')
 
   const isRestrictedRole = currentUserRole === 'ATHLETE' || currentUserRole === 'COACH'
 
-  const filteredMembers = members.filter((m) => {
-    const matchesSearch =
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.email.toLowerCase().includes(searchTerm.toLowerCase())
+  // Auxiliar para formatação e cálculo de aniversário
+  const getBirthdayMonthAndDay = (dateStr?: string | null) => {
+    if (!dateStr || dateStr.startsWith('2000-01-01')) return { month: 12, day: 31, formatted: 'Não cadastrado', age: 0 }
     
-    if (tab === 'active') return matchesSearch && !m.overdue
-    if (tab === 'overdue') return matchesSearch && m.overdue
-    if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
-    if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
-    return matchesSearch
-  })
+    const date = new Date(dateStr)
+    const months = [
+      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ]
+    const currentYear = new Date().getFullYear()
+    
+    // Evita fuso horário do JS atrasando a data do banco (que vem em UTC)
+    const day = date.getUTCDate()
+    const monthIndex = date.getUTCMonth()
+    
+    return {
+      month: monthIndex,
+      day,
+      formatted: `${day} de ${months[monthIndex]}`,
+      age: currentYear - date.getUTCFullYear()
+    }
+  }
+
+  // Ordenação circular inteligente (aniversariantes a partir do mês atual)
+  const getSortedBirthdayMembers = () => {
+    const currentMonth = new Date().getMonth()
+    
+    return [...members]
+      .filter((m) =>
+        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        m.email.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .sort((a, b) => {
+        const aInfo = getBirthdayMonthAndDay(a.birthDate)
+        const bInfo = getBirthdayMonthAndDay(b.birthDate)
+        
+        // Se um não tiver aniversário, coloca no fim
+        if (aInfo.formatted === 'Não cadastrado') return 1
+        if (bInfo.formatted === 'Não cadastrado') return -1
+
+        const aMonthDiff = (aInfo.month - currentMonth + 12) % 12
+        const bMonthDiff = (bInfo.month - currentMonth + 12) % 12
+        
+        if (aMonthDiff !== bMonthDiff) {
+          return aMonthDiff - bMonthDiff
+        }
+        return aInfo.day - bInfo.day
+      })
+  }
+
+  const filteredMembers = tab === 'birthdays'
+    ? getSortedBirthdayMembers()
+    : members.filter((m) => {
+        const matchesSearch =
+          m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.email.toLowerCase().includes(searchTerm.toLowerCase())
+        
+        if (tab === 'active') return matchesSearch && !m.overdue
+        if (tab === 'overdue') return matchesSearch && m.overdue
+        if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
+        if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
+        return matchesSearch
+      })
 
   const handleUpdateRole = async (memberId: string, newRole: Member['role']) => {
     const result = await updateMemberAction({
@@ -209,7 +279,7 @@ export function MembersClient({
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex rounded-2xl bg-gray-100 p-1">
+            <div className="flex rounded-2xl bg-gray-100 p-1 flex-wrap gap-0.5">
               <button
                 onClick={() => setTab('all')}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'all' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
@@ -227,6 +297,12 @@ export function MembersClient({
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'overdue' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Inadimplentes
+              </button>
+              <button
+                onClick={() => setTab('birthdays')}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'birthdays' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+              >
+                Aniversariantes 🎂
               </button>
             </div>
 
@@ -249,152 +325,259 @@ export function MembersClient({
             <div className="col-span-5 flex items-center gap-2">
               Atleta <ArrowUpDown className="h-3 w-3" />
             </div>
-            <div className="col-span-2">Cargo</div>
-            <div className="col-span-2">Pagamento</div>
-            <div className="col-span-2">Membro desde</div>
+            <div className="col-span-2">{tab === 'birthdays' ? 'Aniversário' : 'Cargo'}</div>
+            <div className="col-span-2">{tab === 'birthdays' ? 'Tênis / Relógio' : 'Pagamento'}</div>
+            <div className="col-span-2">{tab === 'birthdays' ? 'Ficha Médica' : 'Membro desde'}</div>
             <div className="col-span-1 text-right">Ações</div>
           </div>
 
           <div className="divide-y divide-gray-50">
             {filteredMembers.length > 0 ? (
-              filteredMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="group grid grid-cols-1 items-center gap-4 p-6 transition-colors hover:bg-gray-50/50 md:grid-cols-12 md:px-8"
-                >
-                  {/* Atleta Info */}
-                  <div className="col-span-5 flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
-                      <AvatarImage src={member.avatarUrl || ''} />
-                      <AvatarFallback className="font-bold text-gray-400">
-                        {member.name.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="min-w-0">
-                      <Link 
-                        href={`/profile/${member.userId}`}
-                        className="truncate text-base font-black text-gray-900 hover:text-orange-500 transition-colors"
-                      >
-                        {member.name}
-                      </Link>
-                      <p className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
-                        <Mail className="h-3 w-3" /> {member.email}
-                      </p>
-                    </div>
-                  </div>
+              filteredMembers.map((member) => {
+                const birthdayInfo = getBirthdayMonthAndDay(member.birthDate)
+                const isToday = birthdayInfo.formatted !== 'Não cadastrado' &&
+                  new Date().getUTCDate() === birthdayInfo.day &&
+                  new Date().getUTCMonth() === birthdayInfo.month
 
-                  {/* Cargo */}
-                  <div className="col-span-2">
-                    <div className="flex md:block">
-                      <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Cargo:</span>
-                      {member.role === 'OWNER' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-600">
-                          <ShieldAlert className="h-3.5 w-3.5" /> Fundador
-                        </span>
-                      ) : member.role === 'ADMIN' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-blue-600">
-                          <ShieldCheck className="h-3.5 w-3.5" /> Administrador
-                        </span>
-                      ) : member.role === 'MANAGER' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
-                          <Shield className="h-3.5 w-3.5" /> Gestor
-                        </span>
-                      ) : member.role === 'COACH' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
-                          <Activity className="h-3.5 w-3.5" /> Coach
-                        </span>
-                      ) : member.role === 'BILLING' ? (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-600">
-                          <Zap className="h-3.5 w-3.5" /> Financeiro
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                          <Users className="h-3.5 w-3.5" /> Atleta
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Status de Pagamento */}
-                  <div className="col-span-2">
-                    <div className="flex md:block">
-                      <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Pagamento:</span>
-                      {!member.overdue ? (
-                        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                          <CheckCircle2 className="h-4 w-4" /> Em dia
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
-                          <AlertCircle className="h-4 w-4" /> Inadimplente
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Data */}
-                  <div className="col-span-2">
-                    <div className="flex md:block">
-                      <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Membro desde:</span>
-                      <span className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
-                        <Calendar className="h-3.5 w-3.5 text-gray-300" /> {member.joinedAt}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="col-span-1 flex justify-end">
-                    {canEdit && member.role !== 'OWNER' && member.id !== user.id ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm ring-1 ring-transparent hover:ring-gray-100 transition-all focus:outline-none">
-                          <MoreHorizontal className="h-5 w-5" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent 
-                          align="end" 
-                          className="w-56 rounded-2xl border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md"
-                        >
-                          <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Gerenciar Membro</DropdownMenuLabel>
-                          <DropdownMenuSeparator className="bg-gray-50" />
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateRole(member.id, 'MANAGER')}
-                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
-                          >
-                            <Shield className="h-4 w-4 text-indigo-500" /> Tornar Gestor
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateRole(member.id, 'COACH')}
-                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
-                          >
-                            <Activity className="h-4 w-4 text-emerald-500" /> Tornar Treinador
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateRole(member.id, 'BILLING')}
-                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
-                          >
-                            <Zap className="h-4 w-4 text-amber-500" /> Tornar Financeiro
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => handleUpdateRole(member.id, 'ATHLETE')}
-                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
-                          >
-                            <Users className="h-4 w-4 text-gray-400" /> Tornar Atleta
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator className="bg-gray-50" />
-                           <DropdownMenuItem 
-                            onClick={() => setMemberToRemove(member)}
-                            className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700 transition-colors"
-                          >
-                            <Trash2 className="h-4 w-4" /> Remover do Clube
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-200">
-                        <Zap className="h-4 w-4" />
+                return (
+                  <div
+                    key={member.id}
+                    className="group grid grid-cols-1 items-center gap-4 p-6 transition-colors hover:bg-gray-50/50 md:grid-cols-12 md:px-8"
+                  >
+                    {/* Atleta Info */}
+                    <div className="col-span-5 flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar className="h-12 w-12 border border-gray-100 shadow-sm transition-transform group-hover:scale-105">
+                          <AvatarImage src={member.avatarUrl || ''} />
+                          <AvatarFallback className="font-bold text-gray-400">
+                            {member.name.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {isToday && (
+                          <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-md shadow-pink-500/20 animate-bounce">
+                            🎂
+                          </div>
+                        )}
                       </div>
-                    )}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Link 
+                            href={`/profile/${member.userId}`}
+                            className="truncate text-base font-black text-gray-900 hover:text-orange-500 transition-colors"
+                          >
+                            {member.name}
+                          </Link>
+                          {isToday && (
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-pink-50 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest text-pink-600">
+                              <Crown className="h-2.5 w-2.5" /> Níver Hoje!
+                            </span>
+                          )}
+                        </div>
+                        <p className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+                          <Mail className="h-3 w-3" /> {member.email}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Cargo / Aniversário */}
+                    <div className="col-span-2">
+                      <div className="flex md:block">
+                        {tab === 'birthdays' ? (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Aniversário:</span>
+                            <div className="text-sm font-bold text-gray-800 space-y-0.5">
+                              <p className="flex items-center gap-1">
+                                {birthdayInfo.formatted}
+                              </p>
+                              {birthdayInfo.formatted !== 'Não cadastrado' && (
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                  Completa {birthdayInfo.age} anos
+                                </p>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Cargo:</span>
+                            {member.role === 'OWNER' ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-600">
+                                <ShieldAlert className="h-3.5 w-3.5" /> Fundador
+                              </span>
+                            ) : member.role === 'ADMIN' ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-blue-600">
+                                <ShieldCheck className="h-3.5 w-3.5" /> Administrador
+                              </span>
+                            ) : member.role === 'MANAGER' ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                                <Shield className="h-3.5 w-3.5" /> Gestor
+                              </span>
+                            ) : member.role === 'COACH' ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                                <Activity className="h-3.5 w-3.5" /> Coach
+                              </span>
+                            ) : member.role === 'BILLING' ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-600">
+                                <Zap className="h-3.5 w-3.5" /> Financeiro
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                                <Users className="h-3.5 w-3.5" /> Atleta
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Status de Pagamento / Tênis & Relógio */}
+                    <div className="col-span-2">
+                      <div className="flex md:block">
+                        {tab === 'birthdays' ? (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Vestíveis:</span>
+                            <div className="text-[11px] font-bold text-gray-700 space-y-0.5 max-w-xs">
+                              <p className="flex items-center gap-1 truncate" title={member.shoes || 'Não informado'}><ShoeIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" /> {member.shoes || 'Nenhum'}</p>
+                              <p className="flex items-center gap-1 truncate" title={member.watch || 'Não informado'}><Watch className="h-3.5 w-3.5 text-gray-400 shrink-0" /> {member.watch || 'Nenhum'}</p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Pagamento:</span>
+                            {!member.overdue ? (
+                              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                                <CheckCircle2 className="h-4 w-4" /> Em dia
+                              </span>
+                            ) : (
+                              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
+                                <AlertCircle className="h-4 w-4" /> Inadimplente
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Data de Registro / Ficha Médica */}
+                    <div className="col-span-2">
+                      <div className="flex md:block">
+                        {tab === 'birthdays' ? (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Ficha Médica:</span>
+                            {member.hasMedicalConditions ? (
+                             <div 
+                                className="group/alert relative inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-600 cursor-help shadow-xs"
+                              >
+                                <HeartPulse className="h-3.5 w-3.5 animate-pulse text-red-500" /> Ver Alerta
+                                
+                                {/* Tooltip Flutuante */}
+                                <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-64 -translate-x-1/2 rounded-2xl bg-gray-950 p-4 text-xs font-bold text-white shadow-2xl opacity-0 group-hover/alert:opacity-100 transition-all duration-200 z-30 leading-relaxed text-left normal-case border border-white/5">
+                                  <p className="font-black text-[9px] tracking-widest uppercase text-red-400 mb-1 flex items-center gap-1">
+                                    <AlertCircle className="h-3 w-3" /> Ficha de Saúde de {member.name}:
+                                  </p>
+                                  <p className="font-medium text-gray-200">{member.medicalConditions || 'O atleta não informou detalhes.'}</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Apto p/ Treino
+                              </span>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Membro desde:</span>
+                            <span className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
+                              <Calendar className="h-3.5 w-3.5 text-gray-300" /> {member.joinedAt}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Ações */}
+                    <div className="col-span-1 flex items-center justify-end gap-2">
+                      {tab === 'birthdays' && birthdayInfo.formatted !== 'Não cadastrado' ? (
+                        <div className="flex gap-2.5">
+                          <button
+                            onClick={() => {
+                              setSelectedAthleteForCard({
+                                name: member.name,
+                                avatarUrl: member.avatarUrl,
+                                clubName: club.name
+                              })
+                              setIsCardModalOpen(true)
+                            }}
+                            className="cursor-pointer group flex h-10 items-center justify-center gap-1.5 rounded-xl bg-pink-50 px-3 text-xs font-black text-pink-600 transition-all hover:bg-pink-500 hover:text-white active:scale-95"
+                            title="Gerar card comemorativo para redes sociais"
+                          >
+                            <Crown className="h-4 w-4" /> CARD
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              const text = `Parabéns, *${member.name}*! 🎉\nO clube *${club.name}* te deseja um feliz aniversário com muitos quilômetros rodados, conquistas incríveis e ritmos cada vez mais rápidos! 🏃‍♂️💨\n\nEstamos muito felizes em ter você no pelotão!`
+                              const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
+                              window.open(url, '_blank')
+                            }}
+                            className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white active:scale-95"
+                            title="Enviar parabéns por WhatsApp"
+                          >
+                            <MessageSquare className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : canEdit && member.role !== 'OWNER' && member.id !== user.id ? (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm ring-1 ring-transparent hover:ring-gray-100 transition-all focus:outline-none">
+                            <MoreHorizontal className="h-5 w-5" />
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent 
+                            align="end" 
+                            className="w-56 rounded-2xl border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md"
+                          >
+                            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Gerenciar Membro</DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-gray-50" />
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateRole(member.id, 'MANAGER')}
+                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                            >
+                              <Shield className="h-4 w-4 text-indigo-500" /> Tornar Gestor
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateRole(member.id, 'COACH')}
+                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                            >
+                              <Activity className="h-4 w-4 text-emerald-500" /> Tornar Treinador
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateRole(member.id, 'BILLING')}
+                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                            >
+                              <Zap className="h-4 w-4 text-amber-500" /> Tornar Financeiro
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={() => handleUpdateRole(member.id, 'ATHLETE')}
+                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                            >
+                              <Users className="h-4 w-4 text-gray-400" /> Tornar Atleta
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-gray-50" />
+                             <DropdownMenuItem 
+                              onClick={() => setMemberToRemove(member)}
+                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700 transition-colors"
+                            >
+                              <Trash2 className="h-4 w-4" /> Remover do Clube
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ) : (
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-50 text-gray-200">
+                          <Zap className="h-4 w-4" />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))
+                )
+              })
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Search className="mb-4 h-12 w-12 text-gray-200" />
@@ -492,6 +675,17 @@ export function MembersClient({
           </DialogContent>
         </Dialog>
       </main>
+
+      {/* MODAL DO CARD DE ANIVERSÁRIO PREMIUM */}
+      {selectedAthleteForCard && (
+        <BirthdayCardModal
+          isOpen={isCardModalOpen}
+          onClose={() => setIsCardModalOpen(false)}
+          athleteName={selectedAthleteForCard.name}
+          avatarUrl={selectedAthleteForCard.avatarUrl}
+          clubName={selectedAthleteForCard.clubName}
+        />
+      )}
     </div>
   )
 }

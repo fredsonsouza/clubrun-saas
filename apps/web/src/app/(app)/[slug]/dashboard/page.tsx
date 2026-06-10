@@ -6,6 +6,7 @@ import { getWorkouts } from '@/http/get-workouts'
 import { getClubRanking } from '@/http/get-club-ranking'
 import { getMembers } from '@/http/get-members'
 import { getClub } from '@/http/get-club'
+import { getUserProfile } from '@/http/get-user-profile'
 import { DashboardClient } from './dashboard-client'
 import { redirect } from 'next/navigation'
 
@@ -31,13 +32,19 @@ export default async function ClubDashboardPage({
     { workouts }, 
     { rankings }, 
     { members },
-    { club, membership }
+    { club, membership },
+    { workouts: myPlannedWorkouts },
+    { workouts: myCompletedWorkouts },
+    userProfile
   ] = await Promise.all([
     getClubDashboard({ slug }),
     getWorkouts({ slug, limit: 10 }),
     getClubRanking({ slug, type: 'monthly' }).catch(() => ({ rankings: [] })),
     getMembers({ slug }),
-    getClub(slug)
+    getClub(slug),
+    getWorkouts({ slug, status: 'PLANNED', athleteId: user.id, limit: 100 }),
+    getWorkouts({ slug, status: 'COMPLETED', athleteId: user.id, limit: 100 }),
+    getUserProfile(user.id)
   ])
   
   // Se for o dono e a assinatura estiver pendente (ex: pós transferência), obriga a atualizar billing
@@ -58,8 +65,10 @@ export default async function ClubDashboardPage({
     monthlyDistance: metrics.totalDistanceMonth,
   }
 
+  const isStravaConnected = !!userProfile.athleteProfile?.isStravaConnected
+
   // Formata o Feed para o formato esperado pelo DashboardClient
-  const initialFeed = workouts.map(w => ({
+  const formatWorkout = (w: any) => ({
     id: w.id,
     title: w.title || (w.type === 'EASY' ? 'Rodagem Leve' : 'Treino de Corrida'),
     description: w.notes || '',
@@ -70,6 +79,12 @@ export default async function ClubDashboardPage({
     status: w.status as any,
     assignmentMode: w.assignmentMode as any,
     createdAt: typeof w.date === 'string' ? w.date : new Date(w.date).toISOString(),
+    targetDistance: w.targetDistance,
+    targetDuration: w.targetDuration,
+    syncSource: w.syncSource,
+    stravaActivityId: w.stravaActivityId,
+    reactions: w.reactions,
+    currentUserReaction: w.currentUserReaction,
     author: {
       id: w.athlete.id,
       name: w.athlete.name || 'Atleta',
@@ -80,7 +95,11 @@ export default async function ClubDashboardPage({
       slug: slug,
       avatarUrl: club?.avatarUrl || null,
     }
-  }))
+  })
+
+  const initialFeed = workouts.map(formatWorkout)
+  const initialMyPlanned = myPlannedWorkouts.map(formatWorkout)
+  const initialMyCompleted = myCompletedWorkouts.map(formatWorkout)
 
   // Formata o Ranking
   const formattedRanking = rankings.map(r => ({
@@ -118,6 +137,9 @@ export default async function ClubDashboardPage({
       ranking={formattedRanking}
       members={formattedMembers}
       typeStats={typeStats}
+      myPlannedWorkouts={initialMyPlanned}
+      myCompletedWorkouts={initialMyCompleted}
+      isStravaConnected={isStravaConnected}
     />
   )
 }

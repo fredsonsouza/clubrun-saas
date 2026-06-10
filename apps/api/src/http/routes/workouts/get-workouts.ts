@@ -42,6 +42,10 @@ export async function getWorkouts(app: FastifyInstance) {
                   date: z.coerce.date(),
                   notes: z.string().nullable(),
                   imageUrl: z.string().nullable(),
+                  targetDistance: z.number().nullable().optional(),
+                  targetDuration: z.number().nullable().optional(),
+                  stravaActivityId: z.string().nullable().optional(),
+                  syncSource: z.string().nullable().optional(),
                   createdAt: z.coerce.date(),
                   clubId: z.uuid(),
                   athlete: z.object({
@@ -54,6 +58,13 @@ export async function getWorkouts(app: FastifyInstance) {
                     slug: z.string(),
                     avatarUrl: z.string().nullable(),
                   }),
+                  reactions: z.array(
+                    z.object({
+                      type: z.string(),
+                      count: z.number(),
+                    })
+                  ),
+                  currentUserReaction: z.string().nullable().optional(),
                 })
               ),
               meta: z.object({
@@ -109,6 +120,10 @@ export async function getWorkouts(app: FastifyInstance) {
               assignmentMode: true,
               date: true,
               notes: true,
+              targetDistance: true,
+              targetDuration: true,
+              stravaActivityId: true,
+              syncSource: true,
               createdAt: true,
               athlete: {
                 select: {
@@ -124,6 +139,12 @@ export async function getWorkouts(app: FastifyInstance) {
                   avatarUrl: true,
                 },
               },
+              reactions: {
+                select: {
+                  type: true,
+                  userId: true,
+                },
+              },
             },
             where,
             orderBy: {
@@ -134,8 +155,33 @@ export async function getWorkouts(app: FastifyInstance) {
           }),
         ])
 
+        const formattedWorkouts = workouts.map((workout) => {
+          const reactionCounts: Record<string, number> = {}
+          let currentUserReaction: string | null = null
+
+          ;(workout.reactions || []).forEach((reaction) => {
+            reactionCounts[reaction.type] = (reactionCounts[reaction.type] || 0) + 1
+            if (reaction.userId === userId) {
+              currentUserReaction = reaction.type
+            }
+          })
+
+          const formattedReactions = Object.entries(reactionCounts).map(([type, count]) => ({
+            type,
+            count,
+          }))
+
+          const { reactions: _, ...rest } = workout
+
+          return {
+            ...rest,
+            reactions: formattedReactions,
+            currentUserReaction,
+          }
+        })
+
         return reply.send({
-          workouts,
+          workouts: formattedWorkouts,
           meta: {
             total,
             page,

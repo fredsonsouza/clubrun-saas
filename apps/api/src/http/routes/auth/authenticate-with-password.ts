@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify'
 import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { createAuditLog } from '@/utils/audit-log'
 
 export function authenticateWithPassword(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -36,10 +37,22 @@ export function authenticateWithPassword(app: FastifyInstance) {
       })
 
       if (!user) {
+        createAuditLog({
+          action: 'USER_LOGIN_FAILED',
+          entity: 'USER',
+          entityId: 'SYSTEM',
+          payload: { login, reason: 'user_not_found' },
+        })
         throw new BadRequestError('Invalid credentials')
       }
 
       if (user.passwordHash === null) {
+        createAuditLog({
+          action: 'USER_LOGIN_FAILED',
+          entity: 'USER',
+          entityId: user.id,
+          payload: { reason: 'missing_password_hash' },
+        })
         throw new BadRequestError(
           'User does not have a password, use social login'
         )
@@ -48,6 +61,12 @@ export function authenticateWithPassword(app: FastifyInstance) {
       const isPasswordValid = await compare(password, user.passwordHash)
 
       if (!isPasswordValid) {
+        createAuditLog({
+          action: 'USER_LOGIN_FAILED',
+          entity: 'USER',
+          entityId: user.id,
+          payload: { reason: 'invalid_password' },
+        })
         throw new BadRequestError('Invalid credentials')
       }
 
@@ -60,6 +79,15 @@ export function authenticateWithPassword(app: FastifyInstance) {
           },
         }
       )
+
+      createAuditLog({
+        action: 'USER_LOGIN',
+        entity: 'USER',
+        entityId: user.id,
+        userId: user.id,
+        payload: { method: 'password' },
+      })
+
       return reply.status(201).send({ token })
     }
   )

@@ -1,21 +1,26 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import {
   X,
   Trophy,
   Clock,
   Loader2,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createRaceResultAction } from '@/app/(app)/[slug]/races/actions'
+import { ShoeIcon } from '@/components/shoe-icon'
+import { getProfile } from '@/http/get-profile'
+import { getUserProfile } from '@/http/get-user-profile'
 
 interface AddResultModalProps {
   isOpen: boolean
   slug: string
   raceId: string
   raceName: string
+  raceDistance: number
   onClose: () => void
 }
 
@@ -24,17 +29,52 @@ export function AddResultModal({
   slug,
   raceId,
   raceName,
+  raceDistance,
   onClose,
 }: AddResultModalProps) {
   const [time, setTime] = useState('00:00:00')
   const [position, setPosition] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
+  const [athleteProfile, setAthleteProfile] = useState<any>(null)
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchProfile = async () => {
+        try {
+          const { user } = await getProfile()
+          if (user?.id) {
+            const profileData = await getUserProfile(user.id)
+            setAthleteProfile(profileData.athleteProfile)
+          }
+        } catch (error) {
+          console.error('Erro ao buscar perfil:', error)
+        }
+      }
+      fetchProfile()
+    }
+  }, [isOpen])
+
+  const isDistanceInvalid = useMemo(() => {
+    if (!athleteProfile?.shoes || !raceDistance) return false
+    const remaining = athleteProfile.shoesRemainingDistance ?? 0
+    return raceDistance > remaining
+  }, [athleteProfile, raceDistance])
+
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    if (athleteProfile?.shoes) {
+      const remaining = athleteProfile.shoesRemainingDistance ?? 0
+      if (raceDistance > remaining) {
+        toast.error('A distância da corrida excede a quilometragem restante do tênis!')
+        setIsLoading(false)
+        return
+      }
+    }
 
     const formData = new FormData()
     formData.append('slug', slug)
@@ -118,6 +158,43 @@ export function AddResultModal({
                 </span>
               </div>
             </div>
+
+            {/* Informações do Tênis */}
+            {athleteProfile?.shoes && (
+              <div className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
+                athleteProfile.shoesRemainingDistance <= 42 
+                  ? 'border-red-100 bg-red-50/50 text-red-700' 
+                  : 'border-orange-100 bg-orange-50/30 text-gray-700'
+              }`}>
+                <div className="flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <ShoeIcon className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`} />
+                    <span className="font-bold truncate max-w-[180px]" title={athleteProfile.shoes}>{athleteProfile.shoes}</span>
+                  </span>
+                  <span>
+                    Vida útil do tênis: <strong className={athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-600 font-extrabold' : 'text-gray-900'}>
+                      {athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined 
+                        ? `${athleteProfile.shoesRemainingDistance.toFixed(1)} km` 
+                        : '0 km'}
+                    </strong>
+                  </span>
+                </div>
+
+                {athleteProfile.shoesRemainingDistance <= 42 && (
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span>Atenção: Vida útil próxima do fim! Recomendamos a troca.</span>
+                  </div>
+                )}
+
+                {isDistanceInvalid && (
+                  <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                    <span>A distância da corrida ({raceDistance.toFixed(1)} km) é maior que a restante do tênis ({athleteProfile.shoesRemainingDistance?.toFixed(1)} km)!</span>
+                  </div>
+                )}
+              </div>
+            )}
           </form>
         </div>
 
@@ -132,8 +209,8 @@ export function AddResultModal({
           <button
             type="submit"
             form="result-form"
-            disabled={isLoading}
-            className="cursor-pointer flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            disabled={isLoading || isDistanceInvalid}
+            className="cursor-pointer flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />

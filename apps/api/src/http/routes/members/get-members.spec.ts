@@ -37,6 +37,7 @@ describe('Get Members (Unit)', () => {
         id: '81f02179-8d75-474c-8975-c54d8b965c4d',
         role: 'OWNER',
         userId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        createdAt: new Date(),
         user: {
           id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
           name: 'John Doe',

@@ -15,9 +15,13 @@ import {
   AlertCircle,
   MoreVertical,
   Navigation,
+  Smile,
 } from 'lucide-react'
 import { isBefore, isToday, startOfDay, parseISO } from 'date-fns'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { toggleWorkoutReactionAction } from '@/app/(app)/[slug]/dashboard/actions'
+import { toast } from 'sonner'
+import { ShoeIcon } from '@/components/shoe-icon'
 
 export type WorkoutType =
   | 'EASY'
@@ -45,6 +49,10 @@ export interface Workout {
   notes?: string | null
   routeData?: any | null
   rescheduleCount?: number
+  syncSource?: string | null
+  stravaActivityId?: string | null
+  targetDistance?: number | null
+  targetDuration?: number | null
   author: {
     id: string
     name: string
@@ -55,6 +63,11 @@ export interface Workout {
     slug: string
     avatarUrl?: string | null
   }
+  reactions?: Array<{
+    type: string
+    count: number
+  }>
+  currentUserReaction?: string | null
 }
 
 interface WorkoutCardProps {
@@ -120,6 +133,40 @@ export const TYPE_CONFIG: Record<
   },
 }
 
+const REACTION_STYLES: Record<
+  string,
+  { label: string; emoji: string; colorClass: string; bgClass: string; borderClass: string }
+> = {
+  LIKE: {
+    label: 'Gostei',
+    emoji: '👍',
+    colorClass: 'text-blue-600',
+    bgClass: 'bg-blue-50/80',
+    borderClass: 'border-blue-100',
+  },
+  FIRE: {
+    label: 'Sensacional',
+    emoji: '🔥',
+    colorClass: 'text-orange-600',
+    bgClass: 'bg-orange-50/80',
+    borderClass: 'border-orange-100',
+  },
+  CLAP: {
+    label: 'Parabéns',
+    emoji: '👏',
+    colorClass: 'text-amber-600',
+    bgClass: 'bg-amber-50/80',
+    borderClass: 'border-amber-100',
+  },
+  TROPHY: {
+    label: 'Vitória',
+    emoji: '🏆',
+    colorClass: 'text-violet-600',
+    bgClass: 'bg-violet-50/80',
+    borderClass: 'border-violet-100',
+  },
+}
+
 import { CheckCircle2, Target } from 'lucide-react'
 
 export function WorkoutCard({
@@ -130,6 +177,29 @@ export function WorkoutCard({
   onEdit,
   onComplete,
 }: WorkoutCardProps) {
+  const [showPicker, setShowPicker] = React.useState(false)
+  const [isReacting, setIsReacting] = React.useState(false)
+
+  const handleToggleReaction = async (type: 'LIKE' | 'FIRE' | 'CLAP' | 'TROPHY') => {
+    if (isReacting) return
+    setIsReacting(true)
+    setShowPicker(false)
+    try {
+      const result = await toggleWorkoutReactionAction({
+        slug: workout.club.slug,
+        workoutId: workout.id,
+        type,
+      })
+      if (!result.success) {
+        toast.error(result.message)
+      }
+    } catch (err) {
+      toast.error('Erro ao processar reação.')
+    } finally {
+      setIsReacting(false)
+    }
+  }
+
   // Lógica de Permissão (Espelhando o CASL do Back-end)
   const isAuthor = currentUserId === workout.author.id
   const canModify =
@@ -256,6 +326,14 @@ export function WorkoutCard({
               ) : (
                 <span title="Privado"><Lock className="h-3 w-3 text-orange-500" /></span>
               )}
+              {workout.syncSource === 'STRAVA' && (
+                <>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 rounded bg-orange-100 px-1.5 py-0.5 text-[8px] font-black text-orange-600 uppercase" title="Sincronizado via Strava">
+                    <ShoeIcon className="h-2.5 w-2.5 text-orange-600" /> Strava
+                  </span>
+                </>
+              )}
             </div>
           </div>
         </Link>
@@ -296,6 +374,87 @@ export function WorkoutCard({
         )}
       </div>
 
+      {/* SEÇÃO METAS VS REALIZADO */}
+      {!isPlanned && workout.targetDistance && (
+        <div className="mx-5 mb-4 rounded-2xl bg-gray-50 border border-gray-100 p-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <h5 className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+              Desempenho vs Meta Prescrita
+            </h5>
+            {/* Badge de Conquista */}
+            {(() => {
+              const targetD = workout.targetDistance || 0
+              const realD = distance
+              const ratio = realD / targetD
+
+              if (ratio >= 1.05) {
+                return (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-[9px] font-black text-blue-600 uppercase">
+                    🏆 Superação
+                  </span>
+                )
+              } else if (ratio >= 0.95 && ratio <= 1.05) {
+                return (
+                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-black text-emerald-600 uppercase">
+                    ⭐ Meta Batida
+                  </span>
+                )
+              } else {
+                return (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[9px] font-black text-amber-600 uppercase">
+                    ⚡ Meta Parcial
+                  </span>
+                )
+              }
+            })()}
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 text-xs">
+            <div>
+              <span className="block text-[10px] font-bold text-gray-400 uppercase">Distância</span>
+              <p className="font-extrabold text-gray-800 mt-0.5">
+                {distance.toFixed(2)} km <span className="font-normal text-gray-400">de {workout.targetDistance.toFixed(2)} km</span>
+              </p>
+              <span className="text-[10px] font-bold text-gray-500 block mt-0.5">
+                ({Math.round((distance / (workout.targetDistance || 1)) * 100)}% concluído)
+              </span>
+            </div>
+
+            {workout.targetDuration && (
+              <div>
+                <span className="block text-[10px] font-bold text-gray-400 uppercase">Ritmo (Pace)</span>
+                {(() => {
+                  const targetPaceVal = (workout.targetDuration || 0) / (workout.targetDistance || 1) / 60
+                  const realPaceVal = duration / distance / 60
+                  const diffSeconds = Math.round((realPaceVal - targetPaceVal) * 60)
+
+                  const formatPaceVal = (val: number) => {
+                    const mins = Math.floor(val)
+                    const secs = Math.round((val - mins) * 60)
+                    return `${mins}:${secs.toString().padStart(2, '0')}`
+                  }
+
+                  if (isNaN(diffSeconds)) {
+                    return <p className="font-extrabold text-gray-800 mt-0.5">--</p>
+                  }
+
+                  return (
+                    <>
+                      <p className="font-extrabold text-gray-800 mt-0.5">
+                        {formatPaceVal(realPaceVal)}/km <span className="font-normal text-gray-400">vs {formatPaceVal(targetPaceVal)}/km</span>
+                      </p>
+                      <span className={`text-[10px] font-bold block mt-0.5 ${diffSeconds < 0 ? 'text-emerald-600' : diffSeconds > 0 ? 'text-rose-500' : 'text-gray-500'}`}>
+                        {diffSeconds < 0 ? `-${Math.abs(diffSeconds)}s/km mais rápido ⚡` : diffSeconds > 0 ? `+${diffSeconds}s/km mais lento` : 'No ritmo exato!'}
+                      </span>
+                    </>
+                  )
+                })()}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* MÉTRICAS */}
       <div className="grid grid-cols-3 gap-4 px-5 pb-6">
         <div className="border-l-2 border-orange-500 pl-3">
@@ -335,6 +494,27 @@ export function WorkoutCard({
         </div>
       </div>
 
+      {/* BADGES DE REAÇÕES ACUMULADAS */}
+      {!isPlanned && workout.reactions && workout.reactions.some(r => r.count > 0) && (
+        <div className="flex flex-wrap gap-1.5 px-5 pb-3">
+          {workout.reactions
+            .filter(r => r.count > 0)
+            .map(r => {
+              const style = REACTION_STYLES[r.type]
+              if (!style) return null
+              return (
+                <div
+                  key={r.type}
+                  className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold ${style.bgClass} ${style.colorClass} ${style.borderClass} shadow-sm`}
+                >
+                  <span>{style.emoji}</span>
+                  <span className="font-mono text-xs">{r.count}</span>
+                </div>
+              )
+            })}
+        </div>
+      )}
+
       {/* FEEDBACK SOCIAL OU BOTÃO DE FINALIZAR */}
       {isPlanned && isAuthor ? (
         <div className="flex flex-col gap-3 border-t border-orange-100 bg-orange-50 px-5 py-4">
@@ -355,12 +535,56 @@ export function WorkoutCard({
         </div>
       ) : (
         <div className="flex items-center gap-6 border-t border-gray-100 bg-gray-50 px-5 py-3">
-          <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500">
-            <ThumbsUp className="h-4 w-4" /> Dar Kudos
-          </button>
-          <button className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900">
-            <MessageCircle className="h-4 w-4" /> Comentar
-          </button>
+          <div
+            className="relative"
+            onMouseEnter={() => setShowPicker(true)}
+            onMouseLeave={() => setShowPicker(false)}
+          >
+            {workout.currentUserReaction ? (
+              (() => {
+                const style = REACTION_STYLES[workout.currentUserReaction]
+                if (!style) return null
+                return (
+                  <button
+                    onClick={() => handleToggleReaction(workout.currentUserReaction as any)}
+                    disabled={isReacting}
+                    className={`cursor-pointer flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-bold transition-all duration-300 ${style.bgClass} ${style.colorClass} ${style.borderClass} shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50`}
+                  >
+                    <span>{style.emoji}</span>
+                    <span>{style.label}</span>
+                  </button>
+                )
+              })()
+            ) : (
+              <button
+                onClick={() => setShowPicker(!showPicker)}
+                disabled={isReacting}
+                className="cursor-pointer flex items-center gap-1.5 text-sm font-bold text-gray-500 transition-colors hover:text-orange-500 rounded-full px-3 py-1 border border-transparent hover:bg-gray-100/50 active:scale-95 disabled:opacity-50"
+              >
+                <Smile className="h-4.5 w-4.5" />
+                <span>Reagir</span>
+              </button>
+            )}
+
+            {showPicker && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowPicker(false)} />
+                <div className="absolute bottom-full left-0 mb-2 z-50 flex items-center gap-2 rounded-full border border-gray-100 bg-white p-1.5 shadow-xl animate-in fade-in slide-in-from-bottom-2 duration-200">
+                  {Object.entries(REACTION_STYLES).map(([key, style]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleToggleReaction(key as any)}
+                      disabled={isReacting}
+                      className="cursor-pointer text-xl transition-transform duration-200 hover:scale-125 active:scale-95 p-1 rounded-full hover:bg-gray-50 disabled:opacity-50"
+                      title={style.label}
+                    >
+                      {style.emoji}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
     </article>

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Activity,
@@ -17,6 +17,7 @@ import {
   Trash2,
   AlertTriangle,
   Loader2,
+  Calendar,
 } from 'lucide-react'
 import { Header } from '@/components/header'
 import {
@@ -26,11 +27,14 @@ import {
   WorkoutType,
 } from '@/components/workout-card'
 import { CreateWorkoutModal } from '@/components/workout-modal'
+import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
 import { setCookie } from 'cookies-next'
 import { useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from 'sonner'
 import { deleteWorkoutAction } from './actions'
+import { JoinFeedbackModal } from '@/components/join-feedback-modal'
+import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 import {
   Dialog,
   DialogContent,
@@ -79,6 +83,9 @@ interface DashboardClientProps {
     type: string
     count: number
   }>
+  myPlannedWorkouts?: Workout[]
+  myCompletedWorkouts?: Workout[]
+  isStravaConnected?: boolean
 }
 
 export function DashboardClient({
@@ -90,11 +97,121 @@ export function DashboardClient({
   ranking,
   members,
   typeStats,
+  myPlannedWorkouts = [],
+  myCompletedWorkouts = [],
+  isStravaConnected = false,
 }: DashboardClientProps) {
   const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false)
   const [feed, setFeed] = useState<Workout[]>(initialFeed)
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
+
+  // Tab & Calendar States
+  const [activeTab, setActiveTab] = useState<'feed' | 'agenda'>('feed')
+  const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState<Date | null>(new Date())
+  const [selectedWorkout, setSelectedWorkout] = useState<Workout | null>(null)
+  const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false)
+
+  const handlePrevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
+  }
+
+  const handleNextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
+  }
+
+  const daysInMonth = useMemo(() => {
+    const year = currentMonth.getFullYear()
+    const month = currentMonth.getMonth()
+    const firstDayIndex = new Date(year, month, 1).getDay() // 0 = Sunday
+    const totalDays = new Date(year, month + 1, 0).getDate()
+    
+    const days: Array<{ date: Date; isCurrentMonth: boolean }> = []
+    
+    // Days from previous month to fill the first week row
+    const prevMonthTotalDays = new Date(year, month, 0).getDate()
+    for (let i = firstDayIndex - 1; i >= 0; i--) {
+      days.push({
+        date: new Date(year, month - 1, prevMonthTotalDays - i),
+        isCurrentMonth: false,
+      })
+    }
+    
+    // Current month days
+    for (let i = 1; i <= totalDays; i++) {
+      days.push({
+        date: new Date(year, month, i),
+        isCurrentMonth: true,
+      })
+    }
+    
+    // Days from next month to pad the grid (multiple of 7)
+    const remaining = 42 - days.length
+    for (let i = 1; i <= remaining; i++) {
+      days.push({
+        date: new Date(year, month + 1, i),
+        isCurrentMonth: false,
+      })
+    }
+    
+    return days
+  }, [currentMonth])
+
+  const workoutsByDay = useMemo(() => {
+    const map: Record<string, { planned: Workout[]; completed: Workout[] }> = {}
+    
+    const allUserWorkouts = [...(myPlannedWorkouts || []), ...(myCompletedWorkouts || [])]
+    
+    allUserWorkouts.forEach((w) => {
+      const dateStr = w.date || w.createdAt
+      if (!dateStr) return
+      const d = new Date(dateStr)
+      const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+      if (!map[key]) {
+        map[key] = { planned: [], completed: [] }
+      }
+      if (w.status === 'PLANNED') {
+        map[key].planned.push(w)
+      } else {
+        map[key].completed.push(w)
+      }
+    })
+    
+    return map
+  }, [myPlannedWorkouts, myCompletedWorkouts])
+
+  // Assinatura do Atleta e Adesão ao Clube
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
+  const [feedbackType, setFeedbackType] = useState<'success' | 'error'>('success')
+  const [isPendingState, setIsPendingState] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+    }
+  }, [])
+
+  const handleJoinRequest = async () => {
+    if (!isSubscribed) {
+      setIsIncentiveOpen(true)
+      return
+    }
+
+    try {
+      const { requestJoinClub } = await import('@/http/request-join-club')
+      await requestJoinClub(club.slug)
+      setIsPendingState(true)
+      setFeedbackType('success')
+      setIsFeedbackOpen(true)
+    } catch (err) {
+      console.error(err)
+      setFeedbackType('error')
+      setIsFeedbackOpen(true)
+    }
+  }
 
   const handleDeleteWorkout = async () => {
     if (!workoutToDelete) return
@@ -119,6 +236,11 @@ export function DashboardClient({
     // Sincroniza o cookie de clube ativo com o clube atual do dashboard
     setCookie('club', club.slug)
   }, [club.slug])
+
+  useEffect(() => {
+    // Sincroniza o feed com as props atualizadas vindas do servidor
+    setFeed(initialFeed)
+  }, [initialFeed])
 
   const currentUserId = 'usr-1'
 
@@ -275,8 +397,18 @@ export function DashboardClient({
                 >
                   <Plus className="h-5 w-5" /> REGISTRAR TREINO
                 </button>
+              ) : isPendingState ? (
+                <button
+                  disabled
+                  className="flex cursor-not-allowed items-center justify-center gap-2 rounded-2xl bg-orange-50 px-8 py-4 text-sm font-black text-orange-500"
+                >
+                  <Loader2 className="h-5 w-5 animate-spin" /> SOLICITAÇÃO PENDENTE
+                </button>
               ) : (
-                <button className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 text-sm font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95">
+                <button 
+                  onClick={handleJoinRequest}
+                  className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orange-500 px-8 py-4 text-sm font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95"
+                >
                   <UserPlus className="h-5 w-5" /> PARTICIPAR DO CLUBE
                 </button>
               )}
@@ -288,42 +420,200 @@ export function DashboardClient({
             LAYOUT PRINCIPAL (Feed + Sidebar)
         ========================================== */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
-          {/* COLUNA ESQUERDA: Feed de Treinos (70%) */}
+          {/* COLUNA ESQUERDA: Feed de Treinos ou Agenda (70%) */}
           <div className="space-y-6 lg:col-span-8">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
-                <Activity className="h-5 w-5 text-orange-500" /> Atividades
-                Recentes
-              </h2>
+              <div className="flex items-center gap-1 rounded-2xl bg-gray-100 p-1">
+                <button
+                  onClick={() => setActiveTab('feed')}
+                  className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition-all ${activeTab === 'feed' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  <Users className="h-4 w-4" /> PELOTÃO
+                </button>
+                <button
+                  onClick={() => setActiveTab('agenda')}
+                  className={`flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-black transition-all ${activeTab === 'agenda' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                >
+                  <Calendar className="h-4 w-4" /> MINHA AGENDA
+                </button>
+              </div>
             </div>
 
-            {feed.filter((w) => w.status === 'COMPLETED').length > 0 ? (
-              feed
-                .filter((w) => w.status === 'COMPLETED')
-                .map((workout) => (
-                  <WorkoutCard
-                    key={workout.id}
-                    workout={workout}
-                    currentUserId={user.id}
-                    userRole={userRole}
-                    onDelete={(id) => setWorkoutToDelete(id)}
-                  />
-                ))
+            {activeTab === 'feed' ? (
+              <>
+                {feed.filter((w) => w.status === 'COMPLETED').length > 0 ? (
+                  feed
+                    .filter((w) => w.status === 'COMPLETED')
+                    .map((workout) => (
+                      <WorkoutCard
+                        key={workout.id}
+                        workout={workout}
+                        currentUserId={user.id}
+                        userRole={userRole}
+                        onDelete={(id) => setWorkoutToDelete(id)}
+                      />
+                    ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
+                    <Flame className="mb-4 h-10 w-10 text-gray-300" />
+                    <h3 className="mb-1 text-lg font-extrabold text-gray-900">
+                      O feed está vazio
+                    </h3>
+                    <p className="text-sm font-medium text-gray-500">
+                      Seja o primeiro a registrar um treino e motivar o pelotão!
+                    </p>
+                  </div>
+                )}
+
+                <button className="w-full cursor-pointer rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600">
+                  Carregar mais atividades
+                </button>
+              </>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-gray-200 bg-white px-4 py-16 text-center">
-                <Flame className="mb-4 h-10 w-10 text-gray-300" />
-                <h3 className="mb-1 text-lg font-extrabold text-gray-900">
-                  O feed está vazio
-                </h3>
-                <p className="text-sm font-medium text-gray-500">
-                  Seja o primeiro a registrar um treino e motivar o pelotão!
-                </p>
+              <div className="rounded-4xl border border-gray-100 bg-white p-6 shadow-sm">
+                {/* Calendar Header */}
+                <div className="mb-6 flex items-center justify-between">
+                  <h3 className="text-lg font-black text-gray-900 capitalize">
+                    {currentMonth.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
+                  </h3>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handlePrevMonth}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95 transition-all text-sm font-bold"
+                    >
+                      ◀
+                    </button>
+                    <button
+                      onClick={handleNextMonth}
+                      className="flex h-8 w-8 items-center justify-center rounded-xl bg-gray-50 border border-gray-100 text-gray-600 hover:bg-gray-100 hover:text-gray-900 active:scale-95 transition-all text-sm font-bold"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                </div>
+
+                {/* Day of Week Headers */}
+                <div className="grid grid-cols-7 gap-1 text-center mb-2">
+                  {['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'].map((day) => (
+                    <span key={day} className="text-[10px] font-black uppercase text-gray-400">
+                      {day}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7 gap-2">
+                  {daysInMonth.map(({ date, isCurrentMonth }, idx) => {
+                    const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+                    const dayData = workoutsByDay[dayKey] || { planned: [], completed: [] }
+                    const hasPlanned = dayData.planned.length > 0
+                    const hasCompleted = dayData.completed.length > 0
+                    const isSelected = selectedDay && 
+                      selectedDay.getDate() === date.getDate() && 
+                      selectedDay.getMonth() === date.getMonth() && 
+                      selectedDay.getFullYear() === date.getFullYear()
+                    
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedDay(date)}
+                        className={`relative aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all active:scale-95 ${
+                          isSelected 
+                            ? 'border-orange-500 bg-orange-50/30 text-orange-600 ring-2 ring-orange-500/25' 
+                            : isCurrentMonth 
+                              ? 'border-gray-50 bg-gray-50/30 text-gray-800 hover:bg-gray-50' 
+                              : 'border-transparent text-gray-300 hover:bg-gray-50/20'
+                        }`}
+                      >
+                        <span className="text-sm font-extrabold">{date.getDate()}</span>
+                        
+                        {/* Indicators */}
+                        <div className="absolute bottom-1.5 flex gap-1">
+                          {hasCompleted && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/30" />
+                          )}
+                          {hasPlanned && (
+                            <span className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/30" />
+                          )}
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Selected Day Details */}
+                {selectedDay && (
+                  <div className="mt-8 border-t border-gray-100 pt-6">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-gray-400 mb-4">
+                      Agenda para {selectedDay.toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                    </h4>
+                    {(() => {
+                      const dayKey = `${selectedDay.getFullYear()}-${selectedDay.getMonth()}-${selectedDay.getDate()}`
+                      const dayData = workoutsByDay[dayKey] || { planned: [], completed: [] }
+                      const totalWorkouts = dayData.planned.length + dayData.completed.length
+
+                      if (totalWorkouts === 0) {
+                        return (
+                          <div className="py-6 flex flex-col items-center justify-center border border-dashed border-gray-200 rounded-3xl bg-gray-50/30">
+                            <p className="text-xs font-semibold text-gray-400 italic mb-4">
+                              Nenhum treino agendado ou realizado para este dia.
+                            </p>
+                            <button
+                              onClick={() => setIsWorkoutModalOpen(true)}
+                              className="flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs px-4 py-2 transition-all active:scale-95 shadow-sm cursor-pointer"
+                            >
+                              <Plus className="h-3.5 w-3.5" />
+                              {userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN' ? 'PRESCREVER TREINO' : 'REGISTRAR TREINO'}
+                            </button>
+                          </div>
+                        )
+                      }
+
+                      return (
+                        <div className="space-y-4">
+                          {dayData.planned.map((w) => (
+                            <div key={w.id} className="relative rounded-2xl border border-orange-200 bg-orange-50/20 p-4">
+                              <div className="absolute top-4 right-4 flex items-center gap-1.5 rounded-full bg-orange-500 px-2 py-0.5 text-[9px] font-black uppercase text-white shadow-sm">
+                                Meta Planejada
+                              </div>
+                              <h5 className="font-extrabold text-gray-900 pr-20">{w.title}</h5>
+                              <p className="text-xs text-gray-500 mt-1 font-medium">{w.description}</p>
+                              <div className="mt-3 flex items-center justify-between">
+                                <div className="flex gap-4 text-xs font-bold text-gray-600">
+                                  <span>Distância: {w.distance} km</span>
+                                  {w.durationInSeconds > 0 && (
+                                    <span>Tempo: {Math.floor(w.durationInSeconds / 60)} min</span>
+                                  )}
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    setSelectedWorkout(w)
+                                    setIsCompleteModalOpen(true)
+                                  }}
+                                  className="rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-black text-xs px-4 py-2 transition-all active:scale-95"
+                                >
+                                  FINALIZAR
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {dayData.completed.map((w) => (
+                            <WorkoutCard
+                              key={w.id}
+                              workout={w}
+                              currentUserId={user.id}
+                              userRole={userRole}
+                              onDelete={(id) => setWorkoutToDelete(id)}
+                            />
+                          ))}
+                        </div>
+                      )
+                    })()}
+                  </div>
+                )}
               </div>
             )}
-
-            <button className="w-full cursor-pointer rounded-xl bg-orange-50 py-4 text-sm font-bold text-orange-500 transition-colors hover:bg-orange-100 hover:text-orange-600">
-              Carregar mais atividades
-            </button>
           </div>
 
           {/* COLUNA DIREITA: Sidebar (30%) */}
@@ -480,6 +770,7 @@ export function DashboardClient({
         slug={club.slug}
         userRole={userRole}
         members={members}
+        defaultDate={activeTab === 'agenda' && selectedDay ? selectedDay : undefined}
         onClose={() => setIsWorkoutModalOpen(false)}
         onSuccess={() => {
           setIsWorkoutModalOpen(false)
@@ -530,6 +821,30 @@ export function DashboardClient({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <JoinFeedbackModal
+        isOpen={isFeedbackOpen}
+        onClose={() => setIsFeedbackOpen(false)}
+        type={feedbackType}
+        clubName={club.name}
+      />
+
+      <SubscriptionIncentiveModal
+        isOpen={isIncentiveOpen}
+        onClose={() => setIsIncentiveOpen(false)}
+        clubName={club.name}
+        clubSlug={club.slug}
+      />
+
+      <CompleteWorkoutModal
+        isOpen={isCompleteModalOpen}
+        workout={selectedWorkout}
+        isStravaConnected={isStravaConnected}
+        onClose={() => setIsCompleteModalOpen(false)}
+        onSuccess={() => {
+          // Re-load of dashboard values handles refresh automatically via Next Server Actions
+        }}
+      />
     </div>
   )
 }

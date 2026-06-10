@@ -1,11 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Search, Flame, Compass } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import { Header } from '@/components/header'
 import { ClubCard, Club } from '@/components/club-card'
 import { requestJoinClub } from '@/http/request-join-club'
 import { JoinFeedbackModal } from '@/components/join-feedback-modal'
+import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 
 interface ExploreClubsClientProps {
   user: {
@@ -18,6 +20,7 @@ interface ExploreClubsClientProps {
 }
 
 export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientProps) {
+  const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [clubs, setClubs] = useState<Club[]>(initialClubs)
   
@@ -25,6 +28,37 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalType, setModalType] = useState<'success' | 'error'>('success')
   const [selectedClubName, setSelectedClubName] = useState('')
+
+  // Assinatura do Atleta
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
+  const [incentiveClubName, setIncentiveClubName] = useState('')
+  const [incentiveClubSlug, setIncentiveClubSlug] = useState('')
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+    }
+  }, [])
+
+  useEffect(() => {
+    const checkoutComplete = searchParams.get('checkoutComplete')
+    const joinedClubName = searchParams.get('joinedClubName')
+    if (checkoutComplete === 'true') {
+      if (joinedClubName) {
+        setSelectedClubName(decodeURIComponent(joinedClubName))
+        setModalType('success')
+        setIsModalOpen(true)
+      }
+      
+      // Atualiza o estado local de assinatura
+      setIsSubscribed(true)
+
+      // Limpa os parâmetros da URL para uma navegação limpa
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [searchParams])
 
   const filteredClubs = clubs.filter(
     (c) =>
@@ -34,6 +68,14 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
   )
 
   const handleJoinRequest = async (clubId: string, slug: string, name: string) => {
+    // Se o usuário não for assinante premium, abre o modal de incentivo
+    if (!isSubscribed) {
+      setIncentiveClubName(name)
+      setIncentiveClubSlug(slug)
+      setIsIncentiveOpen(true)
+      return
+    }
+
     try {
       await requestJoinClub(slug)
       
@@ -127,6 +169,13 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
         onClose={() => setIsModalOpen(false)}
         type={modalType}
         clubName={selectedClubName}
+      />
+
+      <SubscriptionIncentiveModal
+        isOpen={isIncentiveOpen}
+        onClose={() => setIsIncentiveOpen(false)}
+        clubName={incentiveClubName}
+        clubSlug={incentiveClubSlug}
       />
     </div>
   )

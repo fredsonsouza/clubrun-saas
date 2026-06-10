@@ -36,9 +36,18 @@ export async function getUserProfile(app: FastifyInstance) {
                 weight: z.number().nullable().optional(),
                 height: z.number().nullable().optional(),
                 gender: z.any().nullable().optional(),
+                birthDate: z.any().nullable().optional(),
                 instagramUrl: z.string().nullable().optional(),
                 stravaUrl: z.string().nullable().optional(),
                 coverUrl: z.string().nullable().optional(),
+                shoes: z.string().nullable().optional(),
+                shoesMaxDistance: z.number().nullable().optional(),
+                shoesRemainingDistance: z.number().nullable().optional(),
+                watch: z.string().nullable().optional(),
+                hasMedicalConditions: z.boolean().optional(),
+                medicalConditions: z.string().nullable().optional(),
+                isPremium: z.boolean().optional(),
+                isStravaConnected: z.boolean().optional(),
               }).nullable(),
               stats: z.object({
                 avgPace: z.number().optional(),
@@ -66,6 +75,12 @@ export async function getUserProfile(app: FastifyInstance) {
             email: true,
             avatarUrl: true,
             isSystemAdmin: true,
+            clubsOwned: {
+              select: { id: true }
+            },
+            members_on: {
+              select: { role: true }
+            },
             athleteProfile: {
               select: {
                 bio: true,
@@ -74,9 +89,18 @@ export async function getUserProfile(app: FastifyInstance) {
                 weight: true,
                 height: true,
                 gender: true,
+                birthDate: true,
                 instagramUrl: true,
                 stravaUrl: true,
                 coverUrl: true,
+                shoes: true,
+                shoesMaxDistance: true,
+                shoesRemainingDistance: true,
+                watch: true,
+                hasMedicalConditions: true,
+                medicalConditions: true,
+                stravaAthleteId: true,
+                isPremium: true,
               }
             },
           },
@@ -125,6 +149,12 @@ export async function getUserProfile(app: FastifyInstance) {
                 name: true,
                 slug: true,
               }
+            },
+            reactions: {
+              select: {
+                type: true,
+                userId: true,
+              }
             }
           },
           orderBy: {
@@ -144,12 +174,48 @@ export async function getUserProfile(app: FastifyInstance) {
                 name: true,
                 slug: true,
               }
+            },
+            reactions: {
+              select: {
+                type: true,
+                userId: true,
+              }
             }
           },
           orderBy: {
             date: 'asc',
           },
         }) : []
+
+        const formatReactions = (wList: any[]) => {
+          return wList.map((workout) => {
+            const reactionCounts: Record<string, number> = {}
+            let currentUserReaction: string | null = null
+
+            workout.reactions?.forEach((reaction: any) => {
+              reactionCounts[reaction.type] = (reactionCounts[reaction.type] || 0) + 1
+              if (reaction.userId === currentUserId) {
+                currentUserReaction = reaction.type
+              }
+            })
+
+            const formattedReactions = Object.entries(reactionCounts).map(([type, count]) => ({
+              type,
+              count,
+            }))
+
+            const { reactions: _, ...rest } = workout
+
+            return {
+              ...rest,
+              reactions: formattedReactions,
+              currentUserReaction,
+            }
+          })
+        }
+
+        const isClubAdmin = user.clubsOwned.length > 0 || user.members_on.some(m => ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role))
+        const isPremium = isClubAdmin || user.isSystemAdmin || user.athleteProfile?.isPremium || false
 
         return reply.send({
           user: {
@@ -166,17 +232,26 @@ export async function getUserProfile(app: FastifyInstance) {
             weight: user.athleteProfile.weight,
             height: user.athleteProfile.height,
             gender: user.athleteProfile.gender,
+            birthDate: user.athleteProfile.birthDate,
             instagramUrl: user.athleteProfile.instagramUrl,
             stravaUrl: user.athleteProfile.stravaUrl,
             coverUrl: user.athleteProfile.coverUrl,
+            shoes: user.athleteProfile.shoes,
+            shoesMaxDistance: user.athleteProfile.shoesMaxDistance,
+            shoesRemainingDistance: user.athleteProfile.shoesRemainingDistance,
+            watch: user.athleteProfile.watch,
+            hasMedicalConditions: isOwner || user.isSystemAdmin ? user.athleteProfile.hasMedicalConditions : false,
+            medicalConditions: isOwner || user.isSystemAdmin ? user.athleteProfile.medicalConditions : null,
+            isPremium,
+            isStravaConnected: !!user.athleteProfile.stravaAthleteId,
           } : null,
           stats: {
             avgPace,
             totalDistance,
             totalWorkouts,
           },
-          workouts,
-          plannedWorkouts,
+          workouts: formatReactions(workouts),
+          plannedWorkouts: formatReactions(plannedWorkouts),
         })
       }
     )

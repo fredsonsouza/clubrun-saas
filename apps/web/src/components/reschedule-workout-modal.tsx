@@ -22,12 +22,17 @@ export function RescheduleWorkoutModal({
   onSuccess,
 }: RescheduleWorkoutModalProps) {
   const [date, setDate] = useState('')
+  const [time, setTime] = useState('06:00')
   const [isLoading, setIsLoading] = useState(false)
 
   React.useEffect(() => {
     if (workout && isOpen) {
       const d = new Date(workout.createdAt ?? (workout as any).date)
       setDate(d.toLocaleDateString('pt-BR'))
+      
+      const hours = String(d.getHours()).padStart(2, '0')
+      const minutes = String(d.getMinutes()).padStart(2, '0')
+      setTime(`${hours}:${minutes}`)
     }
   }, [workout, isOpen])
 
@@ -61,8 +66,7 @@ export function RescheduleWorkoutModal({
       now.getDate() === newDate.getDate()
 
     if (isTodayTarget) {
-      const workoutTime = workout.date ? new Date(workout.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '06:00'
-      const workoutDateTime = parse(`${formattedDate} ${workoutTime}`, 'yyyy-MM-dd HH:mm', new Date())
+      const workoutDateTime = parse(`${formattedDate} ${time}`, 'yyyy-MM-dd HH:mm', new Date())
       
       if (isBefore(workoutDateTime, addHours(now, 2))) {
         toast.error('Reagendamentos para o mesmo dia devem ser feitos com no mínimo 2h de antecedência.')
@@ -77,7 +81,7 @@ export function RescheduleWorkoutModal({
     formData.append('title', workout.title)
     formData.append('distance', workout.distance.toString())
     formData.append('type', workout.type)
-    formData.append('date', formattedDate)
+    formData.append('date', `${formattedDate}T${time}:00`)
     
     // Duration and pace from workout if exists
     const duration = workout.durationInSeconds ?? (workout as any).duration
@@ -103,7 +107,7 @@ export function RescheduleWorkoutModal({
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200">
       <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={onClose} />
 
-      <div className="animate-in zoom-in-95 relative w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-2xl">
+      <div className="animate-in zoom-in-95 relative w-full max-w-sm rounded-3xl bg-white shadow-2xl">
         <header className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
           <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
             <CalendarIcon className="h-5 w-5 text-orange-500" />
@@ -120,15 +124,32 @@ export function RescheduleWorkoutModal({
             <p className="text-sm font-bold text-gray-900">{workout.title}</p>
           </div>
 
-          <DatePicker
-            label="Nova Data"
-            value={date}
-            onChange={setDate}
-            required
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <DatePicker
+              label="Nova Data"
+              value={date}
+              onChange={setDate}
+              required
+            />
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">Novo Horário</label>
+              <input
+                type="text"
+                required
+                value={time}
+                onChange={(e) => {
+                  let val = e.target.value.replace(/\D/g, '')
+                  if (val.length > 4) val = val.slice(0, 4)
+                  if (val.length > 2) val = val.replace(/(\d{2})(\d{2})/, '$1:$2')
+                  setTime(val)
+                }}
+                className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
+              />
+            </div>
+          </div>
 
           <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
-            Ao reagendar, o treino continuará na sua agenda, mas aparecerá na nova data escolhida.
+            Ao reagendar, o treino continuará na sua agenda, mas aparecerá na nova data e horário escolhidos.
           </p>
 
           <button

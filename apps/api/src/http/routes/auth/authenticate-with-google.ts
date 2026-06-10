@@ -112,6 +112,7 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
             athleteProfile: {
               create: {
                 isPublic: true,
+                birthDate: new Date('2000-01-01'),
               }
             }
           },

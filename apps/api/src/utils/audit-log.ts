@@ -8,24 +8,37 @@ interface CreateAuditLogParams {
   payload?: any
 }
 
-export async function createAuditLog({
+export function createAuditLog({
   action,
   entity,
   entityId,
   userId,
   payload,
-}: CreateAuditLogParams) {
-  try {
-    await prisma.auditLog.create({
-      data: {
-        action,
-        entity,
-        entityId,
-        userId,
-        payload,
-      },
-    })
-  } catch (error) {
-    console.error('Failed to create audit log:', error)
-  }
+}: CreateAuditLogParams): void {
+  setImmediate(() => {
+    // Defensive checks for unit test environments
+    if (!prisma || !prisma.auditLog || typeof prisma.auditLog.create !== 'function') {
+      return
+    }
+
+    try {
+      const promise = prisma.auditLog.create({
+        data: {
+          action,
+          entity,
+          entityId,
+          userId,
+          payload,
+        },
+      })
+
+      if (promise && typeof promise.catch === 'function') {
+        promise.catch((error) => {
+          console.error('Failed to create audit log in background:', error)
+        })
+      }
+    } catch (error) {
+      console.error('Failed to initiate audit log creation:', error)
+    }
+  })
 }

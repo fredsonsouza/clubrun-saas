@@ -14,6 +14,7 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { Header } from '@/components/header'
+import { subscribeAthlete } from '@/http/subscribe-athlete'
 
 interface CheckoutClientProps {
   user: {
@@ -38,6 +39,19 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
 
   const getPlanInfo = (planName: string) => {
     switch (planName) {
+      case 'athlete':
+        return {
+          name: 'Atleta Premium',
+          price: 'R$ 9,90',
+          interval: 'por mês',
+          features: [
+            'Participar de clubes ilimitados',
+            'Registrar treinos e planilhas',
+            'Perfil completo de atleta com bio e capa',
+            'Estatísticas avançadas de ritmo e distância',
+            'Conexão com Instagram e Strava',
+          ],
+        }
       case 'starter':
         return {
           name: 'Plano Starter',
@@ -45,7 +59,7 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
           interval: 'por mês',
           features: [
             'Até 30 atletas ativos',
-            '1 Clube exclusivo',
+            '1 Clube exclusive',
             'Dashboard do Treinador',
             'Aprovação de convites',
           ],
@@ -90,10 +104,37 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
       setShowSuccess(true)
       
       // Pequeno delay para mostrar o sucesso antes de redirecionar
-      setTimeout(() => {
+      setTimeout(async () => {
         const role = searchParams.get('role')
-        if (role === 'athlete') {
-          router.push('/explore?checkoutComplete=true')
+        if (role === 'athlete' || plan === 'athlete') {
+          // Persiste a assinatura premium do atleta no banco de dados
+          try {
+            await subscribeAthlete()
+          } catch (err) {
+            console.error('Erro ao salvar assinatura no banco de dados:', err)
+          }
+
+          // Salva no localStorage e nos cookies que o atleta é assinado
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('clubrun:athlete_subscribed', 'true')
+            document.cookie = 'athlete_subscribed=true; path=/; max-age=31536000'
+          }
+
+          const clubSlug = searchParams.get('clubSlug')
+          const clubName = searchParams.get('clubName')
+
+          if (clubSlug) {
+            try {
+              const { requestJoinClub } = await import('@/http/request-join-club')
+              await requestJoinClub(clubSlug)
+              router.push(`/explore?checkoutComplete=true&joinedClubName=${encodeURIComponent(clubName || 'Clube')}`)
+            } catch (err) {
+              console.error('Erro ao pedir para participar:', err)
+              router.push('/explore?checkoutComplete=true')
+            }
+          } else {
+            router.push('/explore?checkoutComplete=true')
+          }
         } else {
           router.push('/create-club?checkoutComplete=true')
         }

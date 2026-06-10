@@ -4,6 +4,7 @@ import { createRace } from '@/http/create-race'
 import { createRaceResult } from '@/http/create-race-result'
 import { updateRace } from '@/http/update-race'
 import { deleteRace } from '@/http/delete-race'
+import { updateRacePaymentStatus } from '@/http/update-race-payment-status'
 import { revalidatePath } from 'next/cache'
 
 export async function createRaceAction(formData: FormData) {
@@ -102,5 +103,28 @@ export async function createRaceResultAction(formData: FormData) {
     return { success: true, message: 'Resultado registrado com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao registrar o resultado.' }
+  }
+}
+
+export async function updateRacePaymentStatusAction(formData: FormData) {
+  const slug = formData.get('slug') as string
+  const raceId = formData.get('raceId') as string
+  const athleteId = formData.get('athleteId') as string
+  const paymentStatus = formData.get('paymentStatus') as 'PENDING' | 'CONFIRMED'
+
+  try {
+    await updateRacePaymentStatus({
+      slug,
+      raceId,
+      athleteId,
+      paymentStatus,
+    })
+
+    revalidatePath(`/${slug}/races`)
+    revalidatePath(`/${slug}/races/${raceId}`)
+
+    return { success: true, message: 'Status de pagamento atualizado!' }
+  } catch (err) {
+    return { success: false, message: 'Erro ao atualizar status de pagamento.' }
   }
 }

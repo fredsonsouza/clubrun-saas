@@ -1,6 +1,8 @@
 import { getWorkouts } from '@/http/get-workouts'
 import { getMembers } from '@/http/get-members'
 import { ReportsClient } from './reports-client'
+import { auth } from '@/auth/auth'
+import { redirect } from 'next/navigation'
 
 export default async function ReportsPage({
   params,
@@ -8,6 +10,11 @@ export default async function ReportsPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const { user } = await auth()
+
+  if (!user) {
+    redirect('/auth/sign-in')
+  }
 
   // Fetch all workouts (PLANNED and COMPLETED) to calculate performance
   const [plannedWorkoutsResponse, completedWorkoutsResponse, membersResponse] = await Promise.all([
@@ -28,6 +35,12 @@ export default async function ReportsPage({
 
   return (
     <ReportsClient
+      user={{
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl,
+      }}
       slug={slug}
       plannedWorkouts={formatWorkouts(plannedWorkoutsResponse.workouts)}
       completedWorkouts={formatWorkouts(completedWorkoutsResponse.workouts)}

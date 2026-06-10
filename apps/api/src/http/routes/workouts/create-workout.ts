@@ -25,9 +25,9 @@ export async function createWorkout(app: FastifyInstance) {
             distance: z.number(),
             duration: z.number().nullable().optional(),
             pace: z.number().optional(),
-            athleteId: z.string().uuid().optional(),
+            athleteId: z.string().uuid().nullable().optional(),
             status: z.enum(['PLANNED', 'COMPLETED']).default('COMPLETED'),
-            assignmentMode: z.enum(['GOAL', 'FREE']).optional(),
+            assignmentMode: z.enum(['GOAL', 'FREE']).nullable().optional(),
             type: z.enum([
               'EASY',
               'INTERVAL',
@@ -111,6 +111,31 @@ export async function createWorkout(app: FastifyInstance) {
           }
         }
 
+        const resolvedStatus = isPrescribing ? 'PLANNED' : status
+
+        let shoesUsed: string | null = null
+
+        if (resolvedStatus === 'COMPLETED') {
+          const athleteProfile = await prisma.athleteProfile.findUnique({
+            where: { userId: targetAthleteId },
+            select: {
+              shoes: true,
+              shoesRemainingDistance: true,
+            },
+          })
+
+          if (athleteProfile?.shoes) {
+            shoesUsed = athleteProfile.shoes
+            if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+              if (athleteProfile.shoesRemainingDistance < distance) {
+                throw new BadRequestError(
+                  `O treino excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). Por favor, realize a troca do calçado.`
+                )
+              }
+            }
+          }
+        }
+
         const workout = await prisma.workout.create({
           data: {
             title,
@@ -122,11 +147,14 @@ export async function createWorkout(app: FastifyInstance) {
             notes,
             routeData,
             originalDate: isPrescribing ? date : null,
-            status: isPrescribing ? 'PLANNED' : status,
+            status: resolvedStatus,
             assignmentMode: isPrescribing ? (assignmentMode || 'FREE') : null,
+            targetDistance: resolvedStatus === 'PLANNED' ? distance : null,
+            targetDuration: resolvedStatus === 'PLANNED' ? duration : null,
             slug: `${createSlug(title)}-${Date.now()}`,
             clubId: club.id,
             athleteId: targetAthleteId,
+            shoesUsed,
           },
         })
 
@@ -135,6 +163,17 @@ export async function createWorkout(app: FastifyInstance) {
           const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')
           
           await updateAthleteRanking(targetAthleteId, club.id, date)
+
+          if (shoesUsed) {
+            await prisma.athleteProfile.update({
+              where: { userId: targetAthleteId },
+              data: {
+                shoesRemainingDistance: {
+                  decrement: distance,
+                },
+              },
+            })
+          }
 
           const athleteStats = await prisma.workout.aggregate({
             where: {

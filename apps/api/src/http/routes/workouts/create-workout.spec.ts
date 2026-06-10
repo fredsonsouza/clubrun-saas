@@ -7,6 +7,9 @@ vi.mock('@/lib/prisma', () => ({
     user: {
       findUnique: vi.fn(),
     },
+    athleteProfile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+    },
     member: {
       findFirst: vi.fn(),
     },
@@ -15,11 +18,21 @@ vi.mock('@/lib/prisma', () => ({
     },
     workout: {
       create: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    ranking: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      update: vi.fn(),
+      create: vi.fn(),
     },
     auditLog: {
       create: vi.fn(),
     },
   },
+}))
+
+vi.mock('@/services/update-athlete-ranking', () => ({
+  updateAthleteRanking: vi.fn(),
 }))
 
 describe('Create Workout (Unit)', () => {

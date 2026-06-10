@@ -1,12 +1,13 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react'
 import { acceptInvite } from '@/http/accept-invite'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 
 interface AcceptInviteFormProps {
   invite: {
@@ -28,10 +29,24 @@ interface AcceptInviteFormProps {
 
 export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
   const router = useRouter()
+  const params = useParams()
+  const slug = (params?.slug as string) || ''
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
+
+  React.useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+    }
+  }, [])
 
   const handleAccept = async () => {
+    if (invite.role === 'ATHLETE' && !isSubscribed) {
+      setIsIncentiveOpen(true)
+      return
+    }
     setIsLoading(true)
     try {
       await acceptInvite(invite.id)
@@ -124,6 +139,13 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
           </p>
         </div>
       </div>
+
+      <SubscriptionIncentiveModal
+        isOpen={isIncentiveOpen}
+        onClose={() => setIsIncentiveOpen(false)}
+        clubName={invite.club.name}
+        clubSlug={slug}
+      />
     </div>
   )
 }

@@ -68,6 +68,7 @@ export async function createAccount(app: FastifyInstance) {
           athleteProfile: {
             create: {
               isPublic: true,
+              birthDate: new Date('2000-01-01'),
             },
           },
           members_on: {

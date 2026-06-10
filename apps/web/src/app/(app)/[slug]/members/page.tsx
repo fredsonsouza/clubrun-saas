@@ -43,10 +43,15 @@ export default async function MembersPage({ params }: MembersPageProps) {
     email: m.email,
     avatarUrl: m.avatarUrl,
     role: m.role,
-    joinedAt: 'Membro Ativo',
+    joinedAt: m.joinedAt ? new Date(m.joinedAt).toLocaleDateString('pt-BR') : 'Membro Ativo',
     subscriptionStatus: 'ACTIVE' as const,
     overdue: m.overdue,
     paceAvg: (m as any).paceAvg,
+    birthDate: m.birthDate,
+    shoes: m.shoes,
+    watch: m.watch,
+    hasMedicalConditions: m.hasMedicalConditions,
+    medicalConditions: m.medicalConditions,
   }))
 
   return (

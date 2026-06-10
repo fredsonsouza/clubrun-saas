@@ -2,6 +2,7 @@
 
 import { deleteWorkout } from '@/http/delete-workout'
 import { createWorkout } from '@/http/create-workout'
+import { toggleWorkoutReaction } from '@/http/toggle-workout-reaction'
 import { revalidatePath } from 'next/cache'
 
 export async function createWorkoutAction(formData: FormData) {
@@ -40,6 +41,14 @@ export async function createWorkoutAction(formData: FormData) {
 
     return { success: true, message: 'Treino registrado com sucesso! Motivando o pelotão...' }
   } catch (err) {
+    console.error('[createWorkoutAction ERROR]', err)
+    if (err && typeof err === 'object' && 'response' in err) {
+      try {
+        const body = await (err.response as any).json()
+        console.error('[createWorkoutAction API ERROR BODY]', body)
+        return { success: false, message: `Erro da API: ${body.message || JSON.stringify(body)}` }
+      } catch (_) {}
+    }
     return { success: false, message: 'Erro ao registrar treino. Verifique os dados.' }
   }
 }
@@ -58,5 +67,24 @@ export async function deleteWorkoutAction({
     return { success: true, message: 'Treino removido com sucesso!' }
   } catch (err) {
     return { success: false, message: 'Erro ao remover o treino.' }
+  }
+}
+
+export async function toggleWorkoutReactionAction({
+  slug,
+  workoutId,
+  type,
+}: {
+  slug: string
+  workoutId: string
+  type: 'LIKE' | 'FIRE' | 'CLAP' | 'TROPHY'
+}) {
+  try {
+    const res = await toggleWorkoutReaction({ slug, workoutId, type })
+    revalidatePath(`/${slug}/dashboard`)
+    revalidatePath(`/profile`)
+    return { success: true, ...res }
+  } catch (err) {
+    return { success: false, message: 'Erro ao reagir ao treino.' }
   }
 }

@@ -31,10 +31,12 @@ import { deleteRace } from '@/http/delete-race'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
 import { deleteRaceAction } from './actions'
+import { PaymentIncentiveModal } from '@/components/payment-incentive-modal'
 
 interface Race {
   id: string
   name: string
+  distance: number
   date: string
   time: string
   rawDate: string
@@ -82,9 +84,13 @@ export function RacesClient({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isToggling, setIsToggling] = useState<string | null>(null)
   
+  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
+  const [incentiveRace, setIncentiveRace] = useState<{ id: string; name: string } | null>(null)
+  
   const [selectedRace, setSelectedRace] = useState<{
     id: string
     name: string
+    distance: number
   } | null>(null)
 
   const commonDistances = ['5km', '10km', '21km', '42km']
@@ -100,12 +106,27 @@ export function RacesClient({
   const canManage =
     userRole === 'OWNER' || userRole === 'MANAGER'
 
-  const handleToggleRegistration = async (raceId: string, isClosed: boolean) => {
+  const handleToggleRegistration = async (
+    raceId: string,
+    isClosed: boolean,
+    isRegistered: boolean,
+    name: string
+  ) => {
     if (isClosed) {
       toast.error('Inscrições encerradas para esta corrida.')
       return
     }
 
+    if (!isRegistered) {
+      setIncentiveRace({ id: raceId, name })
+      setIsIncentiveOpen(true)
+      return
+    }
+
+    await executeToggle(raceId)
+  }
+
+  const executeToggle = async (raceId: string) => {
     setIsToggling(raceId)
     try {
       const result = await toggleRaceRegistration(club.slug, raceId)
@@ -268,7 +289,7 @@ export function RacesClient({
                             <button 
                               onClick={(e) => { 
                                 e.preventDefault(); 
-                                setSelectedRace({ id: race.id, name: race.name });
+                                setSelectedRace({ id: race.id, name: race.name, distance: race.distance });
                                 setIsUpdateModalOpen(true);
                               }}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-100 hover:text-orange-500"
@@ -278,7 +299,7 @@ export function RacesClient({
                             <button 
                               onClick={(e) => { 
                                 e.preventDefault(); 
-                                setSelectedRace({ id: race.id, name: race.name });
+                                setSelectedRace({ id: race.id, name: race.name, distance: race.distance });
                                 setIsDeleteDialogOpen(true);
                               }}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500"
@@ -351,7 +372,7 @@ export function RacesClient({
                           <button
                             onClick={(e) => {
                               e.preventDefault()
-                              handleToggleRegistration(race.id, registrationClosed)
+                              handleToggleRegistration(race.id, registrationClosed, race.isRegistered, race.name)
                             }}
                             disabled={isToggling === race.id || (registrationClosed && !race.isRegistered)}
                             className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 disabled:opacity-50 ${
@@ -378,7 +399,7 @@ export function RacesClient({
                           <button
                             onClick={(e) => {
                               e.preventDefault()
-                              setSelectedRace({ id: race.id, name: race.name })
+                              setSelectedRace({ id: race.id, name: race.name, distance: race.distance })
                               setIsResultModalOpen(true)
                             }}
                             className="flex cursor-pointer items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black tracking-widest text-amber-600 uppercase transition-colors hover:bg-amber-100"
@@ -444,6 +465,7 @@ export function RacesClient({
             slug={club.slug}
             raceId={selectedRace.id}
             raceName={selectedRace.name}
+            raceDistance={selectedRace.distance}
             onClose={() => {
               setIsResultModalOpen(false)
               setSelectedRace(null)
@@ -469,6 +491,18 @@ export function RacesClient({
           />
         </>
       )}
+
+      <PaymentIncentiveModal
+        isOpen={isIncentiveOpen}
+        onClose={() => {
+          setIsIncentiveOpen(false)
+          setIncentiveRace(null)
+        }}
+        onConfirm={() => {
+          if (incentiveRace) executeToggle(incentiveRace.id)
+        }}
+        raceName={incentiveRace?.name || ''}
+      />
     </div>
   )
 }

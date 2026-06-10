@@ -26,6 +26,7 @@ export function getProfile(app: FastifyInstance) {
                 isSystemAdmin: z.boolean(),
                 emailVerifiedAt: z.date().nullable(),
                 hasPassword: z.boolean(),
+                isPremium: z.boolean(),
               }),
             }),
           },
@@ -43,6 +44,13 @@ export function getProfile(app: FastifyInstance) {
             isSystemAdmin: true,
             emailVerifiedAt: true,
             passwordHash: true,
+            clubsOwned: { select: { id: true } },
+            members_on: { select: { role: true } },
+            athleteProfile: {
+              select: {
+                isPremium: true
+              }
+            }
           },
           where: {
             id: userId,
@@ -52,6 +60,9 @@ export function getProfile(app: FastifyInstance) {
           throw new BadRequestError('User not found!')
         }
 
+        const isClubAdmin = user.clubsOwned.length > 0 || user.members_on.some(m => ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role))
+        const isPremium = isClubAdmin || user.isSystemAdmin || user.athleteProfile?.isPremium || false
+
         return reply.send({ 
           user: {
             id: user.id,
@@ -60,7 +71,8 @@ export function getProfile(app: FastifyInstance) {
             avatarUrl: user.avatarUrl,
             isSystemAdmin: user.isSystemAdmin,
             emailVerifiedAt: user.emailVerifiedAt,
-            hasPassword: !!user.passwordHash
+            hasPassword: !!user.passwordHash,
+            isPremium
           }
         })
       }

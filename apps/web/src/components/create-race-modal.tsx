@@ -140,6 +140,9 @@ export function CreateRaceModal({
     
     // Pattern: City, UF
     const location = `${selectedCity}, ${selectedState}`
+    formData.append('slug', slug)
+    formData.append('name', name)
+    formData.append('distance', distance)
     formData.append('city', location)
     
     // Already formatted above for validation

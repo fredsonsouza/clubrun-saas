@@ -107,6 +107,11 @@ export function VerifyEmailForm() {
       <div className="border-t border-gray-100 pt-6 text-center">
         <a 
           href="/api/auth/sign-out"
+          onClick={() => {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('clubrun:athlete_subscribed')
+            }
+          }}
           className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-gray-600"
         >
           <LogOut className="h-4 w-4" />

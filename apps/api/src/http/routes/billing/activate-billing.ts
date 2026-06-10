@@ -5,6 +5,7 @@ import { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 
 export async function activateBilling(app: FastifyInstance) {
   app
@@ -46,6 +47,14 @@ export async function activateBilling(app: FastifyInstance) {
             stripeCustomerId: `cus_simulated_${Date.now()}`,
             stripeSubscriptionId: `sub_simulated_${Date.now()}`,
           },
+        })
+
+        createAuditLog({
+          action: 'BILLING_ACTIVATED',
+          entity: 'CLUB',
+          entityId: club.id,
+          userId,
+          payload: { slug, subscriptionStatus: 'ACTIVE' },
         })
 
         return reply.status(204).send()

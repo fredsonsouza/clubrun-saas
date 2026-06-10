@@ -25,6 +25,8 @@ export async function completeWorkout(app: FastifyInstance) {
             distance: z.number().optional(), // In case they want to adjust
             duration: z.number(),
             notes: z.string().nullish(),
+            stravaActivityId: z.string().optional(),
+            syncSource: z.string().optional(),
           }),
           response: {
             204: z.null(),
@@ -52,9 +54,29 @@ export async function completeWorkout(app: FastifyInstance) {
           throw new BadRequestError('Workout already completed')
         }
 
-        const { distance, duration, notes } = request.body
+        const { distance, duration, notes, stravaActivityId, syncSource } = request.body
         const finalDistance = distance || workout.distance
         const finalPace = (duration / 60) / finalDistance
+
+        let shoesUsed: string | null = null
+        const athleteProfile = await prisma.athleteProfile.findUnique({
+          where: { userId },
+          select: {
+            shoes: true,
+            shoesRemainingDistance: true,
+          },
+        })
+
+        if (athleteProfile?.shoes) {
+          shoesUsed = athleteProfile.shoes
+          if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+            if (athleteProfile.shoesRemainingDistance < finalDistance) {
+              throw new BadRequestError(
+                `O treino excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). Por favor, realize a troca do calçado.`
+              )
+            }
+          }
+        }
 
         await prisma.workout.update({
           where: { id: workoutId },
@@ -65,8 +87,24 @@ export async function completeWorkout(app: FastifyInstance) {
             notes: notes || workout.notes,
             status: 'COMPLETED',
             date: new Date(), // Set completion date to now or preserve planned date? User said "when member finishes". Usually now.
+            stravaActivityId: stravaActivityId || null,
+            syncSource: syncSource || 'MANUAL',
+            targetDistance: workout.targetDistance || workout.distance,
+            targetDuration: workout.targetDuration || workout.duration,
+            shoesUsed,
           },
         })
+
+        if (shoesUsed) {
+          await prisma.athleteProfile.update({
+            where: { userId },
+            data: {
+              shoesRemainingDistance: {
+                decrement: finalDistance,
+              },
+            },
+          })
+        }
 
         // Update AthleteProfile and Ranking
         const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')

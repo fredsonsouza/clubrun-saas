@@ -21,8 +21,11 @@ import { toast } from 'sonner'
 import { createWorkoutAction } from '@/app/(app)/[slug]/dashboard/actions'
 import { DatePicker } from './date-picker'
 import { WarningModal } from './warning-modal'
+import { ShoeIcon } from '@/components/shoe-icon'
 import { isBefore, startOfDay, parseISO, parse, addHours, isSameDay } from 'date-fns'
 import dynamic from 'next/dynamic'
+import { getProfile } from '@/http/get-profile'
+import { getUserProfile } from '@/http/get-user-profile'
 
 const MapEditor = dynamic(() => import('./map-editor').then(mod => mod.MapEditor), { 
   ssr: false,
@@ -36,6 +39,7 @@ interface CreateWorkoutModalProps {
   onSuccess?: () => void
   userRole?: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   members?: Array<{ id: string, name: string, userId: string }>
+  defaultDate?: Date
 }
 
 export function CreateWorkoutModal({
@@ -45,12 +49,13 @@ export function CreateWorkoutModal({
   onSuccess,
   userRole,
   members = [],
+  defaultDate,
 }: CreateWorkoutModalProps) {
   const [title, setTitle] = useState('')
   const [distance, setDistance] = useState('')
   const [duration, setDuration] = useState('')
   const [type, setType] = useState('EASY')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState('')
   const [time, setTime] = useState('06:00')
   const [notes, setNotes] = useState('')
   const [visibility, setVisibility] = useState('PUBLIC')
@@ -61,8 +66,52 @@ export function CreateWorkoutModal({
   const [warningMessage, setWarningMessage] = useState('')
   const [routeData, setRouteData] = useState<any>(null)
 
+  const [athleteProfile, setAthleteProfile] = useState<any>(null)
+
+  React.useEffect(() => {
+    if (isOpen) {
+      setTitle('')
+      setDistance('')
+      setDuration('')
+      setType('EASY')
+      
+      const targetDate = defaultDate || new Date()
+      const dd = String(targetDate.getDate()).padStart(2, '0')
+      const mm = String(targetDate.getMonth() + 1).padStart(2, '0')
+      const yyyy = targetDate.getFullYear()
+      setDate(`${dd}/${mm}/${yyyy}`)
+      
+      setTime('06:00')
+      setNotes('')
+      setVisibility('PUBLIC')
+      setAthleteId('')
+      setAssignmentMode('GOAL')
+      setRouteData(null)
+
+      const fetchProfile = async () => {
+        try {
+          const { user } = await getProfile()
+          if (user?.id) {
+            const profileData = await getUserProfile(user.id)
+            setAthleteProfile(profileData.athleteProfile)
+          }
+        } catch (error) {
+          console.error('Erro ao buscar perfil:', error)
+        }
+      }
+      fetchProfile()
+    }
+  }, [isOpen, defaultDate])
+
   const canPrescribe = userRole === 'COACH' || userRole === 'OWNER' || userRole === 'ADMIN'
   const isPrescribing = !!athleteId && athleteId !== ''
+
+  const isDistanceInvalid = useMemo(() => {
+    if (isPrescribing || !athleteProfile?.shoes || !distance) return false
+    const d = parseFloat(distance) || 0
+    const remaining = athleteProfile.shoesRemainingDistance ?? 0
+    return d > remaining
+  }, [isPrescribing, athleteProfile, distance])
 
   const timeToSeconds = (timeStr: string) => {
     if (!timeStr) return 0
@@ -98,6 +147,16 @@ export function CreateWorkoutModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    if (!isPrescribing && athleteProfile?.shoes) {
+      const remaining = athleteProfile.shoesRemainingDistance ?? 0
+      const d = parseFloat(distance) || 0
+      if (d > remaining) {
+        toast.error('A distância informada excede a quilometragem restante do tênis!')
+        setIsLoading(false)
+        return
+      }
+    }
 
     let formattedDate = date
     if (date.includes('/')) {
@@ -263,6 +322,43 @@ export function CreateWorkoutModal({
                     <option value="RECOVERY">Regenerativo</option>
                   </select>
                 </div>
+
+                {/* Informações do Tênis */}
+                {!isPrescribing && athleteProfile?.shoes && (
+                  <div className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold mt-4 ${
+                    athleteProfile.shoesRemainingDistance <= 42 
+                      ? 'border-red-100 bg-red-50/50 text-red-700' 
+                      : 'border-orange-100 bg-orange-50/30 text-gray-700'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <ShoeIcon className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`} />
+                        <span className="font-bold truncate max-w-[180px]" title={athleteProfile.shoes}>{athleteProfile.shoes}</span>
+                      </span>
+                      <span>
+                        Vida útil do tênis: <strong className={athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-600 font-extrabold' : 'text-gray-900'}>
+                          {athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined 
+                            ? `${athleteProfile.shoesRemainingDistance.toFixed(1)} km` 
+                            : '0 km'}
+                        </strong>
+                      </span>
+                    </div>
+
+                    {athleteProfile.shoesRemainingDistance <= 42 && (
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        <span>Atenção: Vida útil próxima do fim! Recomendamos a troca.</span>
+                      </div>
+                    )}
+
+                    {isDistanceInvalid && (
+                      <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
+                        <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                        <span>A distância informada ({parseFloat(distance)} km) é maior que a restante do tênis ({athleteProfile.shoesRemainingDistance?.toFixed(1)} km)!</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col space-y-4 lg:h-full">
@@ -290,8 +386,8 @@ export function CreateWorkoutModal({
         <footer className="flex items-center justify-end gap-4 border-t border-gray-100 bg-gray-50 px-8 py-6">
           <button onClick={onClose} className="h-14 rounded-2xl px-8 font-bold text-gray-600 hover:bg-gray-200/50">Cancelar</button>
           <button
-            type="submit" form="workout-form" disabled={isLoading}
-            className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-orange-500 px-10 font-black text-white shadow-xl shadow-orange-500/20 hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            type="submit" form="workout-form" disabled={isLoading || isDistanceInvalid}
+            className="flex h-14 items-center justify-center gap-3 rounded-2xl bg-orange-500 px-10 font-black text-white shadow-xl shadow-orange-500/20 hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : (
               <>

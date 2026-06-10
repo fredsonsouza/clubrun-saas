@@ -6,12 +6,18 @@ interface UpdateAthleteProfileRequest {
   weight?: number
   height?: number
   gender?: 'MALE' | 'FEMALE' | 'OTHER'
+  birthDate?: Date
   bio?: string
   city?: string
   instagramUrl?: string | null
   stravaUrl?: string | null
   coverUrl?: string | null
   isPublic?: boolean
+  shoes?: string | null
+  shoesMaxDistance?: number | null
+  watch?: string | null
+  hasMedicalConditions?: boolean
+  medicalConditions?: string | null
 }
 
 export async function updateAthleteProfile(data: UpdateAthleteProfileRequest) {

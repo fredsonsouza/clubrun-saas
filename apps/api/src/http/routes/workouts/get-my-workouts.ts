@@ -34,6 +34,10 @@ export async function getMyWorkouts(app: FastifyInstance) {
                 assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
                 date: z.coerce.date(),
                 notes: z.string().nullable(),
+                targetDistance: z.number().nullable().optional(),
+                targetDuration: z.number().nullable().optional(),
+                stravaActivityId: z.string().nullable().optional(),
+                syncSource: z.string().nullable().optional(),
                 clubId: z.uuid(),
                 club: z.object({
                   name: z.string(),

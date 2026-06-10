@@ -37,6 +37,10 @@ export async function getWorkout(app: FastifyInstance) {
                 date: z.coerce.date(),
                 notes: z.string().nullable(),
                 imageUrl: z.string().nullable(),
+                targetDistance: z.number().nullable().optional(),
+                targetDuration: z.number().nullable().optional(),
+                stravaActivityId: z.string().nullable().optional(),
+                syncSource: z.string().nullable().optional(),
                 clubId: z.uuid(),
                 athlete: z.object({
                   id: z.uuid(),
@@ -80,6 +84,10 @@ export async function getWorkout(app: FastifyInstance) {
             assignmentMode: true,
             date: true,
             notes: true,
+            targetDistance: true,
+            targetDuration: true,
+            stravaActivityId: true,
+            syncSource: true,
             createdAt: true,
             athlete: {
               select: {

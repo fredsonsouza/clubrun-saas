@@ -8,16 +8,21 @@ import {
   CheckCircle2,
   Loader2,
   Target,
+  AlertTriangle,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { completeWorkoutAction } from '@/app/(app)/profile/actions'
+import { ShoeIcon } from '@/components/shoe-icon'
 import { Workout } from './workout-card'
+import { getProfile } from '@/http/get-profile'
+import { getUserProfile } from '@/http/get-user-profile'
 
 interface CompleteWorkoutModalProps {
   isOpen: boolean
   workout: Workout | null
   onClose: () => void
   onSuccess?: () => void
+  isStravaConnected?: boolean
 }
 
 export function CompleteWorkoutModal({
@@ -25,10 +30,19 @@ export function CompleteWorkoutModal({
   workout,
   onClose,
   onSuccess,
+  isStravaConnected = false,
 }: CompleteWorkoutModalProps) {
   const [distance, setDistance] = useState('')
   const [duration, setDuration] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const [showStravaActivities, setShowStravaActivities] = useState(false)
+  const [selectedStravaActivityId, setSelectedStravaActivityId] = useState<string | null>(null)
+
+  const mockStravaActivities = [
+    { id: 'strava-act-1', name: 'Corrida de Ritmo (Tempo Run)', distance: 8.00, durationStr: '38:40', date: 'Hoje' },
+    { id: 'strava-act-2', name: 'Treino Regenerativo', distance: 5.20, durationStr: '26:10', date: 'Ontem' },
+    { id: 'strava-act-3', name: 'Longão do Fim de Semana', distance: 12.00, durationStr: '65:12', date: 'Há 2 dias' },
+  ]
 
   const formatDuration = (totalSeconds: number) => {
     const sRaw = Number(totalSeconds) || 0
@@ -50,8 +64,36 @@ export function CompleteWorkoutModal({
       } else {
         setDuration('')
       }
+      setSelectedStravaActivityId(null)
+      setShowStravaActivities(false)
     }
   }, [workout])
+
+  const [athleteProfile, setAthleteProfile] = useState<any>(null)
+
+  React.useEffect(() => {
+    if (isOpen) {
+      const fetchProfile = async () => {
+        try {
+          const { user } = await getProfile()
+          if (user?.id) {
+            const profileData = await getUserProfile(user.id)
+            setAthleteProfile(profileData.athleteProfile)
+          }
+        } catch (error) {
+          console.error('Erro ao buscar perfil:', error)
+        }
+      }
+      fetchProfile()
+    }
+  }, [isOpen])
+
+  const isDistanceInvalid = useMemo(() => {
+    if (!athleteProfile?.shoes || !distance) return false
+    const d = parseFloat(distance) || 0
+    const remaining = athleteProfile.shoesRemainingDistance ?? 0
+    return d > remaining
+  }, [athleteProfile, distance])
 
   const timeToSeconds = (timeStr: string) => {
     if (!timeStr) return 0
@@ -86,9 +128,27 @@ export function CompleteWorkoutModal({
     setDuration(val)
   }
 
+  const handleSelectStravaActivity = (act: typeof mockStravaActivities[0]) => {
+    setDistance(act.distance.toString())
+    setDuration(act.durationStr)
+    setSelectedStravaActivityId(act.id)
+    setShowStravaActivities(false)
+    toast.success('Atividade importada do Strava com sucesso!')
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+
+    if (athleteProfile?.shoes) {
+      const remaining = athleteProfile.shoesRemainingDistance ?? 0
+      const d = parseFloat(distance) || 0
+      if (d > remaining) {
+        toast.error('A distância informada excede a quilometragem restante do tênis!')
+        setIsLoading(false)
+        return
+      }
+    }
 
     const totalSeconds = timeToSeconds(duration)
     const d = parseFloat(distance) || 0
@@ -100,6 +160,10 @@ export function CompleteWorkoutModal({
     formData.append('distance', distance)
     formData.append('duration', totalSeconds.toString())
     formData.append('pace', paceValue.toString())
+    if (selectedStravaActivityId) {
+      formData.append('stravaActivityId', selectedStravaActivityId)
+      formData.append('syncSource', 'STRAVA')
+    }
 
     const result = await completeWorkoutAction(formData)
 
@@ -149,6 +213,48 @@ export function CompleteWorkoutModal({
             </div>
           </div>
 
+          {isStravaConnected && (
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowStravaActivities(!showStravaActivities)}
+                className="w-full flex items-center justify-between gap-2 rounded-2xl bg-orange-50 px-5 py-3.5 text-xs font-black text-orange-600 transition-colors hover:bg-orange-100"
+              >
+                <span className="flex items-center gap-2">
+                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                    <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-3.828L8.375 6.056 6.287 10.172H9.333m5.549-4.116L12.06 0l-5.12 10.172h3.066" />
+                  </svg>
+                  IMPORTAR DO STRAVA
+                </span>
+                <span className="text-[10px] font-medium opacity-80">
+                  {showStravaActivities ? 'Fechar ▲' : 'Selecionar atividade ▼'}
+                </span>
+              </button>
+
+              {showStravaActivities && (
+                <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-2 space-y-1.5 animate-in slide-in-from-top-2 duration-200">
+                  {mockStravaActivities.map((act) => (
+                    <button
+                      key={act.id}
+                      type="button"
+                      onClick={() => handleSelectStravaActivity(act)}
+                      className="w-full flex items-center justify-between rounded-xl bg-white p-3 text-left border border-gray-100 hover:border-orange-200 hover:bg-orange-50/20 transition-all active:scale-99"
+                    >
+                      <div>
+                        <p className="text-xs font-extrabold text-gray-800">{act.name}</p>
+                        <p className="text-[10px] text-gray-400 font-bold">{act.date}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-black text-orange-600">{act.distance.toFixed(2)} km</p>
+                        <p className="text-[10px] text-gray-500 font-mono font-bold">{act.durationStr}</p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
@@ -184,6 +290,43 @@ export function CompleteWorkoutModal({
             </div>
           </div>
 
+          {/* Informações do Tênis */}
+          {athleteProfile?.shoes && (
+            <div className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
+              athleteProfile.shoesRemainingDistance <= 42 
+                ? 'border-red-100 bg-red-50/50 text-red-700' 
+                : 'border-orange-100 bg-orange-50/30 text-gray-700'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <ShoeIcon className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`} />
+                  <span className="font-bold truncate max-w-[180px]" title={athleteProfile.shoes}>{athleteProfile.shoes}</span>
+                </span>
+                <span>
+                  Vida útil do tênis: <strong className={athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-600 font-extrabold' : 'text-gray-900'}>
+                    {athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined 
+                      ? `${athleteProfile.shoesRemainingDistance.toFixed(1)} km` 
+                      : '0 km'}
+                  </strong>
+                </span>
+              </div>
+
+              {athleteProfile.shoesRemainingDistance <= 42 && (
+                <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  <span>Atenção: Vida útil próxima do fim! Recomendamos a troca.</span>
+                </div>
+              )}
+
+              {isDistanceInvalid && (
+                <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
+                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                  <span>A distância informada ({parseFloat(distance)} km) é maior que a restante do tênis ({athleteProfile.shoesRemainingDistance?.toFixed(1)} km)!</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50 p-5">
             <div className="flex flex-col">
               <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">Pace Médio Final</span>
@@ -197,8 +340,8 @@ export function CompleteWorkoutModal({
 
           <button
             type="submit"
-            disabled={isLoading}
-            className="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-orange-500 font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            disabled={isLoading || isDistanceInvalid}
+            className="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-orange-500 font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {isLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />

@@ -5,6 +5,7 @@
     "dev": "pnpm env:load tsx watch src/http/server.ts",
     "db:migrate": "pnpm env:load prisma migrate dev",
     "db:studio": "pnpm env:load prisma studio",
+    "db:seed": "pnpm env:load tsx prisma/seed.ts",
     "env:load": "dotenv -e ../../.env --",
     "test": "pnpm env:load vitest run --project unit",
     "test:e2e": "pnpm env:load vitest run --project e2e",
@@ -53,7 +54,7 @@
     "vitest": "^4.1.4"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts "
+    "seed": "pnpm env:load tsx prisma/seed.ts "
   },
   "eslintConfig": {
     "extends": [

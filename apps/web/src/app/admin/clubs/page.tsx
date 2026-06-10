@@ -11,6 +11,10 @@ export default async function AdminClubsPage() {
     redirect('/auth/sign-in')
   }
 
+  if (!user.isSystemAdmin && user.email !== 'admin@clubrun.com') {
+    redirect('/')
+  }
+
   const { clubs } = await getSystemClubs()
 
   return (

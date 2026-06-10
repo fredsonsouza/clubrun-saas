@@ -1,5 +1,6 @@
 import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
+import { SessionCookieSync } from '@/components/session-cookie-sync'
 
 export default async function AppLayout({
   children,
@@ -18,5 +19,10 @@ export default async function AppLayout({
   }
   */
 
-  return <>{children}</>
+  return (
+    <>
+      <SessionCookieSync isPremium={user.isPremium} />
+      {children}
+    </>
+  )
 }

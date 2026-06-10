@@ -59,6 +59,27 @@ export async function deleteWorkout(app: FastifyInstance) {
           )
         }
 
+        if (workout.status === 'COMPLETED' && workout.shoesUsed) {
+          const athleteProfile = await prisma.athleteProfile.findUnique({
+            where: { userId: workout.athleteId },
+            select: {
+              shoes: true,
+              shoesRemainingDistance: true,
+            },
+          })
+
+          if (athleteProfile && athleteProfile.shoes === workout.shoesUsed && athleteProfile.shoesRemainingDistance !== null) {
+            await prisma.athleteProfile.update({
+              where: { userId: workout.athleteId },
+              data: {
+                shoesRemainingDistance: {
+                  increment: workout.distance,
+                },
+              },
+            })
+          }
+        }
+
         await prisma.workout.delete({
           where: {
             id: workoutId,

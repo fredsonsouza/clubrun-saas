@@ -184,6 +184,10 @@ export function UpdateRaceModal({
     const formData = new FormData()
     
     const location = `${selectedCity}, ${selectedState}`
+    formData.append('slug', slug)
+    formData.append('raceId', raceId)
+    formData.append('name', name)
+    formData.append('distance', distance)
     formData.append('city', location)
     
     // Parse dd/mm/yyyy to yyyy-mm-dd

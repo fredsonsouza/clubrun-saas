@@ -34,6 +34,8 @@ describe('Get Profile (Unit)', () => {
       isSystemAdmin: false,
       emailVerifiedAt: null,
       passwordHash: null,
+      clubsOwned: [],
+      members_on: [],
     } as any)
 
     const response = await app.inject({
@@ -54,6 +56,7 @@ describe('Get Profile (Unit)', () => {
         isSystemAdmin: false,
         emailVerifiedAt: null,
         hasPassword: false,
+        isPremium: false,
       },
     })
   })

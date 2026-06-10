@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { inter, spaceGrotesk, publicSans } from './fonts'
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import { Toaster } from 'sonner'
+import { SessionSynchronizer } from '@/components/session-synchronizer'
 
 export const metadata: Metadata = {
   title: 'ClubRun | ClubRun',
@@ -25,6 +26,7 @@ export default function RootLayout({
           defaultTheme="light"
           disableTransitionOnChange
         >
+          <SessionSynchronizer />
           {children}
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>

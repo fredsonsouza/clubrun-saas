@@ -3,6 +3,7 @@ import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getRace } from '@/http/get-race'
 import { getRaceResults } from '@/http/get-race-results'
+import { getRaceParticipants } from '@/http/get-race-participants'
 import { redirect } from 'next/navigation'
 import { RaceDetailsClient } from './race-details-client'
 
@@ -29,10 +30,19 @@ export default async function RaceDetailsPage({ params }: RaceDetailsPageProps) 
     redirect('/')
   }
 
-  const [{ race }, { results }] = await Promise.all([
-    getRace(slug, raceId),
-    getRaceResults(slug, raceId)
-  ])
+  const { race } = await getRace(slug, raceId)
+  const isFuture = new Date(race.date) > new Date()
+
+  let results: any[] = []
+  let participants: any[] = []
+
+  if (isFuture) {
+    const res = await getRaceParticipants(slug, raceId)
+    participants = res.participants
+  } else {
+    const res = await getRaceResults(slug, raceId)
+    results = res.results
+  }
 
   return (
     <RaceDetailsClient
@@ -43,8 +53,10 @@ export default async function RaceDetailsPage({ params }: RaceDetailsPageProps) 
         avatarUrl: user.avatarUrl,
       }}
       club={{ name: currentClub.name, slug: currentClub.slug }}
+      userRole={currentClub.role as any}
       race={race}
       results={results}
+      participants={participants}
     />
   )
 }

@@ -9,6 +9,7 @@ interface getProfileResponse {
     isSystemAdmin: boolean
     emailVerifiedAt: string | null
     hasPassword: boolean
+    isPremium: boolean
     role: 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING'
   }
 }

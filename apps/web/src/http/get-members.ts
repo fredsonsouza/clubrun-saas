@@ -13,6 +13,12 @@ interface GetMembersResponse {
     email: string
     avatarUrl: string | null
     overdue: boolean
+    birthDate: string | null
+    shoes: string | null
+    watch: string | null
+    hasMedicalConditions: boolean
+    medicalConditions: string | null
+    joinedAt: string
   }>
 }
 

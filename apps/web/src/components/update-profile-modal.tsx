@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   X,
   User,
@@ -11,10 +11,14 @@ import {
   Activity,
   Save,
   Loader2,
+  Crown,
+  ArrowRight,
+  Lock,
 } from 'lucide-react'
 
 import { toast } from 'sonner'
 import { ImageUpload } from './image-upload'
+import Link from 'next/link'
 
 interface UpdateProfileModalProps {
   isOpen: boolean
@@ -29,10 +33,18 @@ interface UpdateProfileModalProps {
     weight: number | null
     height: number | null
     gender: string | null
+    birthDate: string
     instagramUrl: string | null
     stravaUrl: string | null
     coverUrl: string | null
+    shoes?: string | null
+    shoesMaxDistance?: number | null
+    shoesRemainingDistance?: number | null
+    watch?: string | null
+    hasMedicalConditions?: boolean
+    medicalConditions?: string | null
     isPublic?: boolean
+    isPremium?: boolean
   } | null
   token?: string
 }
@@ -52,17 +64,48 @@ export function UpdateProfileModal({
     weight: initialData?.weight?.toString() || '',
     height: initialData?.height?.toString() || '',
     gender: initialData?.gender || 'MALE',
+    birthDate: initialData?.birthDate 
+      ? new Date(initialData.birthDate).toISOString().split('T')[0] 
+      : '2000-01-01',
     instagramUrl: initialData?.instagramUrl || '',
     stravaUrl: initialData?.stravaUrl || '',
     coverUrl: initialData?.coverUrl || '',
     isPublic: initialData?.isPublic ?? true,
+    shoes: initialData?.shoes || '',
+    shoesMaxDistance: initialData?.shoesMaxDistance?.toString() || '',
+    watch: initialData?.watch || '',
+    hasMedicalConditions: initialData?.hasMedicalConditions ?? false,
+    medicalConditions: initialData?.medicalConditions || '',
   })
   const [isSaving, setIsSaving] = useState(false)
+
+  // Assinatura do Atleta
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedSubscribed = localStorage.getItem('clubrun:athlete_subscribed') === 'true'
+      const premiumByRole = initialData?.isPremium ?? false
+      setIsSubscribed(storedSubscribed || premiumByRole)
+    }
+  }, [isOpen, initialData])
 
   if (!isOpen) return null
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validação estrita de data de nascimento real
+    if (formData.birthDate === '2000-01-01') {
+      toast.error('Por favor, informe sua data de nascimento real para continuar!')
+      return
+    }
+
+    if (formData.shoes && (!formData.shoesMaxDistance || parseFloat(formData.shoesMaxDistance) <= 0)) {
+      toast.error('Ao informar um tênis, você deve preencher a quilometragem recomendada pelo fabricante maior que zero!')
+      return
+    }
+
     setIsSaving(true)
     
     // Import delayed to avoid circular issues if any
@@ -75,9 +118,15 @@ export function UpdateProfileModal({
       weight: formData.weight ? parseFloat(formData.weight) : undefined,
       height: formData.height ? parseInt(formData.height) : undefined,
       gender: formData.gender as any,
+      birthDate: new Date(formData.birthDate),
       instagramUrl: formData.instagramUrl || null,
       stravaUrl: formData.stravaUrl || null,
       coverUrl: formData.coverUrl || null,
+      shoes: formData.shoes || null,
+      shoesMaxDistance: formData.shoes ? (formData.shoesMaxDistance ? parseFloat(formData.shoesMaxDistance) : null) : null,
+      watch: formData.watch || null,
+      hasMedicalConditions: formData.hasMedicalConditions,
+      medicalConditions: formData.hasMedicalConditions ? (formData.medicalConditions || null) : null,
     })
 
     setIsSaving(false)
@@ -89,8 +138,6 @@ export function UpdateProfileModal({
       toast.error(result.message)
     }
   }
-
-
 
   return (
     <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
@@ -117,6 +164,35 @@ export function UpdateProfileModal({
 
         <div className="overflow-y-auto bg-white p-6 md:p-8">
           <form id="profile-form" onSubmit={handleSubmit} className="space-y-10">
+            {!isSubscribed && (
+              <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-r from-gray-900 via-orange-950 to-orange-500 p-6 text-white shadow-xl border border-orange-500/10">
+                {/* Efeitos de Luz */}
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-orange-500/20 blur-xl" />
+                
+                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                      👑 Premium
+                    </span>
+                    <h4 className="text-sm font-black tracking-tight leading-snug">
+                      Desbloqueie o seu perfil completo
+                    </h4>
+                    <p className="text-[10px] font-bold text-gray-300 leading-normal max-w-sm">
+                      Personalize sua capa, adicione bio, peso, altura, vestíveis, ficha de saúde e participe dos rankings!
+                    </p>
+                  </div>
+                  <Link
+                    href="/checkout?plan=athlete"
+                    onClick={onClose}
+                    className="shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-[10px] font-black text-gray-900 tracking-wider uppercase shadow-lg shadow-black/10 transition-all hover:bg-orange-500 hover:text-white active:scale-95 text-center"
+                  >
+                    Assinar Agora
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            )}
+
             {/* IDENTIDADE VISUAL */}
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
               <ImageUpload 
@@ -126,13 +202,25 @@ export function UpdateProfileModal({
                 aspectRatio="square"
                 token={token}
               />
-              <ImageUpload 
-                label="Sua Capa (Banner)"
-                value={formData.coverUrl}
-                onChange={(url) => setFormData({ ...formData, coverUrl: url })}
-                aspectRatio="video"
-                token={token}
-              />
+              <div className="relative">
+                <ImageUpload 
+                  label="Sua Capa (Banner)"
+                  value={formData.coverUrl}
+                  onChange={(url) => setFormData({ ...formData, coverUrl: url })}
+                  aspectRatio="video"
+                  token={token}
+                />
+                {!isSubscribed && (
+                  <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 p-4 text-center">
+                    <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">
+                      👑 Premium
+                    </span>
+                    <p className="text-[9px] font-bold text-gray-400 mt-1">
+                      Personalize sua capa
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* NOME COMPLETO */}
@@ -143,12 +231,13 @@ export function UpdateProfileModal({
               <input
                 type="text"
                 required
+                disabled={!isSubscribed}
                 value={formData.name}
                 onChange={(e) =>
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="Ex: Fredson Souza"
-                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
               />
             </div>
 
@@ -163,14 +252,32 @@ export function UpdateProfileModal({
                     Sobre Você (Bio)
                   </label>
                   <textarea
+                    disabled={!isSubscribed}
                     value={formData.bio}
                     onChange={(e) =>
                       setFormData({ ...formData, bio: e.target.value })
                     }
-                    placeholder="Conte sua história no esporte..."
-                    className="h-24 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isSubscribed ? "Conte sua história no esporte..." : "Conteúdo exclusivo para atletas Premium 👑"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed h-24 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
+                
+                {/* Data de Nascimento (Obrigatória para todos - Liberada) */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase">
+                    Data de Nascimento *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={formData.birthDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, birthDate: e.target.value })
+                    }
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  />
+                </div>
+
                 <div className="space-y-1.5">
                   <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
                     <MapPin className="h-3 w-3" /> Cidade / Estado
@@ -185,16 +292,18 @@ export function UpdateProfileModal({
                     className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
+
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-gray-500 uppercase">
                     Gênero
                   </label>
                   <select
+                    disabled={!isSubscribed}
                     value={formData.gender}
                     onChange={(e) =>
                       setFormData({ ...formData, gender: e.target.value })
                     }
-                    className="cursor-pointer w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   >
                     <option value="MALE">Masculino</option>
                     <option value="FEMALE">Feminino</option>
@@ -216,12 +325,13 @@ export function UpdateProfileModal({
                   </label>
                   <input
                     type="number"
+                    disabled={!isSubscribed}
                     value={formData.weight}
                     onChange={(e) =>
                       setFormData({ ...formData, weight: e.target.value })
                     }
-                    placeholder="0.0"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isSubscribed ? "0.0" : "Bloqueado"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -230,14 +340,111 @@ export function UpdateProfileModal({
                   </label>
                   <input
                     type="number"
+                    disabled={!isSubscribed}
                     value={formData.height}
                     onChange={(e) =>
                       setFormData({ ...formData, height: e.target.value })
                     }
-                    placeholder="0"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isSubscribed ? "0" : "Bloqueado"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* EQUIPAMENTOS DE CORRIDA (Premium) */}
+            <div className="space-y-4 relative">
+              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
+                Equipamentos de Corrida {!isSubscribed && <Crown className="h-3.5 w-3.5" />}
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase">
+                    Tênis de Treino
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isSubscribed}
+                    value={formData.shoes}
+                    onChange={(e) =>
+                      setFormData({ ...formData, shoes: e.target.value })
+                    }
+                    placeholder={isSubscribed ? "Ex: Nike Pegasus 40" : "Exclusivo Atleta Premium 👑"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase">
+                    Vida Útil Máxima (KM)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    disabled={!isSubscribed || !formData.shoes}
+                    value={formData.shoesMaxDistance}
+                    onChange={(e) =>
+                      setFormData({ ...formData, shoesMaxDistance: e.target.value })
+                    }
+                    placeholder={!formData.shoes ? "Defina o tênis" : "Ex: 500"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-500 uppercase">
+                    Relógio / Smartwatch
+                  </label>
+                  <input
+                    type="text"
+                    disabled={!isSubscribed}
+                    value={formData.watch}
+                    onChange={(e) =>
+                      setFormData({ ...formData, watch: e.target.value })
+                    }
+                    placeholder={isSubscribed ? "Ex: Garmin Forerunner 255" : "Exclusivo Atleta Premium 👑"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* FICHA MÉDICA E SEGURANÇA (Premium) */}
+            <div className="space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
+                Saúde & Ficha Médica {!isSubscribed && <Crown className="h-3.5 w-3.5" />}
+              </h3>
+              
+              <div className="space-y-3">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    disabled={!isSubscribed}
+                    checked={isSubscribed && formData.hasMedicalConditions}
+                    onChange={(e) =>
+                      setFormData({ ...formData, hasMedicalConditions: e.target.checked })
+                    }
+                    className="disabled:opacity-60 disabled:cursor-not-allowed h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                  />
+                  <span className="text-sm font-bold text-gray-700">
+                    Possuo alguma condição médica, limitação física ou problema de saúde
+                  </span>
+                </label>
+
+                {isSubscribed && formData.hasMedicalConditions && (
+                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <label className="text-xs font-bold text-red-500 uppercase">
+                      Descreva suas condições médicas (ex: Asma, Diabetes, Hipertensão, Lesão, etc.) *
+                    </label>
+                    <textarea
+                      required
+                      value={formData.medicalConditions}
+                      onChange={(e) =>
+                        setFormData({ ...formData, medicalConditions: e.target.value })
+                      }
+                      placeholder="Estas informações ajudam os treinadores do seu clube a resguardarem sua segurança física durante os treinos..."
+                      className="h-24 w-full rounded-xl border border-red-200 bg-red-50/20 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:outline-none"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
@@ -253,6 +460,7 @@ export function UpdateProfileModal({
                   </label>
                   <input
                     type="url"
+                    disabled={!isSubscribed}
                     value={formData.instagramUrl}
                     onChange={(e) =>
                       setFormData({
@@ -260,8 +468,8 @@ export function UpdateProfileModal({
                         instagramUrl: e.target.value,
                       })
                     }
-                    placeholder="https://instagram.com/seu.perfil"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isSubscribed ? "https://instagram.com/seu.perfil" : "Exclusivo Atleta Premium 👑"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -270,12 +478,13 @@ export function UpdateProfileModal({
                   </label>
                   <input
                     type="url"
+                    disabled={!isSubscribed}
                     value={formData.stravaUrl}
                     onChange={(e) =>
                       setFormData({ ...formData, stravaUrl: e.target.value })
                     }
-                    placeholder="https://strava.com/athletes/seu.id"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    placeholder={isSubscribed ? "https://strava.com/athletes/seu.id" : "Exclusivo Atleta Premium 👑"}
+                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
                   />
                 </div>
               </div>
@@ -286,11 +495,12 @@ export function UpdateProfileModal({
                 Privacidade do Perfil
               </label>
               <div className="grid grid-cols-2 gap-3">
-                <label className="group relative cursor-pointer">
+                <label className={`group relative ${isSubscribed ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
                   <input
                     type="radio"
                     name="isPublic"
-                    checked={formData.isPublic === true}
+                    disabled={!isSubscribed}
+                    checked={isSubscribed && formData.isPublic === true}
                     onChange={() => setFormData({ ...formData, isPublic: true })}
                     className="peer sr-only"
                   />
@@ -308,11 +518,12 @@ export function UpdateProfileModal({
                     </div>
                   </div>
                 </label>
-                <label className="group relative cursor-pointer">
+                <label className={`group relative ${isSubscribed ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}>
                   <input
                     type="radio"
                     name="isPublic"
-                    checked={formData.isPublic === false}
+                    disabled={!isSubscribed}
+                    checked={isSubscribed && formData.isPublic === false}
                     onChange={() => setFormData({ ...formData, isPublic: false })}
                     className="peer sr-only"
                   />

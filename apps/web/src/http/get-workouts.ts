@@ -5,6 +5,7 @@ interface GetWorkoutsRequest {
   page?: number
   limit?: number
   status?: 'PLANNED' | 'COMPLETED'
+  athleteId?: string
 }
 
 interface GetWorkoutsResponse {
@@ -21,6 +22,10 @@ interface GetWorkoutsResponse {
     date: string
     notes: string | null
     imageUrl: string | null
+    targetDistance: number | null
+    targetDuration: number | null
+    syncSource: string | null
+    stravaActivityId: string | null
     createdAt: string
     clubId: string
     athlete: {
@@ -28,6 +33,11 @@ interface GetWorkoutsResponse {
       name: string | null
       avatarUrl: string | null
     }
+    reactions?: Array<{
+      type: string
+      count: number
+    }>
+    currentUserReaction?: string | null
   }>
   meta: {
     total: number
@@ -37,13 +47,14 @@ interface GetWorkoutsResponse {
   }
 }
 
-export async function getWorkouts({ slug, page = 1, limit = 20, status = 'COMPLETED' }: GetWorkoutsRequest) {
+export async function getWorkouts({ slug, page = 1, limit = 20, status = 'COMPLETED', athleteId }: GetWorkoutsRequest) {
   const result = await api
     .get(`clubs/${slug}/workouts`, {
       searchParams: {
         page,
         limit,
         status,
+        ...(athleteId ? { athleteId } : {}),
       },
     })
     .json<GetWorkoutsResponse>()
