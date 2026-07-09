@@ -1,16 +1,25 @@
 'use client'
 
-import React, { useState } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Crown, Sparkles, Download, Share2, Copy, Check, X, Flame } from 'lucide-react'
-import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toJpeg } from 'html-to-image'
+import {
+  Check,
+  Copy,
+  Crown,
+  Download,
+  Flame,
+  Share2,
+  Sparkles,
+  X,
+} from 'lucide-react'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 
 interface BirthdayCardModalProps {
   isOpen: boolean
@@ -32,11 +41,11 @@ export function BirthdayCardModal({
 
   const handleCopyLink = () => {
     const text = `Parabéns, *${athleteName}*! 🎉\nO clube *${clubName}* te deseja um feliz aniversário com muitos quilômetros rodados e paces extraordinários! 🏃‍♂️💨\n\nGeramos um card comemorativo exclusivo para você compartilhar, confira no seu painel do ClubRun!`
-    
+
     navigator.clipboard.writeText(text)
     setIsCopied(true)
     toast.success('Mensagem de parabéns copiada para a área de transferência!')
-    
+
     setTimeout(() => setIsCopied(false), 2000)
   }
 
@@ -45,7 +54,7 @@ export function BirthdayCardModal({
     toast.info('Renderizando imagem de alta definição (HD)...')
 
     const cardNode = document.getElementById('birthday-stories-card')
-    
+
     if (!cardNode) {
       toast.error('Erro ao carregar o card para download.')
       setIsDownloading(false)
@@ -59,12 +68,14 @@ export function BirthdayCardModal({
       style: {
         transform: 'scale(1)',
         transformOrigin: 'top left',
-      }
+      },
     })
       .then((dataUrl) => {
         setIsDownloading(false)
-        toast.success('Card de Aniversário gerado com sucesso! Pronto para postar no Instagram Stories.')
-        
+        toast.success(
+          'Card de Aniversário gerado com sucesso! Pronto para postar no Instagram Stories.'
+        )
+
         const link = document.createElement('a')
         link.href = dataUrl
         link.download = `parabens-${athleteName.toLowerCase().replace(/\s+/g, '-')}.jpg`
@@ -96,7 +107,7 @@ export function BirthdayCardModal({
             </div>
             Card de Aniversário
           </DialogTitle>
-          <button 
+          <button
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-1.5 text-gray-500 hover:bg-gray-100"
           >
@@ -106,7 +117,7 @@ export function BirthdayCardModal({
 
         {/* CONTAINER DO CARD STORIES (9:16 ASPECT RATIO) */}
         <div className="p-6 flex justify-center bg-gray-100/50">
-          <div 
+          <div
             id="birthday-stories-card"
             className="relative w-[280px] h-[497px] overflow-hidden rounded-[2.5rem] bg-gradient-to-b from-gray-950 via-orange-950 to-orange-900 text-white shadow-2xl flex flex-col justify-between p-8 text-center"
           >
@@ -114,7 +125,7 @@ export function BirthdayCardModal({
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-15" />
             <div className="absolute -top-12 -right-12 h-40 w-40 rounded-full bg-orange-500/10 blur-3xl animate-pulse" />
             <div className="absolute -bottom-12 -left-12 h-40 w-40 rounded-full bg-orange-600/10 blur-3xl" />
-            
+
             {/* Margens de grid atlético */}
             <div className="absolute inset-4 border border-white/5 rounded-[2rem] pointer-events-none" />
 
@@ -135,7 +146,10 @@ export function BirthdayCardModal({
                 <div className="absolute inset-0 -m-1.5 rounded-full bg-gradient-to-r from-orange-500 via-amber-400 to-red-500 animate-spin duration-3000" />
                 <div className="relative h-28 w-28 rounded-full border-4 border-gray-950 overflow-hidden shadow-2xl bg-gray-900">
                   <Avatar className="h-full w-full">
-                    <AvatarImage src={avatarUrl || ''} className="object-cover" />
+                    <AvatarImage
+                      src={avatarUrl || ''}
+                      className="object-cover"
+                    />
                     <AvatarFallback className="text-3xl font-black bg-orange-500 text-white">
                       {athleteName.charAt(0)}
                     </AvatarFallback>
@@ -159,12 +173,15 @@ export function BirthdayCardModal({
             {/* Rodapé do Card: Mensagem e Logo */}
             <div className="relative z-10 space-y-6 mb-4">
               <p className="text-xs font-bold leading-relaxed text-gray-300 px-2 italic">
-                "Correndo rumo a mais um ano repleto de kms e grandes conquistas! Que seu pace seja forte e sua saúde inabalável."
+                "Correndo rumo a mais um ano repleto de kms e grandes
+                conquistas! Que seu pace seja forte e sua saúde inabalável."
               </p>
-              
+
               <div className="flex items-center justify-center gap-1.5 opacity-40">
                 <Flame className="h-4 w-4 text-white" fill="currentColor" />
-                <span className="text-[8px] font-black tracking-widest uppercase">ClubRun</span>
+                <span className="text-[8px] font-black tracking-widest uppercase">
+                  ClubRun
+                </span>
               </div>
             </div>
           </div>
@@ -181,7 +198,9 @@ export function BirthdayCardModal({
             ) : (
               <Copy className="h-5 w-5 text-gray-500 hover:text-orange-500" />
             )}
-            <span className="text-[9px] font-black tracking-wider uppercase">Copiar Text</span>
+            <span className="text-[9px] font-black tracking-wider uppercase">
+              Copiar Text
+            </span>
           </button>
 
           <button
@@ -189,7 +208,9 @@ export function BirthdayCardModal({
             className="cursor-pointer flex flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 py-3.5 text-center transition-all hover:bg-emerald-50 hover:text-emerald-500 active:scale-95"
           >
             <Share2 className="h-5 w-5 text-gray-500 hover:text-emerald-500" />
-            <span className="text-[9px] font-black tracking-wider uppercase">WhatsApp</span>
+            <span className="text-[9px] font-black tracking-wider uppercase">
+              WhatsApp
+            </span>
           </button>
 
           <button
@@ -202,7 +223,9 @@ export function BirthdayCardModal({
             ) : (
               <Download className="h-5 w-5" />
             )}
-            <span className="text-[9px] font-black tracking-wider uppercase">Baixar Card</span>
+            <span className="text-[9px] font-black tracking-wider uppercase">
+              Baixar Card
+            </span>
           </button>
         </div>
       </DialogContent>

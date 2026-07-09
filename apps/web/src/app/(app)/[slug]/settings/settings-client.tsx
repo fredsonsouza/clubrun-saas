@@ -1,40 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
 import { Header } from '@/components/header'
-import {
-  Settings,
-  CreditCard,
-  ShieldAlert,
-  AlertTriangle,
-  Save,
-  Globe,
-  AlignLeft,
-  Trophy,
-  ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
-  Download,
-  Zap,
-  Loader2,
-  ChevronDown,
-  UserCog,
-  RefreshCcw,
-  LayoutDashboard,
-  BarChart,
-  Users,
-  Activity,
-  Compass,
-  UserPlus,
-} from 'lucide-react'
-import { toast } from 'sonner'
-import {
-  updateClubAction,
-  shutdownClubAction,
-  transferOwnershipAction,
-  activateBillingAction,
-} from './actions'
-import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -43,7 +10,41 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import {
+  Activity,
+  AlertTriangle,
+  AlignLeft,
+  ArrowRight,
+  BarChart,
+  CheckCircle2,
+  ChevronDown,
+  Compass,
+  CreditCard,
+  Download,
+  Globe,
+  LayoutDashboard,
+  Loader2,
+  RefreshCcw,
+  Save,
+  Settings,
+  ShieldAlert,
+  ShieldCheck,
+  Trophy,
+  UserCog,
+  UserPlus,
+  Users,
+  Zap,
+} from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'sonner'
+import {
+  activateBillingAction,
+  shutdownClubAction,
+  transferOwnershipAction,
+  updateClubAction,
+} from './actions'
 
 import { ImageUpload } from '@/components/image-upload'
 
@@ -138,7 +139,7 @@ const FALLBACK_UFS = [
   { id: 50, sigla: 'MS', nome: 'Mato Grosso do Sul' },
   { id: 51, sigla: 'MT', nome: 'Mato Grosso' },
   { id: 52, sigla: 'GO', nome: 'Goiás' },
-  { id: 53, sigla: 'DF', nome: 'Distrito Federal' }
+  { id: 53, sigla: 'DF', nome: 'Distrito Federal' },
 ]
 
 export function SettingsClient({
@@ -290,7 +291,7 @@ export function SettingsClient({
     if (result.success) {
       toast.success(result.message)
       setIsTransferModalOpen(false)
-      
+
       if (leaveAfterTransfer) {
         router.push('/explore')
       } else {
@@ -322,7 +323,8 @@ export function SettingsClient({
   }
 
   const isOwner = userRole === 'OWNER'
-  const isBillingPending = isOwner && club.subscriptionStatus === 'PENDING_UPDATE'
+  const isBillingPending =
+    isOwner && club.subscriptionStatus === 'PENDING_UPDATE'
 
   useEffect(() => {
     if (isBillingPending) {
@@ -340,32 +342,36 @@ export function SettingsClient({
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+      <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         {isBillingPending && (
           <div className="mb-8 flex items-center gap-4 rounded-3xl border border-red-100 bg-red-50 p-6 shadow-sm ring-1 ring-red-200">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-red-100 text-red-600">
               <CreditCard className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="font-extrabold text-red-900">Ação Necessária: Atualize o Faturamento</h3>
-              <p className="text-sm font-medium text-red-700">
-                Você é o novo dono deste clube. Para continuar gerenciando o pelotão e permitir que os membros acessem o sistema, você deve cadastrar um método de pagamento válido.
+              <h3 className="font-extrabold text-red-900">
+                Ação Necessária: Atualize o Faturamento
+              </h3>
+              <p className="font-medium text-red-700 text-sm">
+                Você é o novo dono deste clube. Para continuar gerenciando o
+                pelotão e permitir que os membros acessem o sistema, você deve
+                cadastrar um método de pagamento válido.
               </p>
             </div>
           </div>
         )}
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
-            <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
+            <h1 className="mb-2 font-extrabold text-3xl text-gray-900 tracking-tight">
               Painel de Gestão
             </h1>
-            <p className="text-sm font-medium text-gray-500">
+            <p className="font-medium text-gray-500 text-sm">
               Controle total sobre o seu pelotão: métricas, configurações e
               faturação.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 text-xs font-bold text-orange-600">
+          <div className="flex items-center gap-2 rounded-xl bg-orange-50 px-4 py-2 font-bold text-orange-600 text-xs">
             <ShieldCheck className="h-4 w-4" />
             NÍVEL DE ACESSO:{' '}
             <span className="uppercase">
@@ -383,33 +389,33 @@ export function SettingsClient({
             <button
               onClick={() => !isBillingPending && setActiveTab('overview')}
               disabled={isBillingPending}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'overview' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'overview' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               <LayoutDashboard className="h-4 w-4" />
               Visão Geral
               {activeTab === 'overview' && (
-                <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
+                <ArrowRight className="slide-in-from-left-2 ml-auto h-4 w-4 animate-in" />
               )}
             </button>
             <button
               onClick={() => !isBillingPending && setActiveTab('general')}
               disabled={isBillingPending}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'general' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'general' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'cursor-not-allowed opacity-50' : ''}`}
             >
               <Settings className="h-4 w-4" />
               Informações Básicas
               {activeTab === 'general' && (
-                <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
+                <ArrowRight className="slide-in-from-left-2 ml-auto h-4 w-4 animate-in" />
               )}
             </button>
             <button
               onClick={() => setActiveTab('billing')}
-              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'billing' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'ring-2 ring-red-200 bg-red-50' : ''}`}
+              className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'billing' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'bg-red-50 ring-2 ring-red-200' : ''}`}
             >
               <CreditCard className="h-4 w-4" />
               Faturamento & Plano
               {activeTab === 'billing' && (
-                <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
+                <ArrowRight className="slide-in-from-left-2 ml-auto h-4 w-4 animate-in" />
               )}
             </button>
 
@@ -420,12 +426,12 @@ export function SettingsClient({
                 </div>
                 <button
                   onClick={() => setActiveTab('danger')}
-                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 text-sm font-bold transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
+                  className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
                 >
                   <ShieldAlert className="h-4 w-4" />
                   Zona de Perigo
                   {activeTab === 'danger' && (
-                    <ArrowRight className="animate-in slide-in-from-left-2 ml-auto h-4 w-4" />
+                    <ArrowRight className="slide-in-from-left-2 ml-auto h-4 w-4 animate-in" />
                   )}
                 </button>
               </>
@@ -434,19 +440,19 @@ export function SettingsClient({
 
           <div className="w-full flex-1">
             {activeTab === 'overview' && (
-              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+              <div className="fade-in slide-in-from-right-4 animate-in space-y-6 duration-300">
                 <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
                   <div className="rounded-4xl border border-gray-100 bg-white p-8 shadow-sm transition-all hover:shadow-md">
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
                       <Users className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase">
+                    <p className="font-bold text-gray-400 text-sm uppercase tracking-widest">
                       Membros Ativos
                     </p>
-                    <p className="mt-1 text-4xl font-black text-gray-900">
+                    <p className="mt-1 font-black text-4xl text-gray-900">
                       {metrics.activeMembers}
                     </p>
-                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-gray-500">
+                    <div className="mt-4 flex items-center gap-2 font-bold text-gray-500 text-xs">
                       <span className="text-orange-500">
                         {metrics.inactiveMembers} inativos
                       </span>
@@ -457,13 +463,13 @@ export function SettingsClient({
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-500">
                       <Activity className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase">
+                    <p className="font-bold text-gray-400 text-sm uppercase tracking-widest">
                       Treinos no Mês
                     </p>
-                    <p className="mt-1 text-4xl font-black text-gray-900">
+                    <p className="mt-1 font-black text-4xl text-gray-900">
                       {metrics.totalWorkoutsMonth}
                     </p>
-                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-blue-500">
+                    <div className="mt-4 flex items-center gap-2 font-bold text-blue-500 text-xs">
                       Volume total da equipe
                     </div>
                   </div>
@@ -472,15 +478,18 @@ export function SettingsClient({
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500">
                       <Compass className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase">
+                    <p className="font-bold text-gray-400 text-sm uppercase tracking-widest">
                       Distância Total (Mês)
                     </p>
-                    <p className="mt-1 text-4xl font-black text-gray-900">
-                      {metrics.totalDistanceMonth > 1000
-                        ? `${(metrics.totalDistanceMonth / 1000).toFixed(1)} km`
-                        : `${metrics.totalDistanceMonth} m`}
+                    <p className="mt-1 font-black text-4xl text-gray-900">
+                      {(() => {
+                        const dist = metrics.totalDistanceMonth
+                        const formatted =
+                          dist % 1 === 0 ? dist.toFixed(0) : dist.toFixed(1)
+                        return `${formatted.replace('.', ',')} km`
+                      })()}
                     </p>
-                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-emerald-500">
+                    <div className="mt-4 flex items-center gap-2 font-bold text-emerald-500 text-xs">
                       Quilometragem acumulada
                     </div>
                   </div>
@@ -489,13 +498,13 @@ export function SettingsClient({
                     <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-purple-50 text-purple-500">
                       <UserPlus className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold tracking-widest text-gray-400 uppercase">
+                    <p className="font-bold text-gray-400 text-sm uppercase tracking-widest">
                       Convites Pendentes
                     </p>
-                    <p className="mt-1 text-4xl font-black text-gray-900">
+                    <p className="mt-1 font-black text-4xl text-gray-900">
                       {metrics.pendingInvites}
                     </p>
-                    <div className="mt-4 flex items-center gap-2 text-xs font-bold text-purple-500">
+                    <div className="mt-4 flex items-center gap-2 font-bold text-purple-500 text-xs">
                       <a
                         href={`/${club.slug}/invites`}
                         className="hover:underline"
@@ -508,12 +517,12 @@ export function SettingsClient({
               </div>
             )}
             {activeTab === 'general' && (
-              <div className="animate-in fade-in slide-in-from-right-4 rounded-4xl border border-gray-100 bg-white p-6 shadow-sm duration-300 sm:p-10">
+              <div className="fade-in slide-in-from-right-4 animate-in rounded-4xl border border-gray-100 bg-white p-6 shadow-sm duration-300 sm:p-10">
                 <div className="mb-8">
-                  <h2 className="text-xl font-extrabold text-gray-900">
+                  <h2 className="font-extrabold text-gray-900 text-xl">
                     Informações do Clube
                   </h2>
-                  <p className="text-sm font-medium text-gray-400">
+                  <p className="font-medium text-gray-400 text-sm">
                     Edite os detalhes básicos e a identidade visual do seu
                     pelotão.
                   </p>
@@ -540,7 +549,7 @@ export function SettingsClient({
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         <Trophy className="h-3.5 w-3.5 text-orange-500" /> Nome
                         do Clube
                       </label>
@@ -550,12 +559,12 @@ export function SettingsClient({
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         placeholder="Ex: Macuxi Runners"
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                       />
                     </div>
 
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         <ShieldCheck className="h-3.5 w-3.5 text-orange-500" />{' '}
                         CNPJ (Opcional)
                       </label>
@@ -564,14 +573,14 @@ export function SettingsClient({
                         value={cnpj}
                         onChange={(e) => setCnpj(e.target.value)}
                         placeholder="00.000.000/0000-00"
-                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                        className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
                       </label>
                       <select
@@ -585,7 +594,7 @@ export function SettingsClient({
                           setCity('') // Reseta cidade ao mudar estado
                         }}
                         disabled={isLoadingUfs}
-                        className="w-full cursor-pointer appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50"
+                        className="w-full cursor-pointer appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:opacity-50"
                       >
                         <option value="">Selecione o Estado</option>
                         {ufs.map((u) => (
@@ -597,14 +606,14 @@ export function SettingsClient({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         <Globe className="h-3.5 w-3.5 text-orange-500" /> Cidade
                       </label>
                       <select
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         disabled={isLoadingCities || !state}
-                        className="w-full cursor-pointer appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none disabled:opacity-50"
+                        className="w-full cursor-pointer appearance-none rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:opacity-50"
                       >
                         <option value="">
                           {isLoadingCities
@@ -624,7 +633,7 @@ export function SettingsClient({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                       <AlignLeft className="h-3.5 w-3.5 text-orange-500" />{' '}
                       Descrição do Clube
                     </label>
@@ -633,7 +642,7 @@ export function SettingsClient({
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
                       placeholder="Fale um pouco sobre a história e os objetivos do clube..."
-                      className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                      className="w-full resize-none rounded-2xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                     />
                   </div>
 
@@ -657,41 +666,44 @@ export function SettingsClient({
             )}
 
             {activeTab === 'billing' && (
-              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+              <div className="fade-in slide-in-from-right-4 animate-in space-y-6 duration-300">
                 {/* Resumo do Plano */}
                 <div className="relative overflow-hidden rounded-4xl border border-gray-100 bg-white shadow-sm">
                   <div className="pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-orange-500/5 blur-3xl" />
                   <div className="flex flex-col justify-between gap-6 p-6 sm:flex-row sm:items-center sm:p-10">
                     <div className="relative z-10">
                       <div className="mb-2 flex items-center gap-2">
-                        <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2.5 py-1 text-[10px] font-black tracking-widest text-orange-600 uppercase">
+                        <span className="flex items-center gap-1 rounded-md bg-orange-100 px-2.5 py-1 font-black text-[10px] text-orange-600 uppercase tracking-widest">
                           <Zap className="h-3 w-3" /> Plano Pro
                         </span>
                         {isBillingPending ? (
-                          <span className="flex items-center gap-1 text-xs font-bold text-amber-500">
-                            <AlertTriangle className="h-3 w-3" /> Aguardando Pagamento
+                          <span className="flex items-center gap-1 font-bold text-amber-500 text-xs">
+                            <AlertTriangle className="h-3 w-3" /> Aguardando
+                            Pagamento
                           </span>
                         ) : (
-                          <span className="flex items-center gap-1 text-xs font-bold text-green-500">
+                          <span className="flex items-center gap-1 font-bold text-green-500 text-xs">
                             <CheckCircle2 className="h-3 w-3" /> Ativo
                           </span>
                         )}
                       </div>
-                      <h2 className="text-4xl font-black tracking-tight text-gray-900">
+                      <h2 className="font-black text-4xl text-gray-900 tracking-tight">
                         {new Intl.NumberFormat('pt-BR', {
                           style: 'currency',
                           currency: 'BRL',
                         }).format(billing.total)}
-                        <span className="text-base font-bold tracking-normal text-gray-400">
+                        <span className="font-bold text-base text-gray-400 tracking-normal">
                           / mês
                         </span>
                       </h2>
                     </div>
                     <div className="flex gap-3">
-                      <button 
-                        onClick={isBillingPending ? handleActivateBilling : undefined}
+                      <button
+                        onClick={
+                          isBillingPending ? handleActivateBilling : undefined
+                        }
                         disabled={isActivating}
-                        className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+                        className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-black text-sm text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
                       >
                         {isActivating ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -704,12 +716,12 @@ export function SettingsClient({
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100 bg-gray-50 p-6 sm:px-10">
+                  <div className="border-gray-100 border-t bg-gray-50 p-6 sm:px-10">
                     <div className="mb-3 flex items-end justify-between">
-                      <span className="text-sm font-bold tracking-wide text-gray-700 uppercase">
+                      <span className="font-bold text-gray-700 text-sm uppercase tracking-wide">
                         Membros no Pelotão
                       </span>
-                      <span className="text-sm font-black text-gray-900">
+                      <span className="font-black text-gray-900 text-sm">
                         {billing.seats.amount}{' '}
                         <span className="font-bold text-gray-400">/ ∞</span>
                       </span>
@@ -722,8 +734,8 @@ export function SettingsClient({
                         }}
                       ></div>
                     </div>
-                    <p className="mt-3 text-xs leading-relaxed font-medium text-gray-500">
-                       Sua assinatura cobre {billing.seats.amount} membros
+                    <p className="mt-3 font-medium text-gray-500 text-xs leading-relaxed">
+                      Sua assinatura cobre {billing.seats.amount} membros
                       ativos. O valor unitário é de{' '}
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
@@ -736,48 +748,58 @@ export function SettingsClient({
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                   <div className="rounded-4xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                    <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
+                    <h3 className="mb-6 flex items-center gap-2 font-extrabold text-gray-900 text-lg">
                       <CreditCard className="h-5 w-5 text-gray-400" /> Método de
                       Pagamento
                     </h3>
                     <div className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 p-5">
                       {isBillingPending ? (
                         <div className="flex items-center gap-4 text-gray-400">
-                           <div className="flex h-10 w-16 items-center justify-center rounded-lg border-2 border-dashed border-gray-200 text-[10px] font-black italic">
+                          <div className="flex h-10 w-16 items-center justify-center rounded-lg border-2 border-gray-200 border-dashed font-black text-[10px] italic">
                             CARD
                           </div>
                           <div>
-                            <p className="text-sm font-bold uppercase">Nenhum cartão</p>
-                            <p className="text-xs font-medium">Cadastre para ativar</p>
+                            <p className="font-bold text-sm uppercase">
+                              Nenhum cartão
+                            </p>
+                            <p className="font-medium text-xs">
+                              Cadastre para ativar
+                            </p>
                           </div>
                         </div>
                       ) : (
                         <div className="flex items-center gap-4">
-                          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-blue-900 text-[10px] font-black text-white italic shadow-sm">
+                          <div className="flex h-10 w-16 items-center justify-center rounded-lg bg-blue-900 font-black text-[10px] text-white italic shadow-sm">
                             VISA
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-gray-900 uppercase">
+                            <p className="font-bold text-gray-900 text-sm uppercase">
                               Termina em {BILLING_INFO.paymentMethod.last4}
                             </p>
-                            <p className="text-xs font-medium text-gray-400">
+                            <p className="font-medium text-gray-400 text-xs">
                               Expira a {BILLING_INFO.paymentMethod.expiry}
                             </p>
                           </div>
                         </div>
                       )}
                     </div>
-                    <button 
-                      onClick={isBillingPending ? handleActivateBilling : undefined}
+                    <button
+                      onClick={
+                        isBillingPending ? handleActivateBilling : undefined
+                      }
                       disabled={isActivating}
-                      className="cursor-pointer text-sm font-bold text-orange-500 transition-colors hover:text-orange-600 disabled:opacity-50"
+                      className="cursor-pointer font-bold text-orange-500 text-sm transition-colors hover:text-orange-600 disabled:opacity-50"
                     >
-                      {isActivating ? 'Processando...' : isBillingPending ? 'Cadastrar Cartão de Crédito' : 'Atualizar cartão de crédito'}
+                      {isActivating
+                        ? 'Processando...'
+                        : isBillingPending
+                          ? 'Cadastrar Cartão de Crédito'
+                          : 'Atualizar cartão de crédito'}
                     </button>
                   </div>
 
                   <div className="rounded-4xl border border-gray-100 bg-white p-6 shadow-sm sm:p-8">
-                    <h3 className="mb-6 flex items-center gap-2 text-lg font-extrabold text-gray-900">
+                    <h3 className="mb-6 flex items-center gap-2 font-extrabold text-gray-900 text-lg">
                       <AlignLeft className="h-5 w-5 text-gray-400" /> Histórico
                       de Faturas
                     </h3>
@@ -788,18 +810,18 @@ export function SettingsClient({
                           className="group flex items-center justify-between rounded-2xl p-4 transition-colors hover:bg-gray-50"
                         >
                           <div>
-                            <p className="mb-1 text-sm font-bold text-gray-900">
+                            <p className="mb-1 font-bold text-gray-900 text-sm">
                               {invoice.amount}
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                            <div className="flex items-center gap-2 font-bold text-[10px] text-gray-400 uppercase tracking-wider">
                               <span>{invoice.date}</span>
                               <span>•</span>
-                              <span className="flex items-center gap-1 rounded bg-green-50 px-1.5 py-0.5 text-[9px] font-black tracking-widest text-green-600">
+                              <span className="flex items-center gap-1 rounded bg-green-50 px-1.5 py-0.5 font-black text-[9px] text-green-600 tracking-widest">
                                 <CheckCircle2 className="h-3 w-3" /> PAGO
                               </span>
                             </div>
                           </div>
-                          <button className="cursor-pointer rounded-xl p-3 text-gray-400 opacity-0 transition-all group-hover:opacity-100 hover:bg-orange-50 hover:text-orange-500">
+                          <button className="cursor-pointer rounded-xl p-3 text-gray-400 opacity-0 transition-all hover:bg-orange-50 hover:text-orange-500 group-hover:opacity-100">
                             <Download className="h-4 w-4" />
                           </button>
                         </div>
@@ -811,13 +833,13 @@ export function SettingsClient({
             )}
 
             {activeTab === 'danger' && (isOwner || userRole === 'ADMIN') && (
-              <div className="animate-in fade-in slide-in-from-right-4 space-y-6 duration-300">
+              <div className="fade-in slide-in-from-right-4 animate-in space-y-6 duration-300">
                 <div className="flex flex-col justify-between gap-4 rounded-4xl border border-gray-100 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:p-10">
                   <div className="max-w-md">
                     <h3 className="font-extrabold text-gray-900">
                       Transferir Propriedade
                     </h3>
-                    <p className="text-sm font-medium text-gray-500">
+                    <p className="font-medium text-gray-500 text-sm">
                       Ao transferir a propriedade, deixará de ter controlo total
                       sobre o clube. O novo proprietário terá permissão total
                       para gerir membros e definições.
@@ -825,7 +847,7 @@ export function SettingsClient({
                   </div>
                   <button
                     onClick={() => setIsTransferModalOpen(true)}
-                    className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                    className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                   >
                     <RefreshCcw className="h-4 w-4" /> Transferir para
                     Administrador
@@ -852,16 +874,17 @@ export function SettingsClient({
                         </span>
                         .
                       </DialogDescription>
-                      <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs font-medium text-amber-800">
+                      <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50 p-4 font-medium text-amber-800 text-xs">
                         <strong>Importante:</strong> Após a transferência, você
                         passará a ter o cargo de Atleta e não poderá mais
                         excluir o clube ou transferi-lo de volta sem a permissão
-                        do novo dono. O novo dono terá 48h para atualizar os dados de pagamento.
+                        do novo dono. O novo dono terá 48h para atualizar os
+                        dados de pagamento.
                       </div>
                     </DialogHeader>
 
                     <div className="py-6">
-                      <label className="mb-2 block text-xs font-black tracking-widest text-gray-400 uppercase">
+                      <label className="mb-2 block font-black text-gray-400 text-xs uppercase tracking-widest">
                         Selecionar Novo Proprietário
                       </label>
                       {admins.length > 0 ? (
@@ -895,10 +918,10 @@ export function SettingsClient({
                                   )}
                                 </div>
                                 <div className="flex-1">
-                                  <p className="text-sm font-black text-gray-900">
+                                  <p className="font-black text-gray-900 text-sm">
                                     {admin.name || admin.email}
                                   </p>
-                                  <p className="text-xs font-medium text-gray-500 lowercase">
+                                  <p className="font-medium text-gray-500 text-xs lowercase">
                                     {admin.role}
                                   </p>
                                 </div>
@@ -907,9 +930,9 @@ export function SettingsClient({
                           ))}
                         </div>
                       ) : (
-                        <div className="rounded-2xl border-2 border-dashed border-gray-100 p-8 text-center">
+                        <div className="rounded-2xl border-2 border-gray-100 border-dashed p-8 text-center">
                           <UserCog className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="font-medium text-gray-400 text-sm">
                             Nenhum outro administrador disponível para
                             transferência.
                           </p>
@@ -921,10 +944,15 @@ export function SettingsClient({
                           type="checkbox"
                           id="leaveAfterTransfer"
                           checked={leaveAfterTransfer}
-                          onChange={(e) => setLeaveAfterTransfer(e.target.checked)}
+                          onChange={(e) =>
+                            setLeaveAfterTransfer(e.target.checked)
+                          }
                           className="h-5 w-5 rounded-lg border-gray-300 text-orange-600 focus:ring-orange-500"
                         />
-                        <label htmlFor="leaveAfterTransfer" className="text-sm font-bold text-gray-700">
+                        <label
+                          htmlFor="leaveAfterTransfer"
+                          className="font-bold text-gray-700 text-sm"
+                        >
                           Sair do clube após a transferência
                         </label>
                       </div>
@@ -933,14 +961,14 @@ export function SettingsClient({
                     <DialogFooter className="mt-2 gap-3">
                       <button
                         onClick={() => setIsTransferModalOpen(false)}
-                        className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                        className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleTransferOwnership}
                         disabled={!transferTargetId || isTransferring}
-                        className="flex-[1.5] cursor-pointer rounded-2xl bg-gray-900 px-6 py-4 text-sm font-black text-white shadow-lg shadow-gray-900/20 transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
+                        className="flex-[1.5] cursor-pointer rounded-2xl bg-gray-900 px-6 py-4 font-black text-sm text-white shadow-gray-900/20 shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
                       >
                         {isTransferring ? (
                           <div className="flex items-center justify-center gap-2">
@@ -960,20 +988,24 @@ export function SettingsClient({
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-red-600">
                       <AlertTriangle className="h-6 w-6" />
                     </div>
-                    <h2 className="text-xl font-extrabold text-red-900">
+                    <h2 className="font-extrabold text-red-900 text-xl">
                       Encerrar Atividades do Clube
                     </h2>
                   </div>
-                  <p className="mb-8 max-w-xl text-sm leading-relaxed font-medium text-red-700/80">
-                    O clube entrará em estado de "apenas leitura". Novos treinos não poderão ser postados, 
-                    mas o histórico de todos os membros será preservado. A assinatura Pro será cancelada imediatamente.
+                  <p className="mb-8 max-w-xl font-medium text-red-700/80 text-sm leading-relaxed">
+                    O clube entrará em estado de "apenas leitura". Novos treinos
+                    não poderão ser postados, mas o histórico de todos os
+                    membros será preservado. A assinatura Pro será cancelada
+                    imediatamente.
                   </p>
                   <button
                     onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={club.status === 'DEACTIVATED'}
                     className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
                   >
-                    {club.status === 'DEACTIVATED' ? 'Clube já Desativado' : 'Encerrar Atividades Agora'}
+                    {club.status === 'DEACTIVATED'
+                      ? 'Clube já Desativado'
+                      : 'Encerrar Atividades Agora'}
                   </button>
                 </div>
 
@@ -991,9 +1023,10 @@ export function SettingsClient({
                         Confirmar Encerramento
                       </DialogTitle>
                       <DialogDescription className="pt-4 text-base">
-                        O clube ficará visível apenas para histórico. Todos os membros serão notificados para buscar um novo pelotão.
+                        O clube ficará visível apenas para histórico. Todos os
+                        membros serão notificados para buscar um novo pelotão.
                       </DialogDescription>
-                      <p className="mt-4 text-sm font-bold text-gray-500">
+                      <p className="mt-4 font-bold text-gray-500 text-sm">
                         Para confirmar, digite o nome do clube abaixo:
                         <span className="mt-1 block font-black text-gray-900">
                           "{club.name}"
@@ -1006,20 +1039,20 @@ export function SettingsClient({
                         value={deleteConfirmName}
                         onChange={(e) => setDeleteConfirmName(e.target.value)}
                         placeholder="Digite o nome do clube aqui..."
-                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-red-500 focus:bg-white focus:ring-4 focus:ring-red-500/10 focus:outline-none"
+                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-red-500/10"
                       />
                     </div>
                     <DialogFooter className="mt-6 gap-3">
                       <button
                         onClick={() => setIsDeleteDialogOpen(false)}
-                        className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                        className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                       >
                         Cancelar
                       </button>
                       <button
                         onClick={handleDeleteClub}
                         disabled={deleteConfirmName !== club.name || isDeleting}
-                        className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:shadow-none"
+                        className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:shadow-none"
                       >
                         {isDeleting ? (
                           <div className="flex items-center justify-center gap-2">

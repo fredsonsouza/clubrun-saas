@@ -130,7 +130,9 @@ describe('Update Athlete Profile (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(403)
-    expect(response.json().message).toBe('Você tentou alterar campos avançados do perfil que são exclusivos para Atletas Premium.')
+    expect(response.json().message).toBe(
+      'Você tentou alterar campos avançados do perfil que são exclusivos para Atletas Premium.'
+    )
   })
 
   it('should not be able to update athlete profile with invalid data', async () => {

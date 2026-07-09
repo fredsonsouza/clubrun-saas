@@ -1,8 +1,8 @@
 'use server'
 
-import { updateMember, removeMember } from '@/http/update-member'
-import { revalidatePath } from 'next/cache'
+import { removeMember, updateMember } from '@/http/update-member'
 import { HTTPError } from 'ky'
+import { revalidatePath } from 'next/cache'
 
 export async function updateMemberAction({
   slug,
@@ -23,7 +23,7 @@ export async function updateMemberAction({
     return { success: true, message: 'Cargo do membro atualizado com sucesso!' }
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json() as { message: string }
+      const { message } = (await err.response.json()) as { message: string }
       return { success: false, message }
     }
     return { success: false, message: 'Erro ao atualizar cargo do membro.' }
@@ -52,7 +52,7 @@ export async function removeMemberAction({
     return { success: true, message: 'Membro removido do clube com sucesso!' }
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json() as { message: string }
+      const { message } = (await err.response.json()) as { message: string }
       return { success: false, message }
     }
     return { success: false, message: 'Erro ao remover membro.' }

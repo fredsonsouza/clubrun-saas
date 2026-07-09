@@ -38,7 +38,11 @@ describe('Create Account (Unit)', () => {
     vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
     vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
     vi.mocked(hash).mockResolvedValue('hashed-password' as any)
-    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-id', email: 'john@example.com', username: 'johndoe' } as any)
+    vi.mocked(prisma.user.create).mockResolvedValue({
+      id: 'user-id',
+      email: 'john@example.com',
+      username: 'johndoe',
+    } as any)
     vi.mocked(prisma.token.create).mockResolvedValue({} as any)
     vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
 
@@ -74,7 +78,11 @@ describe('Create Account (Unit)', () => {
     } as any)
     vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
     vi.mocked(hash).mockResolvedValue('hashed-password' as any)
-    vi.mocked(prisma.user.create).mockResolvedValue({ id: 'user-id', email: 'john@acme.com', username: 'johndoe' } as any)
+    vi.mocked(prisma.user.create).mockResolvedValue({
+      id: 'user-id',
+      email: 'john@acme.com',
+      username: 'johndoe',
+    } as any)
     vi.mocked(prisma.token.create).mockResolvedValue({} as any)
     vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
 
@@ -94,9 +102,7 @@ describe('Create Account (Unit)', () => {
       expect.objectContaining({
         data: expect.objectContaining({
           members_on: {
-            create: [
-              { clubId: 'club-id' }
-            ],
+            create: [{ clubId: 'club-id' }],
           },
         }),
       })
@@ -104,7 +110,9 @@ describe('Create Account (Unit)', () => {
   })
 
   it('should not be able to create an account with existing e-mail', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'existing-id' } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: 'existing-id',
+    } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -118,6 +126,8 @@ describe('Create Account (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('User with same e-mail already exists!')
+    expect(response.json().message).toBe(
+      'User with same e-mail already exists!'
+    )
   })
 })

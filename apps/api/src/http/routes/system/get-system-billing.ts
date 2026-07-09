@@ -1,7 +1,7 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
@@ -40,13 +40,15 @@ export async function getSystemBilling(app: FastifyInstance) {
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
-        
+
         const user = await prisma.user.findUnique({
-          where: { id: userId }
+          where: { id: userId },
         })
 
         if (!user?.isSystemAdmin) {
-          throw new UnauthorizedError('Only system administrators can access this.')
+          throw new UnauthorizedError(
+            'Only system administrators can access this.'
+          )
         }
 
         const invoices = await prisma.invoice.findMany({
@@ -77,7 +79,7 @@ export async function getSystemBilling(app: FastifyInstance) {
             b2bRevenue: totalPaid,
             b2cRevenue: 0,
             availableBalance: 0,
-            transactions: invoices.map(invoice => ({
+            transactions: invoices.map((invoice) => ({
               id: invoice.id,
               entity: invoice.club.name,
               type: 'Assinatura PRO', // Generic for now

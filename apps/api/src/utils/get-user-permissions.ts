@@ -1,9 +1,9 @@
-import { defineAbilityFor, type Role, userSchema } from '@saas/auth'
+import { type Role, defineAbilityFor, userSchema } from '@saas/auth'
 
 export function getUserPermissions(
-  userId: string, 
-  role: Role, 
-  isSystemAdmin: boolean = false,
+  userId: string,
+  role: Role,
+  isSystemAdmin = false,
   currentClubId?: string | null
 ) {
   const authUser = userSchema.parse({

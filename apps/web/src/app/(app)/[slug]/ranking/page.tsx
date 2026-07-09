@@ -1,8 +1,8 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
-import { getClubs } from '@/http/get-clubs'
 import { getClubRanking } from '@/http/get-club-ranking'
+import { getClubs } from '@/http/get-clubs'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { RankingClient } from './ranking-client'
 
 interface RankingPageProps {
@@ -34,7 +34,8 @@ export default async function RankingPage({ params }: RankingPageProps) {
     const paceAvg = (r as any).paceAvg || 0
     const mins = Math.floor(paceAvg)
     const secs = Math.round((paceAvg - mins) * 60)
-    const formattedPace = paceAvg > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : '--:--'
+    const formattedPace =
+      paceAvg > 0 ? `${mins}:${secs.toString().padStart(2, '0')}` : '--:--'
 
     return {
       id: r.athlete.id,
@@ -45,7 +46,7 @@ export default async function RankingPage({ params }: RankingPageProps) {
       points: r.points,
       pace: formattedPace,
       isMe: r.athlete.id === user.id,
-      position: index + 1
+      position: index + 1,
     }
   })
 

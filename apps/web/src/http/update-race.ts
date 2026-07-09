@@ -9,7 +9,11 @@ interface UpdateRaceRequest {
   routeData?: any | null
 }
 
-export async function updateRace(slug: string, raceId: string, data: UpdateRaceRequest) {
+export async function updateRace(
+  slug: string,
+  raceId: string,
+  data: UpdateRaceRequest
+) {
   await api.put(`clubs/${slug}/races/${raceId}`, {
     json: data,
   })

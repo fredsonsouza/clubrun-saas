@@ -1,16 +1,23 @@
 'use client'
 
-import React from 'react'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
-import { Crown, Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Flame } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCircle2,
+  Crown,
+  Flame,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react'
 import Link from 'next/link'
+import React from 'react'
 
 interface SubscriptionIncentiveModalProps {
   isOpen: boolean
@@ -25,9 +32,10 @@ export function SubscriptionIncentiveModal({
   clubName,
   clubSlug,
 }: SubscriptionIncentiveModalProps) {
-  
   const checkoutUrl = `/checkout?plan=athlete${
-    clubSlug ? `&clubSlug=${clubSlug}&clubName=${encodeURIComponent(clubName || '')}` : ''
+    clubSlug
+      ? `&clubSlug=${clubSlug}&clubName=${encodeURIComponent(clubName || '')}`
+      : ''
   }`
 
   return (
@@ -36,7 +44,7 @@ export function SubscriptionIncentiveModal({
         {/* Cabeçalho Visual Premium com Gradiente */}
         <div className="relative h-44 w-full bg-gradient-to-br from-gray-900 via-orange-950 to-orange-600 flex items-center justify-center">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-15" />
-          
+
           {/* Luzes decorativas */}
           <div className="absolute -top-12 -right-12 h-32 w-32 rounded-full bg-orange-500/20 blur-2xl" />
           <div className="absolute -bottom-12 -left-12 h-32 w-32 rounded-full bg-orange-500/20 blur-2xl" />
@@ -55,10 +63,12 @@ export function SubscriptionIncentiveModal({
         <div className="px-8 pt-8 pb-10">
           <DialogHeader className="items-center text-center">
             <DialogTitle className="text-2xl font-black text-gray-900 leading-tight">
-              Só mais um passo e você se tornará membro do clube <span className="text-orange-500">"{clubName}"</span>
+              Só mais um passo e você se tornará membro do clube{' '}
+              <span className="text-orange-500">"{clubName}"</span>
             </DialogTitle>
             <DialogDescription className="mt-3 text-sm font-medium text-gray-500 max-w-sm">
-              Para participar de clubes e acessar treinos, rankings e planilhas, ative o seu plano Atleta Premium.
+              Para participar de clubes e acessar treinos, rankings e planilhas,
+              ative o seu plano Atleta Premium.
             </DialogDescription>
           </DialogHeader>
 
@@ -70,7 +80,7 @@ export function SubscriptionIncentiveModal({
                 Benefícios do Atleta Premium:
               </span>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-2.5">
               <div className="flex items-start gap-2.5 text-xs font-bold text-gray-700">
                 <CheckCircle2 className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
@@ -78,11 +88,16 @@ export function SubscriptionIncentiveModal({
               </div>
               <div className="flex items-start gap-2.5 text-xs font-bold text-gray-700">
                 <CheckCircle2 className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                <span>Enviar treinos, sincronizar fotos e postar suas metas</span>
+                <span>
+                  Enviar treinos, sincronizar fotos e postar suas metas
+                </span>
               </div>
               <div className="flex items-start gap-2.5 text-xs font-bold text-gray-700">
                 <CheckCircle2 className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
-                <span>Desbloquear perfil completo (Bio, Banner, Strava, Instagram, etc)</span>
+                <span>
+                  Desbloquear perfil completo (Bio, Banner, Strava, Instagram,
+                  etc)
+                </span>
               </div>
             </div>
           </div>
@@ -107,11 +122,18 @@ export function SubscriptionIncentiveModal({
           <div className="mt-6 flex items-center justify-center gap-4 text-gray-400">
             <div className="flex items-center gap-1 opacity-55">
               <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
-              <span className="text-[9px] font-bold tracking-wider uppercase">Ambiente 100% Seguro</span>
+              <span className="text-[9px] font-bold tracking-wider uppercase">
+                Ambiente 100% Seguro
+              </span>
             </div>
             <div className="flex items-center gap-1 opacity-45">
-              <Flame className="h-3.5 w-3.5 text-gray-500" fill="currentColor" />
-              <span className="text-[9px] font-bold tracking-wider uppercase">ClubRun</span>
+              <Flame
+                className="h-3.5 w-3.5 text-gray-500"
+                fill="currentColor"
+              />
+              <span className="text-[9px] font-bold tracking-wider uppercase">
+                ClubRun
+              </span>
             </div>
           </div>
         </div>

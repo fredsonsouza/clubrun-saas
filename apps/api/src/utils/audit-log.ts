@@ -17,7 +17,11 @@ export function createAuditLog({
 }: CreateAuditLogParams): void {
   setImmediate(() => {
     // Defensive checks for unit test environments
-    if (!prisma || !prisma.auditLog || typeof prisma.auditLog.create !== 'function') {
+    if (
+      !prisma ||
+      !prisma.auditLog ||
+      typeof prisma.auditLog.create !== 'function'
+    ) {
       return
     }
 

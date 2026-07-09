@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 import { compare } from 'bcryptjs'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { createAuditLog } from '@/utils/audit-log'
 
 export function authenticateWithPassword(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -29,10 +29,7 @@ export function authenticateWithPassword(app: FastifyInstance) {
 
       const user = await prisma.user.findFirst({
         where: {
-          OR: [
-            { email: login },
-            { username: login },
-          ],
+          OR: [{ email: login }, { username: login }],
         },
       })
 

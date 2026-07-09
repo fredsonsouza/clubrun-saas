@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 import { env } from '@saas/env'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { createAuditLog } from '@/utils/audit-log'
 
 const googleTokenErrorSchema = z.object({
   error: z.string(),
@@ -104,17 +104,17 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
 
       if (!user) {
         user = await prisma.user.create({
-          data: { 
-            name, 
-            email, 
-            avatarUrl, 
+          data: {
+            name,
+            email,
+            avatarUrl,
             emailVerifiedAt: new Date(),
             athleteProfile: {
               create: {
                 isPublic: true,
                 birthDate: new Date('2000-01-01'),
-              }
-            }
+              },
+            },
           },
         })
 
@@ -143,7 +143,7 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
         })
       }
 
-      let account = await prisma.account.findUnique({
+      const account = await prisma.account.findUnique({
         where: {
           provider_providerAccountId: {
             provider: 'GOOGLE',

@@ -1,6 +1,6 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { InviteClient } from './invite-client'
 
 interface InvitePageProps {
@@ -30,11 +30,11 @@ const MOCK_INVITE_DETAILS = {
 
 export default async function AcceptInvitePage({ params }: InvitePageProps) {
   const { id } = await params
-  
-  // Verifica se o usuário está logado. Se não, redireciona para o login 
+
+  // Verifica se o usuário está logado. Se não, redireciona para o login
   // e volta para esta página após autenticar.
   const session = await auth()
-  
+
   if (!session) {
     redirect(`/auth/sign-in?callbackUrl=/invite/${id}`)
   }

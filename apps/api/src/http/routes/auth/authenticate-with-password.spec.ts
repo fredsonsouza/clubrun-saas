@@ -97,6 +97,8 @@ describe('Authenticate with Password (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('User does not have a password, use social login')
+    expect(response.json().message).toBe(
+      'User does not have a password, use social login'
+    )
   })
 })

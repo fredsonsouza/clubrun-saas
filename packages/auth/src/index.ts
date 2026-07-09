@@ -1,22 +1,22 @@
 import {
-  createMongoAbility,
-  CreateAbility,
-  MongoAbility,
   AbilityBuilder,
+  type CreateAbility,
+  type MongoAbility,
+  createMongoAbility,
 } from '@casl/ability'
+import z from 'zod'
 import type { User } from './models/user'
 import { permissions } from './permissions'
-import { userSubject } from './subjects/user'
-import { workoutSubject } from './subjects/workout'
-import z from 'zod'
-import { billingSubject } from './subjects/billing'
-import { inviteSubject } from './subjects/invite'
-import { clubSubject } from './subjects/club'
 import { athleteprofileSubject } from './subjects/athlete-profile'
+import { billingSubject } from './subjects/billing'
+import { clubSubject } from './subjects/club'
+import { inviteSubject } from './subjects/invite'
+import { invoiceSubject } from './subjects/invoice'
 import { raceSubject } from './subjects/race'
 import { raceResultSubject } from './subjects/race-result'
 import { rankingSubject } from './subjects/ranking'
-import { invoiceSubject } from './subjects/invoice'
+import { userSubject } from './subjects/user'
+import { workoutSubject } from './subjects/workout'
 
 export * from './models/athlete-profile'
 export * from './models/club'

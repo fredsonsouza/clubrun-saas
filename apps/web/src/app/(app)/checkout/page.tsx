@@ -1,6 +1,6 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { CheckoutClient } from './checkout-client'
 
 export default async function CheckoutPage() {
@@ -11,13 +11,13 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <CheckoutClient 
+    <CheckoutClient
       user={{
         id: user.id,
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl,
-      }} 
+      }}
     />
   )
 }

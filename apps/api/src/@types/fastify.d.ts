@@ -1,4 +1,4 @@
-import { Member, Club } from '../../generated/prisma/client'
+import type { Club, Member } from '../../generated/prisma/client'
 
 declare module 'fastify' {
   export interface FastifyRequest {

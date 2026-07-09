@@ -2,7 +2,7 @@ import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { endOfMonth, startOfMonth } from 'date-fns'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 
 export async function getClubDashBoard(app: FastifyInstance) {
@@ -27,10 +27,12 @@ export async function getClubDashBoard(app: FastifyInstance) {
                 pendingInvites: z.number(),
                 totalDistanceMonth: z.number(),
                 totalWorkoutsMonth: z.number(),
-                workoutsByType: z.array(z.object({
-                  type: z.string(),
-                  count: z.number()
-                }))
+                workoutsByType: z.array(
+                  z.object({
+                    type: z.string(),
+                    count: z.number(),
+                  })
+                ),
               }),
             }),
           },
@@ -44,36 +46,41 @@ export async function getClubDashBoard(app: FastifyInstance) {
         const monthStart = startOfMonth(now)
         const monthEnd = endOfMonth(now)
 
-        const [activeCount, inactiveCount, invitesCount, workoutsMetrics, typeStats] =
-          await Promise.all([
-            prisma.member.count({
-              where: { clubId: club.id, status: 'ACTIVE' },
-            }),
-            prisma.member.count({
-              where: { clubId: club.id, status: 'INACTIVE' },
-            }),
-            prisma.invite.count({ where: { clubId: club.id } }),
-            prisma.workout.aggregate({
-              where: {
-                clubId: club.id,
-                status: 'COMPLETED',
-                date: { gte: monthStart, lte: monthEnd },
-              },
-              _sum: { distance: true },
-              _count: { id: true },
-            }),
-            prisma.workout.groupBy({
-              by: ['type'],
-              where: {
-                clubId: club.id,
-                status: 'COMPLETED',
-                date: { gte: monthStart, lte: monthEnd },
-              },
-              _count: {
-                id: true
-              }
-            })
-          ])
+        const [
+          activeCount,
+          inactiveCount,
+          invitesCount,
+          workoutsMetrics,
+          typeStats,
+        ] = await Promise.all([
+          prisma.member.count({
+            where: { clubId: club.id, status: 'ACTIVE' },
+          }),
+          prisma.member.count({
+            where: { clubId: club.id, status: 'INACTIVE' },
+          }),
+          prisma.invite.count({ where: { clubId: club.id } }),
+          prisma.workout.aggregate({
+            where: {
+              clubId: club.id,
+              status: 'COMPLETED',
+              date: { gte: monthStart, lte: monthEnd },
+            },
+            _sum: { distance: true },
+            _count: { id: true },
+          }),
+          prisma.workout.groupBy({
+            by: ['type'],
+            where: {
+              clubId: club.id,
+              status: 'COMPLETED',
+              date: { gte: monthStart, lte: monthEnd },
+            },
+            _count: {
+              id: true,
+            },
+          }),
+        ])
 
         return reply.send({
           metrics: {
@@ -82,10 +89,10 @@ export async function getClubDashBoard(app: FastifyInstance) {
             pendingInvites: invitesCount,
             totalDistanceMonth: Number(workoutsMetrics._sum.distance || 0),
             totalWorkoutsMonth: workoutsMetrics._count.id,
-            workoutsByType: typeStats.map(s => ({
+            workoutsByType: typeStats.map((s) => ({
               type: s.type,
-              count: s._count.id
-            }))
+              count: s._count.id,
+            })),
           },
         })
       }

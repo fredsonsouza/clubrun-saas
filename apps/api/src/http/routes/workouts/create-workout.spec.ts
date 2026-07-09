@@ -53,7 +53,7 @@ describe('Create Workout (Unit)', () => {
       userId,
       role: 'ATHLETE',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.workout.create).mockResolvedValue({
@@ -78,7 +78,9 @@ describe('Create Workout (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json()).toEqual({ workoutId: '81f02179-8d75-474c-8975-c54d8b965c4d' })
+    expect(response.json()).toEqual({
+      workoutId: '81f02179-8d75-474c-8975-c54d8b965c4d',
+    })
     expect(prisma.workout.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -99,10 +101,12 @@ describe('Create Workout (Unit)', () => {
       userId: coachUserId,
       role: 'COACH',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
-    vi.mocked(prisma.workout.create).mockResolvedValue({ id: '81f02179-8d75-474c-8975-c54d8b965c4d' } as any)
+    vi.mocked(prisma.workout.create).mockResolvedValue({
+      id: '81f02179-8d75-474c-8975-c54d8b965c4d',
+    } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -136,8 +140,13 @@ describe('Create Workout (Unit)', () => {
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findFirst).mockResolvedValue(null)
-    vi.mocked(prisma.club.findFirst).mockResolvedValue({ id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'not-member-club' } as any)
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ isSystemAdmin: false } as any)
+    vi.mocked(prisma.club.findFirst).mockResolvedValue({
+      id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+      slug: 'not-member-club',
+    } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      isSystemAdmin: false,
+    } as any)
 
     const response = await app.inject({
       method: 'POST',

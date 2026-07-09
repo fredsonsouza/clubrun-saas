@@ -1,5 +1,5 @@
+import { pool, prisma } from '@/lib/prisma'
 import { afterAll } from 'vitest'
-import { prisma, pool } from '@/lib/prisma'
 
 afterAll(async () => {
   await prisma.$disconnect()

@@ -1,25 +1,25 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import Link from 'next/link'
 import {
+  Activity,
   ArrowRight,
+  CalendarDays,
   CheckCircle2,
+  Crown,
   Flame,
+  MapPin,
+  Medal,
   Menu,
   Star,
+  TrendingUp,
   Trophy,
+  User,
   Users,
   X,
   Zap,
-  MapPin,
-  Crown,
-  User,
-  Activity,
-  CalendarDays,
-  TrendingUp,
-  Medal,
 } from 'lucide-react'
+import Link from 'next/link'
+import React, { useState, useEffect } from 'react'
 
 export default function LandingPage() {
   const [isScrolled, setIsScrolled] = useState(false)

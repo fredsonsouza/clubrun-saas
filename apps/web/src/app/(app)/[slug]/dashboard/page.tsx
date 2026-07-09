@@ -1,14 +1,14 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
-import { getClubs } from '@/http/get-clubs'
-import { getClubDashboard } from '@/http/get-club-dashboard'
-import { getWorkouts } from '@/http/get-workouts'
-import { getClubRanking } from '@/http/get-club-ranking'
-import { getMembers } from '@/http/get-members'
 import { getClub } from '@/http/get-club'
+import { getClubDashboard } from '@/http/get-club-dashboard'
+import { getClubRanking } from '@/http/get-club-ranking'
+import { getClubs } from '@/http/get-clubs'
+import { getMembers } from '@/http/get-members'
 import { getUserProfile } from '@/http/get-user-profile'
-import { DashboardClient } from './dashboard-client'
+import { getWorkouts } from '@/http/get-workouts'
 import { redirect } from 'next/navigation'
+import React from 'react'
+import { DashboardClient } from './dashboard-client'
 
 interface ClubDashboardPageProps {
   params: Promise<{
@@ -28,14 +28,14 @@ export default async function ClubDashboardPage({
 
   // BUSCA DADOS REAIS DA API
   const [
-    { metrics }, 
-    { workouts }, 
-    { rankings }, 
+    { metrics },
+    workoutsResult,
+    { rankings },
     { members },
     { club, membership },
     { workouts: myPlannedWorkouts },
     { workouts: myCompletedWorkouts },
-    userProfile
+    userProfile,
   ] = await Promise.all([
     getClubDashboard({ slug }),
     getWorkouts({ slug, limit: 10 }),
@@ -44,9 +44,12 @@ export default async function ClubDashboardPage({
     getClub(slug),
     getWorkouts({ slug, status: 'PLANNED', athleteId: user.id, limit: 100 }),
     getWorkouts({ slug, status: 'COMPLETED', athleteId: user.id, limit: 100 }),
-    getUserProfile(user.id)
+    getUserProfile(user.id),
   ])
-  
+
+  const workouts = workoutsResult.workouts
+  const initialTotalPages = workoutsResult.meta.totalPages
+
   // Se for o dono e a assinatura estiver pendente (ex: pós transferência), obriga a atualizar billing
   const isOwner = membership?.role === 'OWNER'
   if (isOwner && club?.subscriptionStatus === 'PENDING_UPDATE') {
@@ -59,9 +62,14 @@ export default async function ClubDashboardPage({
     slug: slug,
     avatarUrl: club?.avatarUrl,
     bannerUrl: club?.bannerUrl,
-    description: club?.description || `Bem-vindo ao ${club?.name}! Treinos e performance em um só lugar.`,
+    description:
+      club?.description ||
+      `Bem-vindo ao ${club?.name}! Treinos e performance em um só lugar.`,
     membersCount: metrics.activeMembers + metrics.inactiveMembers,
-    location: club?.city && club?.state ? `${club?.city}, ${club?.state}` : club?.city || club?.state || 'Localização não definida',
+    location:
+      club?.city && club?.state
+        ? `${club?.city}, ${club?.state}`
+        : club?.city || club?.state || 'Localização não definida',
     monthlyDistance: metrics.totalDistanceMonth,
   }
 
@@ -70,7 +78,8 @@ export default async function ClubDashboardPage({
   // Formata o Feed para o formato esperado pelo DashboardClient
   const formatWorkout = (w: any) => ({
     id: w.id,
-    title: w.title || (w.type === 'EASY' ? 'Rodagem Leve' : 'Treino de Corrida'),
+    title:
+      w.title || (w.type === 'EASY' ? 'Rodagem Leve' : 'Treino de Corrida'),
     description: w.notes || '',
     distance: w.distance,
     durationInSeconds: w.duration || 0,
@@ -78,11 +87,13 @@ export default async function ClubDashboardPage({
     visibility: 'PUBLIC' as const,
     status: w.status as any,
     assignmentMode: w.assignmentMode as any,
-    createdAt: typeof w.date === 'string' ? w.date : new Date(w.date).toISOString(),
+    createdAt:
+      typeof w.date === 'string' ? w.date : new Date(w.date).toISOString(),
     targetDistance: w.targetDistance,
     targetDuration: w.targetDuration,
     syncSource: w.syncSource,
     stravaActivityId: w.stravaActivityId,
+    routeData: w.routeData,
     reactions: w.reactions,
     currentUserReaction: w.currentUserReaction,
     author: {
@@ -94,7 +105,7 @@ export default async function ClubDashboardPage({
       name: club?.name || '',
       slug: slug,
       avatarUrl: club?.avatarUrl || null,
-    }
+    },
   })
 
   const initialFeed = workouts.map(formatWorkout)
@@ -102,21 +113,21 @@ export default async function ClubDashboardPage({
   const initialMyCompleted = myCompletedWorkouts.map(formatWorkout)
 
   // Formata o Ranking
-  const formattedRanking = rankings.map(r => ({
+  const formattedRanking = rankings.map((r) => ({
     id: r.athlete.id,
     name: r.athlete.name || 'Atleta',
     avatarUrl: r.athlete.avatarUrl,
     distance: r.distance,
-    isMe: r.athlete.id === user.id
+    isMe: r.athlete.id === user.id,
   }))
 
   // Formata a lista de membros
-  const formattedMembers = members.map(m => ({
+  const formattedMembers = members.map((m) => ({
     id: m.id,
     userId: m.userId,
     name: m.name || 'Atleta',
     avatarUrl: m.avatarUrl,
-    role: m.role
+    role: m.role,
   }))
 
   // Agrega estatísticas por tipo
@@ -134,6 +145,7 @@ export default async function ClubDashboardPage({
       userRole={membership?.role as any}
       isMember={membership?.role !== 'VISITOR'}
       initialFeed={initialFeed}
+      initialTotalPages={initialTotalPages}
       ranking={formattedRanking}
       members={formattedMembers}
       typeStats={typeStats}

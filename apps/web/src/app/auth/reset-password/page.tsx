@@ -1,20 +1,25 @@
 'use client'
 
-import { Suspense } from 'react'
-import { useFormState } from '@/hooks/use-form-state'
-import { resetPasswordAction } from './actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangle, Loader2, Flame, CheckCircle2, ArrowRight } from 'lucide-react'
+import { useFormState } from '@/hooks/use-form-state'
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  Flame,
+  Loader2,
+} from 'lucide-react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
+import { resetPasswordAction } from './actions'
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams()
   const code = searchParams.get('code')
 
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
-    resetPasswordAction
-  )
+  const [{ success, message, errors }, handleSubmit, isPending] =
+    useFormState(resetPasswordAction)
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 p-6 font-sans">
@@ -67,7 +72,10 @@ function ResetPasswordForm() {
                 <input type="hidden" name="code" value={code} />
 
                 <div className="space-y-1.5">
-                  <label htmlFor="password" className="text-sm font-bold text-gray-700">
+                  <label
+                    htmlFor="password"
+                    className="text-sm font-bold text-gray-700"
+                  >
                     Nova Senha
                   </label>
                   <input
@@ -86,7 +94,10 @@ function ResetPasswordForm() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label htmlFor="password_confirmation" className="text-sm font-bold text-gray-700">
+                  <label
+                    htmlFor="password_confirmation"
+                    className="text-sm font-bold text-gray-700"
+                  >
                     Confirmar Nova Senha
                   </label>
                   <input
@@ -127,7 +138,8 @@ function ResetPasswordForm() {
               Tudo Pronto!
             </h2>
             <p className="mb-8 text-sm font-medium text-gray-500">
-              Sua senha foi alterada com sucesso. Agora você já pode acessar sua conta novamente.
+              Sua senha foi alterada com sucesso. Agora você já pode acessar sua
+              conta novamente.
             </p>
             <Link
               href="/auth/sign-in"

@@ -1,7 +1,7 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
@@ -31,7 +31,9 @@ export async function deleteRace(app: FastifyInstance) {
         const { memberShip, club } = await request.getUserMemberShip(slug)
 
         if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
-          throw new UnauthorizedError('Only owners and managers can delete races.')
+          throw new UnauthorizedError(
+            'Only owners and managers can delete races.'
+          )
         }
 
         const race = await prisma.race.findUnique({

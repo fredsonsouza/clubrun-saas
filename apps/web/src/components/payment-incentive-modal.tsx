@@ -1,15 +1,21 @@
 'use client'
 
-import React from 'react'
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
   DialogDescription,
   DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
-import { AlertCircle, CheckCircle2, ArrowRight, ShieldAlert, Flame } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowRight,
+  CheckCircle2,
+  Flame,
+  ShieldAlert,
+} from 'lucide-react'
+import React from 'react'
 
 interface PaymentIncentiveModalProps {
   isOpen: boolean
@@ -30,7 +36,7 @@ export function PaymentIncentiveModal({
         {/* Header Premium com tom de Alerta (Dourado/Laranja) */}
         <div className="relative h-40 w-full bg-gradient-to-br from-gray-950 via-orange-950 to-amber-700 flex items-center justify-center">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-15" />
-          
+
           <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-amber-500/10 blur-2xl" />
           <div className="absolute -bottom-10 -left-10 h-28 w-28 rounded-full bg-orange-600/15 blur-2xl" />
 
@@ -51,7 +57,11 @@ export function PaymentIncentiveModal({
               Inscrição Pré-Registrada!
             </DialogTitle>
             <DialogDescription className="mt-2 text-xs font-semibold text-gray-400 max-w-sm">
-              Você está prestes a entrar no pelotão de <span className="text-orange-500 font-extrabold">"{raceName}"</span>.
+              Você está prestes a entrar no pelotão de{' '}
+              <span className="text-orange-500 font-extrabold">
+                "{raceName}"
+              </span>
+              .
             </DialogDescription>
           </DialogHeader>
 
@@ -63,11 +73,13 @@ export function PaymentIncentiveModal({
                 Regra de Confirmação:
               </span>
             </div>
-            
+
             <p className="text-xs font-bold leading-relaxed text-gray-600">
-              Para oficializar sua vaga, você deve realizar o acerto financeiro da taxa diretamente com os administradores do clube. 
+              Para oficializar sua vaga, você deve realizar o acerto financeiro
+              da taxa diretamente com os administradores do clube.
               <span className="block mt-2 text-[11px] text-amber-700 font-black">
-                ⚠️ Importante: Você só conseguirá registrar seu tempo e pace no painel após a confirmação do pagamento.
+                ⚠️ Importante: Você só conseguirá registrar seu tempo e pace no
+                painel após a confirmação do pagamento.
               </span>
             </p>
           </div>
@@ -93,7 +105,9 @@ export function PaymentIncentiveModal({
 
           <div className="mt-4 flex items-center justify-center gap-1.5 text-gray-400 opacity-40">
             <Flame className="h-3 w-3" fill="currentColor" />
-            <span className="text-[8px] font-black tracking-widest uppercase">ClubRun</span>
+            <span className="text-[8px] font-black tracking-widest uppercase">
+              ClubRun
+            </span>
           </div>
         </div>
       </DialogContent>

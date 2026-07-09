@@ -4,14 +4,18 @@ import { api } from '@/http/api-client'
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
-const resetPasswordSchema = z.object({
-  code: z.string(),
-  password: z.string().min(8, { message: 'A senha deve ter pelo menos 8 caracteres.' }),
-  password_confirmation: z.string(),
-}).refine((data) => data.password === data.password_confirmation, {
-  message: 'As senhas não coincidem.',
-  path: ['password_confirmation'],
-})
+const resetPasswordSchema = z
+  .object({
+    code: z.string(),
+    password: z
+      .string()
+      .min(8, { message: 'A senha deve ter pelo menos 8 caracteres.' }),
+    password_confirmation: z.string(),
+  })
+  .refine((data) => data.password === data.password_confirmation, {
+    message: 'As senhas não coincidem.',
+    path: ['password_confirmation'],
+  })
 
 export async function resetPasswordAction(formData: FormData) {
   const result = resetPasswordSchema.safeParse(Object.fromEntries(formData))
@@ -28,7 +32,11 @@ export async function resetPasswordAction(formData: FormData) {
       json: { code, password },
     })
 
-    return { success: true, message: 'Senha redefinida com sucesso!', errors: null }
+    return {
+      success: true,
+      message: 'Senha redefinida com sucesso!',
+      errors: null,
+    }
   } catch (err) {
     if (err instanceof HTTPError) {
       try {
@@ -41,7 +49,8 @@ export async function resetPasswordAction(formData: FormData) {
 
     return {
       success: false,
-      message: 'Ocorreu um erro ao redefinir sua senha. O link pode ter expirado.',
+      message:
+        'Ocorreu um erro ao redefinir sua senha. O link pode ter expirado.',
       errors: null,
     }
   }

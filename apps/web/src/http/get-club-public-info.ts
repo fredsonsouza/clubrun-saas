@@ -10,6 +10,8 @@ interface GetClubPublicInfoResponse {
   }
 }
 
-export async function getClubPublicInfo(slug: string): Promise<GetClubPublicInfoResponse> {
+export async function getClubPublicInfo(
+  slug: string
+): Promise<GetClubPublicInfoResponse> {
   return await api.get(`clubs/${slug}/public`).json<GetClubPublicInfoResponse>()
 }

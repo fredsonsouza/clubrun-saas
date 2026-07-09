@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react'
+import { ChevronDown, CreditCard, LogOut, Settings, User } from 'lucide-react'
 import Link from 'next/link'
-import { ChevronDown, LogOut, User, Settings, CreditCard } from 'lucide-react'
+import React, { useState, useRef, useEffect } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 
 interface ProfileButtonProps {

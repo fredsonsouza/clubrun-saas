@@ -20,7 +20,10 @@ describe('Get Profile (Unit)', () => {
   })
 
   it('should be able to get authenticated user profile', async () => {
-    const userId = '0a1b2c3d-4e5f-6g7h-8i9j-0k1l2m3n4o5p'.replace(/g|h|i|j|k|l|m|n|o|p/g, 'a') 
+    const userId = '0a1b2c3d-4e5f-6g7h-8i9j-0k1l2m3n4o5p'.replace(
+      /g|h|i|j|k|l|m|n|o|p/g,
+      'a'
+    )
     // Just kidding, I'll use a real one
     const validUserId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
 

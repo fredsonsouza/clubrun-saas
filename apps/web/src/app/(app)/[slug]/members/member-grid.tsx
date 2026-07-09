@@ -1,20 +1,20 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
-  Mail,
-  ArrowRight,
   Activity,
+  ArrowRight,
+  Mail,
+  Search,
+  Shield,
   ShieldAlert,
   ShieldCheck,
-  Shield,
-  Zap,
-  Users,
-  Search,
   Timer,
+  Users,
+  Zap,
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import Link from 'next/link'
+import React from 'react'
 
 interface Member {
   id: string

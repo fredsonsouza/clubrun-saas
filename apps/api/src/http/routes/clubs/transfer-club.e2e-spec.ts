@@ -78,7 +78,9 @@ describe('Transfer Club Ownership (E2E)', () => {
       })
 
     expect(response.statusCode).toBe(400)
-    expect(response.body.message).toBe('Target user is not a member of this club')
+    expect(response.body.message).toBe(
+      'Target user is not a member of this club'
+    )
   })
 
   it('should not be able to transfer ownership if user is not the owner', async () => {

@@ -31,6 +31,7 @@ model User {
   tokens         Token[]
   workouts       Workout[]
   workoutReactions WorkoutReaction[]
+  feedbacks      SystemFeedback[]
 
   @@map("users")
 }
@@ -378,4 +379,24 @@ model WorkoutReaction {
 
   @@unique([workoutId, userId])
   @@map("workout_reactions")
+}
+
+model Waitlist {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("waitlists")
+}
+
+model SystemFeedback {
+  id        String   @id @default(uuid())
+  type      String   // "BUG", "SUGGESTION", "OTHER"
+  comment   String
+  createdAt DateTime @default(now()) @map("created_at")
+  userId    String   @map("user_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("system_feedbacks")
 }

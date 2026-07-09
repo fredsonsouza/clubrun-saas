@@ -1,8 +1,8 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
-import { ProfileClient } from './profile-client'
 import { getUserProfile } from '@/http/get-user-profile'
 import { redirect } from 'next/navigation'
+import React from 'react'
+import { ProfileClient } from './profile-client'
 
 export default async function ProfilePage() {
   const { user: currentUser } = await auth()
@@ -12,11 +12,16 @@ export default async function ProfilePage() {
   }
 
   // Fetch real profile data for the current user
-  const { user, athleteProfile, stats, workouts, plannedWorkouts } = await getUserProfile(currentUser.id)
+  const { user, athleteProfile, stats, workouts, plannedWorkouts } =
+    await getUserProfile(currentUser.id)
 
   const formatWorkout = (w: any) => ({
     ...w,
+    durationInSeconds: w.duration || 0,
     durationInMinutes: w.duration ? Math.floor(w.duration / 60) : 0,
+    createdAt: w.date
+      ? new Date(w.date).toISOString()
+      : new Date().toISOString(),
     author: {
       id: user.id,
       name: user.name || 'Atleta',
@@ -24,6 +29,8 @@ export default async function ProfilePage() {
     },
     type: w.type as any,
     visibility: w.visibility as any,
+    status: w.status,
+    assignmentMode: w.assignmentMode,
   })
 
   const formattedWorkouts = (workouts || []).map(formatWorkout)

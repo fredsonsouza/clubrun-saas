@@ -2,12 +2,14 @@
 
 import { signInWithPassword } from '@/http/sign-in-with-password'
 import { HTTPError } from 'ky'
-import z from 'zod'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import z from 'zod'
 
 const signInSchema = z.object({
-  login: z.string().min(1, { message: 'Por favor, informe seu e-mail ou usuário!' }),
+  login: z
+    .string()
+    .min(1, { message: 'Por favor, informe seu e-mail ou usuário!' }),
   password: z.string().min(1, { message: 'Por favor, informe sua senha!' }),
 })
 
@@ -27,7 +29,6 @@ export async function signInWithEmailAndPassword(data: FormData) {
       login,
       password,
     })
-
     ;(await cookies()).set('token', token, {
       path: '/',
       maxAge: 60 * 60 * 24 * 7, //7days
@@ -43,6 +44,6 @@ export async function signInWithEmailAndPassword(data: FormData) {
       errors: null,
     }
   }
- 
+
   return { success: true, message: null, errors: null }
 }

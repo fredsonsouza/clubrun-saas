@@ -1,8 +1,8 @@
 'use client'
 
-import * as React from 'react'
-import { format, parse, isValid } from 'date-fns'
+import { format, isValid, parse } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import * as React from 'react'
 import { DayPicker } from 'react-day-picker'
 import 'react-day-picker/dist/style.css'
 import { Calendar as CalendarIcon, X } from 'lucide-react'
@@ -14,14 +14,22 @@ interface DatePickerProps {
   required?: boolean
 }
 
-export function DatePicker({ value, onChange, label, required }: DatePickerProps) {
+export function DatePicker({
+  value,
+  onChange,
+  label,
+  required,
+}: DatePickerProps) {
   const [showCalendar, setShowCalendar] = React.useState(false)
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   // Close calendar on outside click
   React.useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setShowCalendar(false)
       }
     }
@@ -84,15 +92,18 @@ export function DatePicker({ value, onChange, label, required }: DatePickerProps
             locale={ptBR}
             className="!m-0"
             classNames={{
-              day_selected: "bg-orange-500 text-white hover:bg-orange-600 rounded-lg",
-              day_today: "text-orange-500 font-black",
-              button: "hover:bg-orange-50 rounded-lg transition-colors p-2",
-              caption: "flex justify-between items-center mb-4 px-2 font-black text-gray-900",
-              nav_button: "text-gray-400 hover:text-orange-500",
-              table: "w-full border-collapse",
-              head_cell: "text-gray-400 font-black text-[10px] uppercase tracking-widest p-2",
-              cell: "p-0.5",
-              day: "h-9 w-9 text-sm font-bold text-gray-700",
+              day_selected:
+                'bg-orange-500 text-white hover:bg-orange-600 rounded-lg',
+              day_today: 'text-orange-500 font-black',
+              button: 'hover:bg-orange-50 rounded-lg transition-colors p-2',
+              caption:
+                'flex justify-between items-center mb-4 px-2 font-black text-gray-900',
+              nav_button: 'text-gray-400 hover:text-orange-500',
+              table: 'w-full border-collapse',
+              head_cell:
+                'text-gray-400 font-black text-[10px] uppercase tracking-widest p-2',
+              cell: 'p-0.5',
+              day: 'h-9 w-9 text-sm font-bold text-gray-700',
             }}
           />
         </div>

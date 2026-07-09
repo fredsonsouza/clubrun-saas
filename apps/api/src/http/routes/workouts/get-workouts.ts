@@ -1,9 +1,9 @@
+import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { auth } from '@/http/middlewares/auth'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function getWorkouts(app: FastifyInstance) {
@@ -46,6 +46,7 @@ export async function getWorkouts(app: FastifyInstance) {
                   targetDuration: z.number().nullable().optional(),
                   stravaActivityId: z.string().nullable().optional(),
                   syncSource: z.string().nullable().optional(),
+                  routeData: z.any().nullish(),
                   createdAt: z.coerce.date(),
                   clubId: z.uuid(),
                   athlete: z.object({
@@ -92,7 +93,9 @@ export async function getWorkouts(app: FastifyInstance) {
         )
 
         if (!can('get', 'Workout')) {
-          throw new UnauthorizedError(`Você não tem permissão para listar os treinos deste clube`)
+          throw new UnauthorizedError(
+            'Você não tem permissão para listar os treinos deste clube'
+          )
         }
 
         const where = {
@@ -124,6 +127,7 @@ export async function getWorkouts(app: FastifyInstance) {
               targetDuration: true,
               stravaActivityId: true,
               syncSource: true,
+              routeData: true,
               createdAt: true,
               athlete: {
                 select: {
@@ -158,18 +162,20 @@ export async function getWorkouts(app: FastifyInstance) {
         const formattedWorkouts = workouts.map((workout) => {
           const reactionCounts: Record<string, number> = {}
           let currentUserReaction: string | null = null
-
           ;(workout.reactions || []).forEach((reaction) => {
-            reactionCounts[reaction.type] = (reactionCounts[reaction.type] || 0) + 1
+            reactionCounts[reaction.type] =
+              (reactionCounts[reaction.type] || 0) + 1
             if (reaction.userId === userId) {
               currentUserReaction = reaction.type
             }
           })
 
-          const formattedReactions = Object.entries(reactionCounts).map(([type, count]) => ({
-            type,
-            count,
-          }))
+          const formattedReactions = Object.entries(reactionCounts).map(
+            ([type, count]) => ({
+              type,
+              count,
+            })
+          )
 
           const { reactions: _, ...rest } = workout
 

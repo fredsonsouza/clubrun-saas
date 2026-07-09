@@ -1,19 +1,20 @@
 'use client'
 
-import React, { useState, useMemo, useEffect } from 'react'
-import {
-  X,
-  Trophy,
-  Clock,
-  Loader2,
-  ChevronRight,
-  AlertTriangle,
-} from 'lucide-react'
-import { toast } from 'sonner'
 import { createRaceResultAction } from '@/app/(app)/[slug]/races/actions'
 import { ShoeIcon } from '@/components/shoe-icon'
 import { getProfile } from '@/http/get-profile'
 import { getUserProfile } from '@/http/get-user-profile'
+import {
+  AlertTriangle,
+  ChevronRight,
+  Clock,
+  Loader2,
+  Trophy,
+  X,
+} from 'lucide-react'
+import type React from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { toast } from 'sonner'
 
 interface AddResultModalProps {
   isOpen: boolean
@@ -70,7 +71,9 @@ export function AddResultModal({
     if (athleteProfile?.shoes) {
       const remaining = athleteProfile.shoesRemainingDistance ?? 0
       if (raceDistance > remaining) {
-        toast.error('A distância da corrida excede a quilometragem restante do tênis!')
+        toast.error(
+          'A distância da corrida excede a quilometragem restante do tênis!'
+        )
         setIsLoading(false)
         return
       }
@@ -119,7 +122,9 @@ export function AddResultModal({
 
         <div className="bg-white p-6 md:p-8">
           <div className="mb-6 rounded-2xl bg-gray-50 p-4 border border-gray-100">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Prova</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
+              Prova
+            </p>
             <p className="font-bold text-gray-900">{raceName}</p>
           </div>
 
@@ -127,7 +132,8 @@ export function AddResultModal({
             {/* TEMPO */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <Clock className="h-3.5 w-3.5 text-orange-500" /> Tempo Final (HH:MM:SS)
+                <Clock className="h-3.5 w-3.5 text-orange-500" /> Tempo Final
+                (HH:MM:SS)
               </label>
               <input
                 type="text"
@@ -143,7 +149,8 @@ export function AddResultModal({
             {/* POSIÇÃO */}
             <div className="space-y-1.5">
               <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
-                <Trophy className="h-3.5 w-3.5 text-orange-500" /> Posição Geral (Opcional)
+                <Trophy className="h-3.5 w-3.5 text-orange-500" /> Posição Geral
+                (Opcional)
               </label>
               <div className="relative">
                 <input
@@ -161,20 +168,37 @@ export function AddResultModal({
 
             {/* Informações do Tênis */}
             {athleteProfile?.shoes && (
-              <div className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
-                athleteProfile.shoesRemainingDistance <= 42 
-                  ? 'border-red-100 bg-red-50/50 text-red-700' 
-                  : 'border-orange-100 bg-orange-50/30 text-gray-700'
-              }`}>
+              <div
+                className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
+                  athleteProfile.shoesRemainingDistance <= 42
+                    ? 'border-red-100 bg-red-50/50 text-red-700'
+                    : 'border-orange-100 bg-orange-50/30 text-gray-700'
+                }`}
+              >
                 <div className="flex items-center justify-between">
                   <span className="flex items-center gap-1.5">
-                    <ShoeIcon className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`} />
-                    <span className="font-bold truncate max-w-[180px]" title={athleteProfile.shoes}>{athleteProfile.shoes}</span>
+                    <ShoeIcon
+                      className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`}
+                    />
+                    <span
+                      className="font-bold truncate max-w-[180px]"
+                      title={athleteProfile.shoes}
+                    >
+                      {athleteProfile.shoes}
+                    </span>
                   </span>
                   <span>
-                    Vida útil do tênis: <strong className={athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-600 font-extrabold' : 'text-gray-900'}>
-                      {athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined 
-                        ? `${athleteProfile.shoesRemainingDistance.toFixed(1)} km` 
+                    Vida útil do tênis:{' '}
+                    <strong
+                      className={
+                        athleteProfile.shoesRemainingDistance <= 42
+                          ? 'text-red-600 font-extrabold'
+                          : 'text-gray-900'
+                      }
+                    >
+                      {athleteProfile.shoesRemainingDistance !== null &&
+                      athleteProfile.shoesRemainingDistance !== undefined
+                        ? `${athleteProfile.shoesRemainingDistance.toFixed(1)} km`
                         : '0 km'}
                     </strong>
                   </span>
@@ -183,14 +207,20 @@ export function AddResultModal({
                 {athleteProfile.shoesRemainingDistance <= 42 && (
                   <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                    <span>Atenção: Vida útil próxima do fim! Recomendamos a troca.</span>
+                    <span>
+                      Atenção: Vida útil próxima do fim! Recomendamos a troca.
+                    </span>
                   </div>
                 )}
 
                 {isDistanceInvalid && (
                   <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-                    <span>A distância da corrida ({raceDistance.toFixed(1)} km) é maior que a restante do tênis ({athleteProfile.shoesRemainingDistance?.toFixed(1)} km)!</span>
+                    <span>
+                      A distância da corrida ({raceDistance.toFixed(1)} km) é
+                      maior que a restante do tênis (
+                      {athleteProfile.shoesRemainingDistance?.toFixed(1)} km)!
+                    </span>
                   </div>
                 )}
               </div>

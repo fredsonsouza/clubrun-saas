@@ -1,7 +1,7 @@
+import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
 import { UnauthorizedError } from '../routes/_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
 
 export const auth = fastifyPlugin(async (app: FastifyInstance) => {
   app.addHook('preHandler', async (request) => {
@@ -41,19 +41,24 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
           user: {
             select: {
               isSystemAdmin: true,
-            }
-          }
+            },
+          },
         },
       })
 
       // Se não for membro OU se o status for PENDING/INACTIVE, retorna como VISITOR
-      const isVisitor = !member || member.status === 'PENDING' || member.status === 'INACTIVE'
+      const isVisitor =
+        !member || member.status === 'PENDING' || member.status === 'INACTIVE'
       if (isVisitor) {
         const [club, user] = await Promise.all([
           member?.club || prisma.club.findFirst({ where: { slug } }),
-          member?.user || prisma.user.findUnique({ where: { id: userId }, select: { isSystemAdmin: true } })
+          member?.user ||
+            prisma.user.findUnique({
+              where: { id: userId },
+              select: { isSystemAdmin: true },
+            }),
         ])
-        
+
         if (!club) {
           throw new UnauthorizedError(`Clube não encontrado.`)
         }
@@ -67,18 +72,18 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
             status: member?.status || 'INACTIVE',
             clubId: club.id,
             isSystemAdmin: user?.isSystemAdmin ?? false,
-          }
+          },
         }
       }
 
       const { club, user, ...memberShip } = member
-      
+
       return {
         club,
         memberShip: {
           ...memberShip,
           isSystemAdmin: user?.isSystemAdmin ?? false,
-        }
+        },
       }
     }
   })

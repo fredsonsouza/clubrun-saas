@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Search, Flame, Compass } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
+import { type Club, ClubCard } from '@/components/club-card'
 import { Header } from '@/components/header'
-import { ClubCard, Club } from '@/components/club-card'
-import { requestJoinClub } from '@/http/request-join-club'
 import { JoinFeedbackModal } from '@/components/join-feedback-modal'
 import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
+import { requestJoinClub } from '@/http/request-join-club'
+import { Compass, Flame, Search } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import React, { useState, useEffect } from 'react'
 
 interface ExploreClubsClientProps {
   user: {
@@ -19,11 +19,14 @@ interface ExploreClubsClientProps {
   initialClubs: Club[]
 }
 
-export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientProps) {
+export function ExploreClubsClient({
+  user,
+  initialClubs,
+}: ExploreClubsClientProps) {
   const searchParams = useSearchParams()
   const [searchQuery, setSearchQuery] = useState('')
   const [clubs, setClubs] = useState<Club[]>(initialClubs)
-  
+
   // Estados do Modal de Feedback
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalType, setModalType] = useState<'success' | 'error'>('success')
@@ -37,7 +40,9 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+      setIsSubscribed(
+        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
+      )
     }
   }, [])
 
@@ -50,7 +55,7 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
         setModalType('success')
         setIsModalOpen(true)
       }
-      
+
       // Atualiza o estado local de assinatura
       setIsSubscribed(true)
 
@@ -67,7 +72,11 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
         c.location.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
-  const handleJoinRequest = async (clubId: string, slug: string, name: string) => {
+  const handleJoinRequest = async (
+    clubId: string,
+    slug: string,
+    name: string
+  ) => {
     // Se o usuário não for assinante premium, abre o modal de incentivo
     if (!isSubscribed) {
       setIncentiveClubName(name)
@@ -78,7 +87,7 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
 
     try {
       await requestJoinClub(slug)
-      
+
       setClubs(
         clubs.map((c) =>
           c.id === clubId ? { ...c, membershipStatus: 'PENDING' } : c
@@ -145,7 +154,9 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
               <ClubCard
                 key={club.id}
                 club={club}
-                onJoinRequest={() => handleJoinRequest(club.id, club.slug, club.name)}
+                onJoinRequest={() =>
+                  handleJoinRequest(club.id, club.slug, club.name)
+                }
               />
             ))}
           </div>
@@ -164,7 +175,7 @@ export function ExploreClubsClient({ user, initialClubs }: ExploreClubsClientPro
         )}
       </main>
 
-      <JoinFeedbackModal 
+      <JoinFeedbackModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         type={modalType}

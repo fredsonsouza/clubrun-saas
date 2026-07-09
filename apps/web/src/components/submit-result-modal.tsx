@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useState, useMemo } from 'react'
-import { X, Timer, Medal, Flame, Target } from 'lucide-react'
+import { Flame, Medal, Target, Timer, X } from 'lucide-react'
+import type React from 'react'
+import { useMemo, useState } from 'react'
 
 interface SubmitResultModalProps {
   isOpen: boolean
@@ -24,11 +25,11 @@ export function SubmitResultModal({
 
   // Cálculo de Pace Reactivo
   const pace = useMemo(() => {
-    const distNum = parseFloat(distance.replace('k', ''))
+    const distNum = Number.parseFloat(distance.replace('k', ''))
     const totalMinutes =
-      parseInt(hours || '0') * 60 +
-      parseInt(minutes || '0') +
-      parseInt(seconds || '0') / 60
+      Number.parseInt(hours || '0') * 60 +
+      Number.parseInt(minutes || '0') +
+      Number.parseInt(seconds || '0') / 60
 
     if (!distNum || totalMinutes <= 0) return '0:00'
 

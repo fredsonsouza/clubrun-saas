@@ -15,6 +15,10 @@ interface GetPendingMembersResponse {
   }>
 }
 
-export async function getPendingMembers(slug: string): Promise<GetPendingMembersResponse> {
-  return await api.get(`clubs/${slug}/members/pending`).json<GetPendingMembersResponse>()
+export async function getPendingMembers(
+  slug: string
+): Promise<GetPendingMembersResponse> {
+  return await api
+    .get(`clubs/${slug}/members/pending`)
+    .json<GetPendingMembersResponse>()
 }

@@ -1,7 +1,7 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 
@@ -58,17 +58,21 @@ export async function createRaceResult(app: FastifyInstance) {
         })
 
         if (!participant) {
-          throw new BadRequestError('Você precisa estar inscrito na corrida para registrar um resultado.')
+          throw new BadRequestError(
+            'Você precisa estar inscrito na corrida para registrar um resultado.'
+          )
         }
 
         if (participant.paymentStatus !== 'CONFIRMED') {
-          throw new BadRequestError('Seu pagamento para esta corrida ainda não foi confirmado pelos administradores.')
+          throw new BadRequestError(
+            'Seu pagamento para esta corrida ainda não foi confirmado pelos administradores.'
+          )
         }
 
         const { time, position } = request.body
 
         // Calculate pace: (time / 60) / distance
-        const pace = (time / 60) / race.distance
+        const pace = time / 60 / race.distance
 
         const existingResult = await prisma.raceResult.findUnique({
           where: {
@@ -91,7 +95,10 @@ export async function createRaceResult(app: FastifyInstance) {
 
           if (athleteProfile?.shoes) {
             shoesUsed = athleteProfile.shoes
-            if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+            if (
+              athleteProfile.shoesRemainingDistance !== null &&
+              athleteProfile.shoesRemainingDistance !== undefined
+            ) {
               if (athleteProfile.shoesRemainingDistance < race.distance) {
                 throw new BadRequestError(
                   `O resultado da corrida excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). Por favor, realize a troca do calçado.`

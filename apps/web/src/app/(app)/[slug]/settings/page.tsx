@@ -1,11 +1,11 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
+import { getClub } from '@/http/get-club'
+import { getClubBilling } from '@/http/get-club-billing'
+import { getClubDashboard } from '@/http/get-club-dashboard'
 import { getClubs } from '@/http/get-clubs'
 import { getMembers } from '@/http/get-members'
-import { getClubBilling } from '@/http/get-club-billing'
-import { getClub } from '@/http/get-club'
-import { getClubDashboard } from '@/http/get-club-dashboard'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { SettingsClient } from './settings-client'
 
 interface ClubSettingsPageProps {
@@ -14,7 +14,9 @@ interface ClubSettingsPageProps {
   }>
 }
 
-export default async function ClubSettingsPage({ params }: ClubSettingsPageProps) {
+export default async function ClubSettingsPage({
+  params,
+}: ClubSettingsPageProps) {
   const { slug } = await params
   const { user } = await auth()
 
@@ -41,7 +43,7 @@ export default async function ClubSettingsPage({ params }: ClubSettingsPageProps
     getMembers({ slug }),
     getClubBilling(slug),
     getClub(slug),
-    getClubDashboard({ slug })
+    getClubDashboard({ slug }),
   ])
 
   const clubInfo = {

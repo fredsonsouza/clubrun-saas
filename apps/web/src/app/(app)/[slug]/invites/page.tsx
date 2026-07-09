@@ -1,10 +1,10 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getInvites } from '@/http/get-invites'
-import { redirect } from 'next/navigation'
-import { InvitesClient } from './invites-client'
 import { getPendingMembers } from '@/http/get-pending-members'
+import { redirect } from 'next/navigation'
+import React from 'react'
+import { InvitesClient } from './invites-client'
 
 interface InvitesPageProps {
   params: Promise<{

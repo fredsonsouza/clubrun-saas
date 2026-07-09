@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Upload, X, Loader2, Image as ImageIcon } from 'lucide-react'
+import { Image as ImageIcon, Loader2, Upload, X } from 'lucide-react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
@@ -12,7 +12,13 @@ interface ImageUploadProps {
   token?: string
 }
 
-export function ImageUpload({ value, onChange, label, aspectRatio = 'square', token }: ImageUploadProps) {
+export function ImageUpload({
+  value,
+  onChange,
+  label,
+  aspectRatio = 'square',
+  token,
+}: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -27,7 +33,7 @@ export function ImageUpload({ value, onChange, label, aspectRatio = 'square', to
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-      
+
       const headers: Record<string, string> = {}
       if (token) {
         headers['Authorization'] = `Bearer ${token}`
@@ -61,13 +67,17 @@ export function ImageUpload({ value, onChange, label, aspectRatio = 'square', to
           {label}
         </label>
       )}
-      
-      <div 
+
+      <div
         className={`relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition-all hover:border-orange-500/50 hover:bg-orange-50/10 ${aspectRatio === 'square' ? 'aspect-square' : 'aspect-video w-full'}`}
       >
         {value ? (
           <>
-            <img src={value} alt="Preview" className="h-full w-full object-cover" />
+            <img
+              src={value}
+              alt="Preview"
+              className="h-full w-full object-cover"
+            />
             <button
               onClick={() => onChange('')}
               className="absolute top-2 right-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-transform hover:scale-110"
@@ -92,7 +102,7 @@ export function ImageUpload({ value, onChange, label, aspectRatio = 'square', to
             )}
           </button>
         )}
-        
+
         <input
           ref={fileInputRef}
           type="file"

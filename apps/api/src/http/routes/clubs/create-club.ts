@@ -1,11 +1,11 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
+import { createSlug } from '@/utils/create-slug'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { createSlug } from '@/utils/create-slug'
-import { createAuditLog } from '@/utils/audit-log'
 
 export async function createClub(app: FastifyInstance) {
   app
@@ -41,16 +41,18 @@ export async function createClub(app: FastifyInstance) {
           },
         })
 
-        const isOwnerOfAll = userMemberShips.every(m => m.role === 'OWNER')
+        const isOwnerOfAll = userMemberShips.every((m) => m.role === 'OWNER')
         const hasMemberShips = userMemberShips.length > 0
-        
+
         const user = await prisma.user.findUnique({ where: { id: userId } })
 
         // Super admins can create as many as they want
         // Owners can create as many as they want
         // Others (ATHLETE, COACH, etc) can only create if they have no clubs yet
         if (!user?.isSystemAdmin && hasMemberShips && !isOwnerOfAll) {
-          throw new BadRequestError('As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.')
+          throw new BadRequestError(
+            'As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.'
+          )
         }
 
         const { name, domain, shouldAttachUsersByDomain, cnpj } = request.body
@@ -61,7 +63,9 @@ export async function createClub(app: FastifyInstance) {
         })
 
         if (clubBySlug) {
-          throw new BadRequestError('Another club with same name already exists!')
+          throw new BadRequestError(
+            'Another club with same name already exists!'
+          )
         }
 
         if (domain) {

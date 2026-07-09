@@ -1,31 +1,38 @@
 'use client'
 
-import React, { useState } from 'react'
+import { Header } from '@/components/header'
 import {
-  Trophy,
-  MapPin,
-  Calendar,
   Activity,
   ArrowLeft,
-  Clock,
-  Medal,
-  ChevronRight,
-  Loader2,
-  Hourglass,
+  Calendar,
   CheckCircle2,
+  ChevronRight,
+  Clock,
   Coins,
+  Hourglass,
+  Loader2,
+  MapPin,
+  Medal,
+  Trophy,
 } from 'lucide-react'
-import Link from 'next/link'
-import { Header } from '@/components/header'
 import dynamic from 'next/dynamic'
-import { toast } from 'sonner'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 import { updateRacePaymentStatusAction } from '../actions'
 
-const MapView = dynamic(() => import('@/components/map-view').then(mod => mod.MapView), { 
-  ssr: false,
-  loading: () => <div className="h-[500px] w-full animate-pulse rounded-[3rem] bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">Carregando percurso...</div>
-})
+const MapView = dynamic(
+  () => import('@/components/map-view').then((mod) => mod.MapView),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[500px] w-full animate-pulse rounded-[3rem] bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">
+        Carregando percurso...
+      </div>
+    ),
+  }
+)
 
 interface Result {
   id: string
@@ -98,9 +105,14 @@ export function RaceDetailsClient({
   participants,
 }: RaceDetailsClientProps) {
   const router = useRouter()
-  const [updatingAthleteId, setUpdatingAthleteId] = useState<string | null>(null)
+  const [updatingAthleteId, setUpdatingAthleteId] = useState<string | null>(
+    null
+  )
 
-  const handleTogglePayment = async (athleteId: string, currentStatus: 'PENDING' | 'CONFIRMED') => {
+  const handleTogglePayment = async (
+    athleteId: string,
+    currentStatus: 'PENDING' | 'CONFIRMED'
+  ) => {
     const nextStatus = currentStatus === 'CONFIRMED' ? 'PENDING' : 'CONFIRMED'
     setUpdatingAthleteId(athleteId)
 
@@ -210,7 +222,8 @@ export function RaceDetailsClient({
                   Atletas <span className="text-orange-500">Inscritos</span>
                 </h2>
                 <p className="text-sm font-medium text-gray-400">
-                  Acompanhe quem está confirmado no pelotão para a largada de {race.name}.
+                  Acompanhe quem está confirmado no pelotão para a largada de{' '}
+                  {race.name}.
                 </p>
               </div>
             </div>
@@ -237,7 +250,10 @@ export function RaceDetailsClient({
                   <tbody className="divide-y divide-gray-50">
                     {participants.length > 0 ? (
                       participants.map((p, index) => {
-                        const isPrivileged = userRole === 'OWNER' || userRole === 'ADMIN' || userRole === 'MANAGER'
+                        const isPrivileged =
+                          userRole === 'OWNER' ||
+                          userRole === 'ADMIN' ||
+                          userRole === 'MANAGER'
                         const isOwnRegistration = p.athlete.id === user.id
                         const canViewStatus = isPrivileged || isOwnRegistration
 
@@ -272,18 +288,26 @@ export function RaceDetailsClient({
                               </div>
                             </td>
                             <td className="px-8 py-6 text-xs font-bold text-gray-500">
-                              {new Date(p.createdAt).toLocaleDateString('pt-BR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
+                              {new Date(p.createdAt).toLocaleDateString(
+                                'pt-BR',
+                                {
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                }
+                              )}
                             </td>
                             <td className="px-8 py-6">
                               {isPrivileged ? (
                                 <button
-                                  onClick={() => handleTogglePayment(p.athlete.id, p.paymentStatus || 'PENDING')}
+                                  onClick={() =>
+                                    handleTogglePayment(
+                                      p.athlete.id,
+                                      p.paymentStatus || 'PENDING'
+                                    )
+                                  }
                                   disabled={updatingAthleteId === p.athlete.id}
                                   className={`cursor-pointer inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[10px] font-black tracking-widest uppercase transition-all shadow-sm active:scale-95 disabled:opacity-75 ${
                                     p.paymentStatus === 'CONFIRMED'
@@ -298,7 +322,9 @@ export function RaceDetailsClient({
                                   ) : (
                                     <Hourglass className="h-3.5 w-3.5" />
                                   )}
-                                  {p.paymentStatus === 'CONFIRMED' ? 'Confirmado' : 'Pendente'}
+                                  {p.paymentStatus === 'CONFIRMED'
+                                    ? 'Confirmado'
+                                    : 'Pendente'}
                                 </button>
                               ) : (
                                 <div className="inline-flex">
@@ -310,7 +336,9 @@ export function RaceDetailsClient({
                                           : 'bg-amber-50 text-amber-600 border border-amber-100'
                                       }`}
                                     >
-                                      {p.paymentStatus === 'CONFIRMED' ? 'Confirmado' : 'Aguardando Admin'}
+                                      {p.paymentStatus === 'CONFIRMED'
+                                        ? 'Confirmado'
+                                        : 'Aguardando Admin'}
                                     </span>
                                   ) : (
                                     <span className="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 px-3 py-1.5 text-[9px] font-black tracking-widest uppercase">
@@ -335,7 +363,8 @@ export function RaceDetailsClient({
                             Nenhum inscrito ainda
                           </h3>
                           <p className="text-sm font-medium text-gray-400">
-                            Seja o primeiro a garantir sua presença clicando em "Inscrever-se" no calendário!
+                            Seja o primeiro a garantir sua presença clicando em
+                            "Inscrever-se" no calendário!
                           </p>
                         </td>
                       </tr>
@@ -470,8 +499,8 @@ export function RaceDetailsClient({
                             Nenhum resultado ainda
                           </h3>
                           <p className="text-sm font-medium text-gray-400">
-                            Os atletas do clube ainda não registraram seus tempos
-                            nesta prova.
+                            Os atletas do clube ainda não registraram seus
+                            tempos nesta prova.
                           </p>
                         </td>
                       </tr>

@@ -1,9 +1,9 @@
 import 'dotenv/config'
 import { execSync } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
-import { ContextTestEnvironment } from 'vitest'
+import type { ContextTestEnvironment } from 'vitest'
 
-export default <ContextTestEnvironment>{
+export default (<ContextTestEnvironment>{
   options: {},
   name: 'prisma',
   viteEnvironment: 'ssr',
@@ -70,4 +70,4 @@ export default <ContextTestEnvironment>{
       },
     }
   },
-}
+})

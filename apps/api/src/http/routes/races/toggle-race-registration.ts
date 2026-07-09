@@ -1,10 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { isBefore, subHours } from 'date-fns'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { subHours, isBefore } from 'date-fns'
 
 export async function toggleRaceRegistration(app: FastifyInstance) {
   app
@@ -48,7 +48,9 @@ export async function toggleRaceRegistration(app: FastifyInstance) {
         // Rule 1: Registration/Unregistration allowed until 1 hour before start
         const limitTime = subHours(new Date(race.date), 1)
         if (isBefore(limitTime, new Date())) {
-          throw new BadRequestError('As inscrições encerram 1 hora antes da largada.')
+          throw new BadRequestError(
+            'As inscrições encerram 1 hora antes da largada.'
+          )
         }
 
         const registration = await prisma.raceParticipant.findUnique({

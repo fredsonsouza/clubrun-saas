@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { defineAbilityFor } from './index'
 
 describe('Permissions', () => {
@@ -67,8 +67,12 @@ describe('Permissions', () => {
     })
 
     expect(ability.can('create', 'Workout')).toBe(true)
-    expect(ability.can('update', 'Workout', { athleteId: 'member-id' } as any)).toBe(true)
-    expect(ability.cannot('update', 'Workout', { athleteId: 'other-id' } as any)).toBe(true)
+    expect(
+      ability.can('update', 'Workout', { athleteId: 'member-id' } as any)
+    ).toBe(true)
+    expect(
+      ability.cannot('update', 'Workout', { athleteId: 'other-id' } as any)
+    ).toBe(true)
     expect(ability.cannot('prescribe', 'Workout')).toBe(true)
   })
 })

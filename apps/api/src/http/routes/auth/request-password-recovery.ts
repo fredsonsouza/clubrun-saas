@@ -1,9 +1,9 @@
+import { resend } from '@/lib/mail'
 import { prisma } from '@/lib/prisma'
+import { env } from '@saas/env'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { env } from '@saas/env'
-import { resend } from '@/lib/mail'
 
 export async function requestPasswordRecovery(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(

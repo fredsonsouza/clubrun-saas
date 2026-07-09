@@ -1,5 +1,12 @@
 import { api } from './api-client'
-type Role = 'OWNER' | 'MANAGER' | 'ADMIN' | 'ATHLETE' | 'COACH' | 'BILLING' | 'VISITOR'
+type Role =
+  | 'OWNER'
+  | 'MANAGER'
+  | 'ADMIN'
+  | 'ATHLETE'
+  | 'COACH'
+  | 'BILLING'
+  | 'VISITOR'
 
 interface GetInviteResponse {
   invite: {
@@ -19,9 +26,7 @@ interface GetInviteResponse {
 }
 
 export async function getInvite(inviteId: string) {
-  const result = await api
-    .get(`invites/${inviteId}`)
-    .json<GetInviteResponse>()
+  const result = await api.get(`invites/${inviteId}`).json<GetInviteResponse>()
 
   return result
 }

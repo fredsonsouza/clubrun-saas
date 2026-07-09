@@ -1,9 +1,9 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { BadRequestError } from '../_errors/bad-request-error'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
+import { BadRequestError } from '../_errors/bad-request-error'
 
 export async function requestJoinClub(app: FastifyInstance) {
   app
@@ -27,9 +27,9 @@ export async function requestJoinClub(app: FastifyInstance) {
       async (request, reply) => {
         const { slug } = request.params
         const userId = await request.getCurrentUserId()
-        
+
         const club = await prisma.club.findUnique({
-          where: { slug }
+          where: { slug },
         })
 
         if (!club) {
@@ -40,13 +40,15 @@ export async function requestJoinClub(app: FastifyInstance) {
           where: {
             clubId_userId: {
               clubId: club.id,
-              userId
-            }
-          }
+              userId,
+            },
+          },
         })
 
         if (existingMember) {
-          throw new BadRequestError('You are already a member or have a pending request.')
+          throw new BadRequestError(
+            'You are already a member or have a pending request.'
+          )
         }
 
         await prisma.member.create({
@@ -54,8 +56,8 @@ export async function requestJoinClub(app: FastifyInstance) {
             clubId: club.id,
             userId,
             role: 'ATHLETE',
-            status: 'PENDING'
-          }
+            status: 'PENDING',
+          },
         })
 
         return reply.status(201).send()

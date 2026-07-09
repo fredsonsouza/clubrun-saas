@@ -1,12 +1,12 @@
+import { auth } from '@/http/middlewares/auth'
+import { prisma } from '@/lib/prisma'
+import { getUserPermissions } from '@/utils/get-user-permissions'
+import { workoutSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { workoutSchema } from '@saas/auth'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
-import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function deleteWorkout(app: FastifyInstance) {
   app
@@ -47,8 +47,8 @@ export async function deleteWorkout(app: FastifyInstance) {
         const authWorkout = workoutSchema.parse(workout)
 
         const { cannot } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
@@ -68,7 +68,11 @@ export async function deleteWorkout(app: FastifyInstance) {
             },
           })
 
-          if (athleteProfile && athleteProfile.shoes === workout.shoesUsed && athleteProfile.shoesRemainingDistance !== null) {
+          if (
+            athleteProfile &&
+            athleteProfile.shoes === workout.shoesUsed &&
+            athleteProfile.shoesRemainingDistance !== null
+          ) {
             await prisma.athleteProfile.update({
               where: { userId: workout.athleteId },
               data: {

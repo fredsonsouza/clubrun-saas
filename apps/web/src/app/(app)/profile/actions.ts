@@ -1,17 +1,17 @@
 'use server'
 
+import { anonymizeUser } from '@/http/anonymize-user'
 import { api } from '@/http/api-client'
 import { updateAthleteProfile } from '@/http/update-athlete-profile'
-import { anonymizeUser } from '@/http/anonymize-user'
-import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
-import { HTTPError } from 'ky'
 import { deleteCookie } from 'cookies-next'
+import { HTTPError } from 'ky'
+import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
-import { updatePassword } from '@/http/update-password'
 import { connectStrava } from '@/http/connect-strava'
 import { disconnectStrava } from '@/http/disconnect-strava'
+import { updatePassword } from '@/http/update-password'
 
 export async function connectStravaAction(code?: string) {
   try {
@@ -33,34 +33,46 @@ export async function disconnectStravaAction() {
   }
 }
 
-export async function updatePasswordAction(currentPassword: string, newPassword: string) {
+export async function updatePasswordAction(
+  currentPassword: string,
+  newPassword: string
+) {
   try {
     await updatePassword(currentPassword, newPassword)
     return { success: true, message: 'Senha alterada com sucesso!' }
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json() as { message: string }
+      const { message } = (await err.response.json()) as { message: string }
       return { success: false, message }
     }
-    return { success: false, message: 'Erro ao alterar senha. Tente novamente.' }
+    return {
+      success: false,
+      message: 'Erro ao alterar senha. Tente novamente.',
+    }
   }
 }
 
 export async function anonymizeAccountAction(password: string) {
   try {
     await anonymizeUser(password)
-    
+
     // Invalidate session
     const cookieStore = await cookies()
     cookieStore.delete('token')
-    
-    return { success: true, message: 'Sua conta foi excluída e todos os dados foram anonimizados.' }
+
+    return {
+      success: true,
+      message: 'Sua conta foi excluída e todos os dados foram anonimizados.',
+    }
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json() as { message: string }
+      const { message } = (await err.response.json()) as { message: string }
       return { success: false, message }
     }
-    return { success: false, message: 'Erro ao processar exclusão. Tente novamente.' }
+    return {
+      success: false,
+      message: 'Erro ao processar exclusão. Tente novamente.',
+    }
   }
 }
 
@@ -90,7 +102,10 @@ export async function updateProfileAction(data: {
 
     return { success: true, message: 'Perfil atualizado com sucesso!' }
   } catch (err) {
-    return { success: false, message: 'Erro ao atualizar perfil. Tente novamente.' }
+    return {
+      success: false,
+      message: 'Erro ao atualizar perfil. Tente novamente.',
+    }
   }
 }
 
@@ -110,15 +125,21 @@ export async function completeWorkoutAction(formData: FormData) {
         duration,
         ...(stravaActivityId ? { stravaActivityId } : {}),
         ...(syncSource ? { syncSource } : {}),
-      }
+      },
     })
 
     revalidatePath('/', 'layout')
 
-    return { success: true, message: 'Treino finalizado com sucesso! Ótimo trabalho.' }
+    return {
+      success: true,
+      message: 'Treino finalizado com sucesso! Ótimo trabalho.',
+    }
   } catch (err) {
     console.error(err)
-    return { success: false, message: 'Erro ao finalizar o treino. Tente novamente.' }
+    return {
+      success: false,
+      message: 'Erro ao finalizar o treino. Tente novamente.',
+    }
   }
 }
 
@@ -143,7 +164,9 @@ export async function updateWorkoutAction(formData: FormData) {
   const workoutId = formData.get('workoutId') as string
   const title = formData.get('title') as string
   const distance = Number(formData.get('distance'))
-  const duration = formData.get('duration') ? Number(formData.get('duration')) : null
+  const duration = formData.get('duration')
+    ? Number(formData.get('duration'))
+    : null
   const pace = formData.get('pace') ? Number(formData.get('pace')) : null
   const type = formData.get('type') as string
   const date = formData.get('date') as string

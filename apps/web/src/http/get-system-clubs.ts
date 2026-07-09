@@ -18,9 +18,7 @@ interface GetSystemClubsResponse {
 }
 
 export async function getSystemClubs() {
-  const result = await api
-    .get('system/clubs')
-    .json<GetSystemClubsResponse>()
+  const result = await api.get('system/clubs').json<GetSystemClubsResponse>()
 
   return result
 }

@@ -55,7 +55,7 @@ describe('Get Club Ranking (Unit)', () => {
         athleteId: 'athlete-1',
         _sum: { distance: 50, duration: 15000 },
         _count: { id: 5 },
-      }
+      },
     ] as any)
 
     const response = await app.inject({
@@ -75,7 +75,7 @@ describe('Get Club Ranking (Unit)', () => {
     expect(response.json().rankings).toHaveLength(1)
     expect(response.json().rankings[0]).toMatchObject({
       distance: 50,
-      workoutsCount: 5
+      workoutsCount: 5,
     })
   })
 

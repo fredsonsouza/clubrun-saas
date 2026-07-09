@@ -1,45 +1,18 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import {
-  Users,
-  Shield,
-  ShieldAlert,
-  Trash2,
-  Search,
-  ArrowUpDown,
-  Zap,
-  Loader2,
-  Mail,
-  Calendar,
-  ShieldCheck,
-  CheckCircle2,
-  AlertCircle,
-  MoreHorizontal,
-  Activity,
-  UserX,
-  FileWarning,
-  MessageSquare,
-  DollarSign,
-  Crown,
-  HeartPulse,
-  Watch,
-} from 'lucide-react'
+import { BirthdayCardModal } from '@/components/birthday-card-modal'
 import { Header } from '@/components/header'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ShoeIcon } from '@/components/shoe-icon'
-import { toast } from 'sonner'
-import { updateMemberAction, removeMemberAction } from './actions'
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle 
-} from '@/components/ui/dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,7 +21,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { BirthdayCardModal } from '@/components/birthday-card-modal'
+import {
+  Activity,
+  AlertCircle,
+  ArrowUpDown,
+  Calendar,
+  CheckCircle2,
+  Crown,
+  DollarSign,
+  FileWarning,
+  HeartPulse,
+  Loader2,
+  Mail,
+  MessageSquare,
+  MoreHorizontal,
+  Search,
+  Shield,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+  UserX,
+  Users,
+  Watch,
+  Zap,
+} from 'lucide-react'
+import Link from 'next/link'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
+import { removeMemberAction, updateMemberAction } from './actions'
 
 interface Member {
   id: string
@@ -95,10 +95,12 @@ export function MembersClient({
 }: MembersClientProps) {
   const [members, setMembers] = useState<Member[]>(initialMembers)
   const [searchTerm, setSearchTerm] = useState('')
-  const [tab, setTab] = useState<'all' | 'active' | 'overdue' | 'athletes' | 'coaches' | 'birthdays'>('all')
+  const [tab, setTab] = useState<
+    'all' | 'active' | 'overdue' | 'athletes' | 'coaches' | 'birthdays'
+  >('all')
   const [memberToRemove, setMemberToRemove] = useState<Member | null>(null)
   const [isRemoving, setIsRemoving] = useState(false)
-  
+
   // Estados para o Card de Aniversário
   const [isCardModalOpen, setIsCardModalOpen] = useState(false)
   const [selectedAthleteForCard, setSelectedAthleteForCard] = useState<{
@@ -111,51 +113,64 @@ export function MembersClient({
   const [selectedReasons, setSelectedReasons] = useState<string[]>([])
   const [removeDescription, setRemoveDescription] = useState('')
 
-  const isRestrictedRole = currentUserRole === 'ATHLETE' || currentUserRole === 'COACH'
+  const isRestrictedRole =
+    currentUserRole === 'ATHLETE' || currentUserRole === 'COACH'
 
   // Auxiliar para formatação e cálculo de aniversário
   const getBirthdayMonthAndDay = (dateStr?: string | null) => {
-    if (!dateStr || dateStr.startsWith('2000-01-01')) return { month: 12, day: 31, formatted: 'Não cadastrado', age: 0 }
-    
+    if (!dateStr || dateStr.startsWith('2000-01-01'))
+      return { month: 12, day: 31, formatted: 'Não cadastrado', age: 0 }
+
     const date = new Date(dateStr)
     const months = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      'Janeiro',
+      'Fevereiro',
+      'Março',
+      'Abril',
+      'Maio',
+      'Junho',
+      'Julho',
+      'Agosto',
+      'Setembro',
+      'Outubro',
+      'Novembro',
+      'Dezembro',
     ]
     const currentYear = new Date().getFullYear()
-    
+
     // Evita fuso horário do JS atrasando a data do banco (que vem em UTC)
     const day = date.getUTCDate()
     const monthIndex = date.getUTCMonth()
-    
+
     return {
       month: monthIndex,
       day,
       formatted: `${day} de ${months[monthIndex]}`,
-      age: currentYear - date.getUTCFullYear()
+      age: currentYear - date.getUTCFullYear(),
     }
   }
 
   // Ordenação circular inteligente (aniversariantes a partir do mês atual)
   const getSortedBirthdayMembers = () => {
     const currentMonth = new Date().getMonth()
-    
+
     return [...members]
-      .filter((m) =>
-        m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchTerm.toLowerCase())
+      .filter(
+        (m) =>
+          m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          m.email.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .sort((a, b) => {
         const aInfo = getBirthdayMonthAndDay(a.birthDate)
         const bInfo = getBirthdayMonthAndDay(b.birthDate)
-        
+
         // Se um não tiver aniversário, coloca no fim
         if (aInfo.formatted === 'Não cadastrado') return 1
         if (bInfo.formatted === 'Não cadastrado') return -1
 
         const aMonthDiff = (aInfo.month - currentMonth + 12) % 12
         const bMonthDiff = (bInfo.month - currentMonth + 12) % 12
-        
+
         if (aMonthDiff !== bMonthDiff) {
           return aMonthDiff - bMonthDiff
         }
@@ -163,21 +178,25 @@ export function MembersClient({
       })
   }
 
-  const filteredMembers = tab === 'birthdays'
-    ? getSortedBirthdayMembers()
-    : members.filter((m) => {
-        const matchesSearch =
-          m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          m.email.toLowerCase().includes(searchTerm.toLowerCase())
-        
-        if (tab === 'active') return matchesSearch && !m.overdue
-        if (tab === 'overdue') return matchesSearch && m.overdue
-        if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
-        if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
-        return matchesSearch
-      })
+  const filteredMembers =
+    tab === 'birthdays'
+      ? getSortedBirthdayMembers()
+      : members.filter((m) => {
+          const matchesSearch =
+            m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            m.email.toLowerCase().includes(searchTerm.toLowerCase())
 
-  const handleUpdateRole = async (memberId: string, newRole: Member['role']) => {
+          if (tab === 'active') return matchesSearch && !m.overdue
+          if (tab === 'overdue') return matchesSearch && m.overdue
+          if (tab === 'athletes') return matchesSearch && m.role === 'ATHLETE'
+          if (tab === 'coaches') return matchesSearch && m.role === 'COACH'
+          return matchesSearch
+        })
+
+  const handleUpdateRole = async (
+    memberId: string,
+    newRole: Member['role']
+  ) => {
     const result = await updateMemberAction({
       slug: club.slug,
       memberId,
@@ -189,7 +208,10 @@ export function MembersClient({
       setMembers(
         members.map((m) => {
           if (m.id === memberId) return { ...m, role: newRole }
-          if (['MANAGER', 'COACH', 'BILLING'].includes(newRole) && m.role === newRole) {
+          if (
+            ['MANAGER', 'COACH', 'BILLING'].includes(newRole) &&
+            m.role === newRole
+          ) {
             return { ...m, role: 'ATHLETE' }
           }
           return m
@@ -229,9 +251,9 @@ export function MembersClient({
   }
 
   const toggleReason = (reason: string) => {
-    setSelectedReasons(prev => 
-      prev.includes(reason) 
-        ? prev.filter(r => r !== reason)
+    setSelectedReasons((prev) =>
+      prev.includes(reason)
+        ? prev.filter((r) => r !== reason)
         : [...prev, reason]
     )
   }
@@ -246,7 +268,7 @@ export function MembersClient({
       <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
         <Header user={user} />
         <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
-          <MemberGrid 
+          <MemberGrid
             members={members}
             searchTerm={searchTerm}
             onSearchChange={setSearchTerm}
@@ -274,7 +296,8 @@ export function MembersClient({
               Pelotão do Clube
             </h1>
             <p className="mt-2 text-base font-medium text-gray-500">
-              Gerencie os atletas, cargos e verifique o status de cada membro do <span className="text-orange-500 font-bold">{club.name}</span>.
+              Gerencie os atletas, cargos e verifique o status de cada membro do{' '}
+              <span className="text-orange-500 font-bold">{club.name}</span>.
             </p>
           </div>
 
@@ -325,9 +348,15 @@ export function MembersClient({
             <div className="col-span-5 flex items-center gap-2">
               Atleta <ArrowUpDown className="h-3 w-3" />
             </div>
-            <div className="col-span-2">{tab === 'birthdays' ? 'Aniversário' : 'Cargo'}</div>
-            <div className="col-span-2">{tab === 'birthdays' ? 'Tênis / Relógio' : 'Pagamento'}</div>
-            <div className="col-span-2">{tab === 'birthdays' ? 'Ficha Médica' : 'Membro desde'}</div>
+            <div className="col-span-2">
+              {tab === 'birthdays' ? 'Aniversário' : 'Cargo'}
+            </div>
+            <div className="col-span-2">
+              {tab === 'birthdays' ? 'Tênis / Relógio' : 'Pagamento'}
+            </div>
+            <div className="col-span-2">
+              {tab === 'birthdays' ? 'Ficha Médica' : 'Membro desde'}
+            </div>
             <div className="col-span-1 text-right">Ações</div>
           </div>
 
@@ -335,7 +364,8 @@ export function MembersClient({
             {filteredMembers.length > 0 ? (
               filteredMembers.map((member) => {
                 const birthdayInfo = getBirthdayMonthAndDay(member.birthDate)
-                const isToday = birthdayInfo.formatted !== 'Não cadastrado' &&
+                const isToday =
+                  birthdayInfo.formatted !== 'Não cadastrado' &&
                   new Date().getUTCDate() === birthdayInfo.day &&
                   new Date().getUTCMonth() === birthdayInfo.month
 
@@ -361,7 +391,7 @@ export function MembersClient({
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <Link 
+                          <Link
                             href={`/profile/${member.userId}`}
                             className="truncate text-base font-black text-gray-900 hover:text-orange-500 transition-colors"
                           >
@@ -384,7 +414,9 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Aniversário:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Aniversário:
+                            </span>
                             <div className="text-sm font-bold text-gray-800 space-y-0.5">
                               <p className="flex items-center gap-1">
                                 {birthdayInfo.formatted}
@@ -398,14 +430,17 @@ export function MembersClient({
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Cargo:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Cargo:
+                            </span>
                             {member.role === 'OWNER' ? (
                               <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-600">
                                 <ShieldAlert className="h-3.5 w-3.5" /> Fundador
                               </span>
                             ) : member.role === 'ADMIN' ? (
                               <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-blue-600">
-                                <ShieldCheck className="h-3.5 w-3.5" /> Administrador
+                                <ShieldCheck className="h-3.5 w-3.5" />{' '}
+                                Administrador
                               </span>
                             ) : member.role === 'MANAGER' ? (
                               <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
@@ -434,15 +469,31 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Vestíveis:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Vestíveis:
+                            </span>
                             <div className="text-[11px] font-bold text-gray-700 space-y-0.5 max-w-xs">
-                              <p className="flex items-center gap-1 truncate" title={member.shoes || 'Não informado'}><ShoeIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" /> {member.shoes || 'Nenhum'}</p>
-                              <p className="flex items-center gap-1 truncate" title={member.watch || 'Não informado'}><Watch className="h-3.5 w-3.5 text-gray-400 shrink-0" /> {member.watch || 'Nenhum'}</p>
+                              <p
+                                className="flex items-center gap-1 truncate"
+                                title={member.shoes || 'Não informado'}
+                              >
+                                <ShoeIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />{' '}
+                                {member.shoes || 'Nenhum'}
+                              </p>
+                              <p
+                                className="flex items-center gap-1 truncate"
+                                title={member.watch || 'Não informado'}
+                              >
+                                <Watch className="h-3.5 w-3.5 text-gray-400 shrink-0" />{' '}
+                                {member.watch || 'Nenhum'}
+                              </p>
                             </div>
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Pagamento:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Pagamento:
+                            </span>
                             {!member.overdue ? (
                               <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
                                 <CheckCircle2 className="h-4 w-4" /> Em dia
@@ -462,32 +513,40 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Ficha Médica:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Ficha Médica:
+                            </span>
                             {member.hasMedicalConditions ? (
-                             <div 
-                                className="group/alert relative inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-600 cursor-help shadow-xs"
-                              >
-                                <HeartPulse className="h-3.5 w-3.5 animate-pulse text-red-500" /> Ver Alerta
-                                
+                              <div className="group/alert relative inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-600 cursor-help shadow-xs">
+                                <HeartPulse className="h-3.5 w-3.5 animate-pulse text-red-500" />{' '}
+                                Ver Alerta
                                 {/* Tooltip Flutuante */}
                                 <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-64 -translate-x-1/2 rounded-2xl bg-gray-950 p-4 text-xs font-bold text-white shadow-2xl opacity-0 group-hover/alert:opacity-100 transition-all duration-200 z-30 leading-relaxed text-left normal-case border border-white/5">
                                   <p className="font-black text-[9px] tracking-widest uppercase text-red-400 mb-1 flex items-center gap-1">
-                                    <AlertCircle className="h-3 w-3" /> Ficha de Saúde de {member.name}:
+                                    <AlertCircle className="h-3 w-3" /> Ficha de
+                                    Saúde de {member.name}:
                                   </p>
-                                  <p className="font-medium text-gray-200">{member.medicalConditions || 'O atleta não informou detalhes.'}</p>
+                                  <p className="font-medium text-gray-200">
+                                    {member.medicalConditions ||
+                                      'O atleta não informou detalhes.'}
+                                  </p>
                                 </div>
                               </div>
                             ) : (
                               <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
-                                <CheckCircle2 className="h-3.5 w-3.5" /> Apto p/ Treino
+                                <CheckCircle2 className="h-3.5 w-3.5" /> Apto p/
+                                Treino
                               </span>
                             )}
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">Membro desde:</span>
+                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                              Membro desde:
+                            </span>
                             <span className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
-                              <Calendar className="h-3.5 w-3.5 text-gray-300" /> {member.joinedAt}
+                              <Calendar className="h-3.5 w-3.5 text-gray-300" />{' '}
+                              {member.joinedAt}
                             </span>
                           </>
                         )}
@@ -496,14 +555,15 @@ export function MembersClient({
 
                     {/* Ações */}
                     <div className="col-span-1 flex items-center justify-end gap-2">
-                      {tab === 'birthdays' && birthdayInfo.formatted !== 'Não cadastrado' ? (
+                      {tab === 'birthdays' &&
+                      birthdayInfo.formatted !== 'Não cadastrado' ? (
                         <div className="flex gap-2.5">
                           <button
                             onClick={() => {
                               setSelectedAthleteForCard({
                                 name: member.name,
                                 avatarUrl: member.avatarUrl,
-                                clubName: club.name
+                                clubName: club.name,
                               })
                               setIsCardModalOpen(true)
                             }}
@@ -525,43 +585,59 @@ export function MembersClient({
                             <MessageSquare className="h-4 w-4" />
                           </button>
                         </div>
-                      ) : canEdit && member.role !== 'OWNER' && member.id !== user.id ? (
+                      ) : canEdit &&
+                        member.role !== 'OWNER' &&
+                        member.id !== user.id ? (
                         <DropdownMenu>
                           <DropdownMenuTrigger className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm ring-1 ring-transparent hover:ring-gray-100 transition-all focus:outline-none">
                             <MoreHorizontal className="h-5 w-5" />
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent 
-                            align="end" 
+                          <DropdownMenuContent
+                            align="end"
                             className="w-56 rounded-2xl border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md"
                           >
-                            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">Gerenciar Membro</DropdownMenuLabel>
+                            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              Gerenciar Membro
+                            </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-gray-50" />
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateRole(member.id, 'MANAGER')}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateRole(member.id, 'MANAGER')
+                              }
                               className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                             >
-                              <Shield className="h-4 w-4 text-indigo-500" /> Tornar Gestor
+                              <Shield className="h-4 w-4 text-indigo-500" />{' '}
+                              Tornar Gestor
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateRole(member.id, 'COACH')}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateRole(member.id, 'COACH')
+                              }
                               className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                             >
-                              <Activity className="h-4 w-4 text-emerald-500" /> Tornar Treinador
+                              <Activity className="h-4 w-4 text-emerald-500" />{' '}
+                              Tornar Treinador
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateRole(member.id, 'BILLING')}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateRole(member.id, 'BILLING')
+                              }
                               className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                             >
-                              <Zap className="h-4 w-4 text-amber-500" /> Tornar Financeiro
+                              <Zap className="h-4 w-4 text-amber-500" /> Tornar
+                              Financeiro
                             </DropdownMenuItem>
-                            <DropdownMenuItem 
-                              onClick={() => handleUpdateRole(member.id, 'ATHLETE')}
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleUpdateRole(member.id, 'ATHLETE')
+                              }
                               className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
                             >
-                              <Users className="h-4 w-4 text-gray-400" /> Tornar Atleta
+                              <Users className="h-4 w-4 text-gray-400" /> Tornar
+                              Atleta
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-gray-50" />
-                             <DropdownMenuItem 
+                            <DropdownMenuItem
                               onClick={() => setMemberToRemove(member)}
                               className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700 transition-colors"
                             >
@@ -581,15 +657,22 @@ export function MembersClient({
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Search className="mb-4 h-12 w-12 text-gray-200" />
-                <h3 className="text-xl font-black text-gray-900">Nenhum atleta encontrado</h3>
-                <p className="mt-2 text-sm font-medium text-gray-500">Tente ajustar os termos da sua busca.</p>
+                <h3 className="text-xl font-black text-gray-900">
+                  Nenhum atleta encontrado
+                </h3>
+                <p className="mt-2 text-sm font-medium text-gray-500">
+                  Tente ajustar os termos da sua busca.
+                </p>
               </div>
             )}
           </div>
         </div>
 
         {/* MODAL DE CONFIRMAÇÃO DE REMOÇÃO */}
-        <Dialog open={!!memberToRemove} onOpenChange={(open) => !open && setMemberToRemove(null)}>
+        <Dialog
+          open={!!memberToRemove}
+          onOpenChange={(open) => !open && setMemberToRemove(null)}
+        >
           <DialogContent className="sm:max-w-[480px]">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-3 text-red-600">
@@ -599,22 +682,54 @@ export function MembersClient({
                 Remover Membro
               </DialogTitle>
               <DialogDescription className="pt-4 text-base">
-                Tem certeza que deseja remover <span className="font-black text-gray-900">{memberToRemove?.name}</span> do pelotão?
+                Tem certeza que deseja remover{' '}
+                <span className="font-black text-gray-900">
+                  {memberToRemove?.name}
+                </span>{' '}
+                do pelotão?
               </DialogDescription>
               <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
-                O atleta perderá acesso imediato aos treinos privados, rankings mensais e histórico de atividades do clube. Esta ação pode ser revertida apenas com um novo convite.
+                O atleta perderá acesso imediato aos treinos privados, rankings
+                mensais e histórico de atividades do clube. Esta ação pode ser
+                revertida apenas com um novo convite.
               </p>
             </DialogHeader>
 
             <div className="mt-6 space-y-6">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Motivos da Remoção</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  Motivos da Remoção
+                </label>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
-                    { id: 'FINANCIAL', label: 'Financeiro', icon: DollarSign, color: 'text-amber-600', bg: 'bg-amber-50' },
-                    { id: 'INDISCIPLINE', label: 'Indisciplina', icon: UserX, color: 'text-red-600', bg: 'bg-red-50' },
-                    { id: 'RULE_VIOLATION', label: 'Violação Regras', icon: FileWarning, color: 'text-orange-600', bg: 'bg-orange-50' },
-                    { id: 'OTHER', label: 'Outro Motivo', icon: MessageSquare, color: 'text-blue-600', bg: 'bg-blue-50' },
+                    {
+                      id: 'FINANCIAL',
+                      label: 'Financeiro',
+                      icon: DollarSign,
+                      color: 'text-amber-600',
+                      bg: 'bg-amber-50',
+                    },
+                    {
+                      id: 'INDISCIPLINE',
+                      label: 'Indisciplina',
+                      icon: UserX,
+                      color: 'text-red-600',
+                      bg: 'bg-red-50',
+                    },
+                    {
+                      id: 'RULE_VIOLATION',
+                      label: 'Violação Regras',
+                      icon: FileWarning,
+                      color: 'text-orange-600',
+                      bg: 'bg-orange-50',
+                    },
+                    {
+                      id: 'OTHER',
+                      label: 'Outro Motivo',
+                      icon: MessageSquare,
+                      color: 'text-blue-600',
+                      bg: 'bg-blue-50',
+                    },
                   ].map((reason) => (
                     <button
                       key={reason.id}
@@ -625,10 +740,14 @@ export function MembersClient({
                           : 'border-gray-50 bg-gray-50/50 hover:border-gray-200'
                       }`}
                     >
-                      <div className={`flex h-7 w-7 items-center justify-center rounded-lg ${reason.bg} ${reason.color}`}>
+                      <div
+                        className={`flex h-7 w-7 items-center justify-center rounded-lg ${reason.bg} ${reason.color}`}
+                      >
                         <reason.icon className="h-4 w-4" />
                       </div>
-                      <span className={`text-xs font-bold ${selectedReasons.includes(reason.id) ? 'text-gray-900' : 'text-gray-500'}`}>
+                      <span
+                        className={`text-xs font-bold ${selectedReasons.includes(reason.id) ? 'text-gray-900' : 'text-gray-500'}`}
+                      >
                         {reason.label}
                       </span>
                     </button>
@@ -638,12 +757,18 @@ export function MembersClient({
 
               <div>
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Descrição Opcional</label>
-                  <span className="text-[10px] font-bold text-gray-300">{removeDescription.length}/250</span>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Descrição Opcional
+                  </label>
+                  <span className="text-[10px] font-bold text-gray-300">
+                    {removeDescription.length}/250
+                  </span>
                 </div>
                 <textarea
                   value={removeDescription}
-                  onChange={(e) => setRemoveDescription(e.target.value.slice(0, 250))}
+                  onChange={(e) =>
+                    setRemoveDescription(e.target.value.slice(0, 250))
+                  }
                   placeholder="Descreva brevemente o motivo da remoção..."
                   className="mt-2 h-24 w-full resize-none rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-900 transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
                 />

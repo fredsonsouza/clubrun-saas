@@ -33,7 +33,7 @@ describe('Remove Member (Unit)', () => {
       userId,
       role: 'ADMIN',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
-      user: { isSystemAdmin: true }
+      user: { isSystemAdmin: true },
     } as any)
 
     vi.mocked(prisma.member.delete).mockResolvedValue({} as any)
@@ -70,7 +70,7 @@ describe('Remove Member (Unit)', () => {
       userId,
       role: 'OWNER',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.member.delete).mockResolvedValue({} as any)
@@ -106,7 +106,7 @@ describe('Remove Member (Unit)', () => {
       userId,
       role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     const response = await app.inject({

@@ -10,9 +10,7 @@ interface GetSystemStatsResponse {
 }
 
 export async function getSystemStats() {
-  const result = await api
-    .get('system/stats')
-    .json<GetSystemStatsResponse>()
+  const result = await api.get('system/stats').json<GetSystemStatsResponse>()
 
   return result
 }

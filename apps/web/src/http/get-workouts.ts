@@ -26,6 +26,7 @@ interface GetWorkoutsResponse {
     targetDuration: number | null
     syncSource: string | null
     stravaActivityId: string | null
+    routeData?: any | null
     createdAt: string
     clubId: string
     athlete: {
@@ -47,7 +48,13 @@ interface GetWorkoutsResponse {
   }
 }
 
-export async function getWorkouts({ slug, page = 1, limit = 20, status = 'COMPLETED', athleteId }: GetWorkoutsRequest) {
+export async function getWorkouts({
+  slug,
+  page = 1,
+  limit = 20,
+  status = 'COMPLETED',
+  athleteId,
+}: GetWorkoutsRequest) {
   const result = await api
     .get(`clubs/${slug}/workouts`, {
       searchParams: {

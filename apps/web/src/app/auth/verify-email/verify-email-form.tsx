@@ -1,15 +1,18 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
 import { useFormState } from '@/hooks/use-form-state'
-import { verifyEmailAction, resendVerificationAction } from './actions'
 import { AlertCircle, CheckCircle2, Loader2, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
+import { resendVerificationAction, verifyEmailAction } from './actions'
 
 export function VerifyEmailForm() {
   const router = useRouter()
   const [isResending, startResendTransition] = useTransition()
-  const [resendStatus, setResendStatus] = useState<{ success?: boolean, message?: string } | null>(null)
+  const [resendStatus, setResendStatus] = useState<{
+    success?: boolean
+    message?: string
+  } | null>(null)
 
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
     verifyEmailAction,
@@ -25,7 +28,7 @@ export function VerifyEmailForm() {
     startResendTransition(async () => {
       const result = await resendVerificationAction()
       setResendStatus(result)
-      
+
       // Limpa a mensagem após 5 segundos
       setTimeout(() => setResendStatus(null), 5000)
     })
@@ -69,8 +72,14 @@ export function VerifyEmailForm() {
         )}
 
         {resendStatus && (
-          <div className={`flex items-center gap-2 rounded-lg p-3 text-sm ${resendStatus.success ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'}`}>
-            {resendStatus.success ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+          <div
+            className={`flex items-center gap-2 rounded-lg p-3 text-sm ${resendStatus.success ? 'bg-orange-50 text-orange-600' : 'bg-red-50 text-red-600'}`}
+          >
+            {resendStatus.success ? (
+              <CheckCircle2 className="h-4 w-4" />
+            ) : (
+              <AlertCircle className="h-4 w-4" />
+            )}
             <p>{resendStatus.message}</p>
           </div>
         )}
@@ -105,7 +114,7 @@ export function VerifyEmailForm() {
       </form>
 
       <div className="border-t border-gray-100 pt-6 text-center">
-        <a 
+        <a
           href="/api/auth/sign-out"
           onClick={() => {
             if (typeof window !== 'undefined') {

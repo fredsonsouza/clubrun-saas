@@ -1,8 +1,8 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getMembers } from '@/http/get-members'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { MembersClient } from './members-client'
 
 interface MembersPageProps {
@@ -43,7 +43,9 @@ export default async function MembersPage({ params }: MembersPageProps) {
     email: m.email,
     avatarUrl: m.avatarUrl,
     role: m.role,
-    joinedAt: m.joinedAt ? new Date(m.joinedAt).toLocaleDateString('pt-BR') : 'Membro Ativo',
+    joinedAt: m.joinedAt
+      ? new Date(m.joinedAt).toLocaleDateString('pt-BR')
+      : 'Membro Ativo',
     subscriptionStatus: 'ACTIVE' as const,
     overdue: m.overdue,
     paceAvg: (m as any).paceAvg,

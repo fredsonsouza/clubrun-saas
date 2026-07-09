@@ -1,10 +1,10 @@
+import { auth } from '@/http/middlewares/auth'
+import { resend } from '@/lib/mail'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import { auth } from '@/http/middlewares/auth'
-import { resend } from '@/lib/mail'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { z } from 'zod'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function resendVerification(app: FastifyInstance) {
   app

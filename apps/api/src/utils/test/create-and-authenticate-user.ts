@@ -1,6 +1,6 @@
-import { prisma, pool } from '@/lib/prisma'
-import { FastifyInstance } from 'fastify'
 import { randomUUID } from 'node:crypto'
+import { pool, prisma } from '@/lib/prisma'
+import type { FastifyInstance } from 'fastify'
 
 export async function createAndAuthenticateUser(
   app: FastifyInstance,

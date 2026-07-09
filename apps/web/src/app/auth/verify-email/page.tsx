@@ -25,7 +25,8 @@ export default function VerifyEmailPage() {
             Verifique seu e-mail
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo para continuar.
+            Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo
+            para continuar.
           </p>
         </div>
 

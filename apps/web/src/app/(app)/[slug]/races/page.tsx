@@ -1,10 +1,10 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getRaces } from '@/http/get-races'
-import { redirect } from 'next/navigation'
-import { RacesClient } from './races-client'
 import { isAfter, isBefore, startOfDay } from 'date-fns'
+import { redirect } from 'next/navigation'
+import React from 'react'
+import { RacesClient } from './races-client'
 
 interface ClubRacesPageProps {
   params: Promise<{
@@ -38,14 +38,21 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       status: 'UPCOMING' as const,
       registeredCount: race._count.participants,
       location: race.city,
-      date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
-      time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date(race.date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
+      time: new Date(race.date).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       rawDate: race.date,
-      participants: race.participants.map(p => ({
-        avatarUrl: p.athlete.avatarUrl
+      participants: race.participants.map((p) => ({
+        avatarUrl: p.athlete.avatarUrl,
       })),
       distances: [`${race.distance}km`],
-      isRegistered: race.isRegistered
+      isRegistered: race.isRegistered,
     }))
 
   const past = races
@@ -55,14 +62,21 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       status: 'COMPLETED' as const,
       registeredCount: race._count.participants,
       location: race.city,
-      date: new Date(race.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }),
-      time: new Date(race.date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      date: new Date(race.date).toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
+      time: new Date(race.date).toLocaleTimeString('pt-BR', {
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
       rawDate: race.date,
-      participants: race.participants.map(p => ({
-        avatarUrl: p.athlete.avatarUrl
+      participants: race.participants.map((p) => ({
+        avatarUrl: p.athlete.avatarUrl,
       })),
       distances: [`${race.distance}km`],
-      isRegistered: race.isRegistered
+      isRegistered: race.isRegistered,
     }))
 
   const clubInfo = {

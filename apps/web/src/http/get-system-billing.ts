@@ -18,6 +18,8 @@ interface GetSystemBillingResponse {
 }
 
 export async function getSystemBilling(): Promise<GetSystemBillingResponse> {
-  const result = await api.get('system/billing').json<GetSystemBillingResponse>()
+  const result = await api
+    .get('system/billing')
+    .json<GetSystemBillingResponse>()
   return result
 }

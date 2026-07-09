@@ -1,8 +1,8 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { getSystemClubs } from '@/http/get-system-clubs'
-import { AdminClubsClient } from './clubs-client'
 import { redirect } from 'next/navigation'
+import React from 'react'
+import { AdminClubsClient } from './clubs-client'
 
 export default async function AdminClubsPage() {
   const { user } = await auth()
@@ -18,7 +18,7 @@ export default async function AdminClubsPage() {
   const { clubs } = await getSystemClubs()
 
   return (
-    <AdminClubsClient 
+    <AdminClubsClient
       user={{
         id: user.id,
         name: user.name,

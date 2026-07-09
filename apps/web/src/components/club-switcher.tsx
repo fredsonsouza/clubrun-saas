@@ -1,11 +1,11 @@
 'use client'
 
-import { useEffect, useState, useRef } from 'react'
-import { Check, ChevronDown, PlusCircle, Building2 } from 'lucide-react'
 import { getClubs } from '@/http/get-clubs'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
-import Link from 'next/link'
 import { getCookie, setCookie } from 'cookies-next'
+import { Building2, Check, ChevronDown, PlusCircle } from 'lucide-react'
+import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 
 interface Club {
   id: string

@@ -40,10 +40,10 @@ describe('Get Club Dashboard (Unit)', () => {
 
     vi.mocked(prisma.member.count)
       .mockResolvedValueOnce(10) // active
-      .mockResolvedValueOnce(2)  // inactive
-    
+      .mockResolvedValueOnce(2) // inactive
+
     vi.mocked(prisma.invite.count).mockResolvedValue(3)
-    
+
     vi.mocked(prisma.workout.aggregate).mockResolvedValue({
       _sum: { distance: 150.5 },
       _count: { id: 25 },

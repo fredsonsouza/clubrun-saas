@@ -1,37 +1,37 @@
 'use client'
 
-import React, { useState } from 'react'
-import Link from 'next/link'
-import {
-  CalendarDays,
-  MapPin,
-  Flag,
-  Plus,
-  Users,
-  ChevronRight,
-  Medal,
-  Activity,
-  Search,
-  ArrowRight,
-  Trophy,
-  Edit,
-  Trash2,
-  Clock,
-  Loader2,
-  AlertCircle,
-  CheckCircle2,
-} from 'lucide-react'
-import { Header } from '@/components/header'
-import { CreateRaceModal } from '@/components/create-race-modal'
 import { AddResultModal } from '@/components/add-result-modal'
+import { CreateRaceModal } from '@/components/create-race-modal'
 import { DeleteRaceModal } from '@/components/delete-race-modal'
-import { UpdateRaceModal } from '@/components/update-race-modal'
-import { toggleRaceRegistration } from '@/http/toggle-race-registration'
-import { deleteRace } from '@/http/delete-race'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
-import { deleteRaceAction } from './actions'
+import { Header } from '@/components/header'
 import { PaymentIncentiveModal } from '@/components/payment-incentive-modal'
+import { UpdateRaceModal } from '@/components/update-race-modal'
+import { deleteRace } from '@/http/delete-race'
+import { toggleRaceRegistration } from '@/http/toggle-race-registration'
+import {
+  Activity,
+  AlertCircle,
+  ArrowRight,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  Edit,
+  Flag,
+  Loader2,
+  MapPin,
+  Medal,
+  Plus,
+  Search,
+  Trash2,
+  Trophy,
+  Users,
+} from 'lucide-react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
+import { deleteRaceAction } from './actions'
 
 interface Race {
   id: string
@@ -83,10 +83,13 @@ export function RacesClient({
   const [isResultModalOpen, setIsResultModalOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isToggling, setIsToggling] = useState<string | null>(null)
-  
+
   const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
-  const [incentiveRace, setIncentiveRace] = useState<{ id: string; name: string } | null>(null)
-  
+  const [incentiveRace, setIncentiveRace] = useState<{
+    id: string
+    name: string
+  } | null>(null)
+
   const [selectedRace, setSelectedRace] = useState<{
     id: string
     name: string
@@ -98,13 +101,15 @@ export function RacesClient({
   const displayedRaces = (
     activeTab === 'upcoming' ? upcomingRaces : pastRaces
   ).filter((race) => {
-    const matchesSearch = race.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesDistance = !selectedDistance || race.distances.includes(selectedDistance)
+    const matchesSearch = race.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+    const matchesDistance =
+      !selectedDistance || race.distances.includes(selectedDistance)
     return matchesSearch && matchesDistance
   })
 
-  const canManage =
-    userRole === 'OWNER' || userRole === 'MANAGER'
+  const canManage = userRole === 'OWNER' || userRole === 'MANAGER'
 
   const handleToggleRegistration = async (
     raceId: string,
@@ -133,7 +138,8 @@ export function RacesClient({
       toast.success(result.message)
       router.refresh()
     } catch (error: any) {
-      const message = error?.response?.json?.message || 'Erro ao processar inscrição.'
+      const message =
+        error?.response?.json?.message || 'Erro ao processar inscrição.'
       toast.error(message)
     } finally {
       setIsToggling(null)
@@ -269,13 +275,16 @@ export function RacesClient({
                   href={`/${club.slug}/races/${race.id}`}
                   className="group relative overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white p-1 transition-all hover:border-orange-200 hover:shadow-2xl"
                 >
-                  <div className={`flex h-full flex-col rounded-4xl bg-white p-6 sm:p-8 transition-all duration-500 ${registrationClosed && activeTab === 'upcoming' ? 'group-hover:blur-[2px] group-hover:opacity-40' : ''}`}>
+                  <div
+                    className={`flex h-full flex-col rounded-4xl bg-white p-6 sm:p-8 transition-all duration-500 ${registrationClosed && activeTab === 'upcoming' ? 'group-hover:blur-[2px] group-hover:opacity-40' : ''}`}
+                  >
                     <div className="mb-6 flex items-start justify-between">
                       <div className="flex gap-2">
                         {/* Data Badge */}
                         <div className="flex h-16 w-16 flex-col items-center justify-center rounded-2xl bg-orange-50 text-orange-500 ring-1 ring-orange-100 transition-transform group-hover:scale-110">
                           <span className="mb-1 text-[8px] leading-none font-black tracking-widest uppercase">
-                            {race.date.split(' de ')[1] || race.date.split(' ')[1]}
+                            {race.date.split(' de ')[1] ||
+                              race.date.split(' ')[1]}
                           </span>
                           <span className="text-2xl leading-none font-black">
                             {race.date.split(' ')[0]}
@@ -286,21 +295,29 @@ export function RacesClient({
                       <div className="flex items-center gap-2">
                         {canManage && (
                           <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                            <button 
-                              onClick={(e) => { 
-                                e.preventDefault(); 
-                                setSelectedRace({ id: race.id, name: race.name, distance: race.distance });
-                                setIsUpdateModalOpen(true);
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setSelectedRace({
+                                  id: race.id,
+                                  name: race.name,
+                                  distance: race.distance,
+                                })
+                                setIsUpdateModalOpen(true)
                               }}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-orange-100 hover:text-orange-500"
                             >
                               <Edit className="h-4 w-4" />
                             </button>
-                            <button 
-                              onClick={(e) => { 
-                                e.preventDefault(); 
-                                setSelectedRace({ id: race.id, name: race.name, distance: race.distance });
-                                setIsDeleteDialogOpen(true);
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setSelectedRace({
+                                  id: race.id,
+                                  name: race.name,
+                                  distance: race.distance,
+                                })
+                                setIsDeleteDialogOpen(true)
                               }}
                               className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500"
                             >
@@ -319,7 +336,9 @@ export function RacesClient({
                         <h3 className="text-2xl font-black tracking-tight text-gray-900 transition-colors group-hover:text-orange-500">
                           {race.name}
                         </h3>
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white shadow-lg italic ${getDistanceColor(race.distances[0])}`}>
+                        <span
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-black text-white shadow-lg italic ${getDistanceColor(race.distances[0])}`}
+                        >
                           {race.distances[0]}
                         </span>
                       </div>
@@ -372,13 +391,21 @@ export function RacesClient({
                           <button
                             onClick={(e) => {
                               e.preventDefault()
-                              handleToggleRegistration(race.id, registrationClosed, race.isRegistered, race.name)
+                              handleToggleRegistration(
+                                race.id,
+                                registrationClosed,
+                                race.isRegistered,
+                                race.name
+                              )
                             }}
-                            disabled={isToggling === race.id || (registrationClosed && !race.isRegistered)}
+                            disabled={
+                              isToggling === race.id ||
+                              (registrationClosed && !race.isRegistered)
+                            }
                             className={`flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black tracking-widest uppercase transition-all active:scale-95 disabled:opacity-50 ${
                               race.isRegistered
                                 ? 'bg-orange-50 text-orange-600 hover:bg-orange-100'
-                                : registrationClosed 
+                                : registrationClosed
                                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                   : 'bg-orange-500 text-white shadow-lg shadow-orange-500/20 hover:bg-orange-600'
                             }`}
@@ -387,7 +414,8 @@ export function RacesClient({
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
                             ) : race.isRegistered ? (
                               <>
-                                <CheckCircle2 className="h-3.5 w-3.5" /> Inscrito
+                                <CheckCircle2 className="h-3.5 w-3.5" />{' '}
+                                Inscrito
                               </>
                             ) : registrationClosed ? (
                               'Encerrado'
@@ -399,7 +427,11 @@ export function RacesClient({
                           <button
                             onClick={(e) => {
                               e.preventDefault()
-                              setSelectedRace({ id: race.id, name: race.name, distance: race.distance })
+                              setSelectedRace({
+                                id: race.id,
+                                name: race.name,
+                                distance: race.distance,
+                              })
                               setIsResultModalOpen(true)
                             }}
                             className="flex cursor-pointer items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1.5 text-[10px] font-black tracking-widest text-amber-600 uppercase transition-colors hover:bg-amber-100"
@@ -416,8 +448,13 @@ export function RacesClient({
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none">
                       <div className="flex flex-col items-center gap-2 rounded-3xl bg-gray-900/80 p-6 text-center backdrop-blur-md">
                         <AlertCircle className="h-8 w-8 text-orange-500" />
-                        <h4 className="text-sm font-black text-white uppercase tracking-widest">Inscrições Encerradas</h4>
-                        <p className="text-[10px] font-medium text-gray-300 max-w-[180px]">O prazo de inscrição terminou uma hora antes da largada.</p>
+                        <h4 className="text-sm font-black text-white uppercase tracking-widest">
+                          Inscrições Encerradas
+                        </h4>
+                        <p className="text-[10px] font-medium text-gray-300 max-w-[180px]">
+                          O prazo de inscrição terminou uma hora antes da
+                          largada.
+                        </p>
                       </div>
                     </div>
                   )}

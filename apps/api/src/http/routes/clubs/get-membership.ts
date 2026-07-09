@@ -1,8 +1,8 @@
 import { auth } from '@/http/middlewares/auth'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import { roleSchema } from '@saas/auth'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { roleSchema } from '@saas/auth'
 
 export async function getMemberShip(app: FastifyInstance) {
   app

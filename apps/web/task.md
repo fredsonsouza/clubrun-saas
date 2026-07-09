@@ -1,0 +1,6 @@
+- `[x]` Obter metadados da listagem no Dashboard Server Component (`page.tsx`)
+- `[x]` Passar total de páginas para o Dashboard Client Component (`dashboard-client.tsx`)
+- `[x]` Adicionar estados de paginação no `DashboardClient` (`page`, `hasMore`, `isLoadingMore`)
+- `[x]` Implementar a função `handleLoadMore` no `DashboardClient` buscando da API
+- `[x]` Conectar a função ao botão "Carregar mais atividades" com spinner e desabilitação
+- `[x]` Rodar build de verificação e formatar arquivos com biome

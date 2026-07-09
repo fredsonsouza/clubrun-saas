@@ -1,12 +1,12 @@
 import { auth } from '@/http/middlewares/auth'
+import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
 import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
-import { createAuditLog } from '@/utils/audit-log'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function payInvoice(app: FastifyInstance) {
   app
@@ -33,7 +33,11 @@ export async function payInvoice(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('update', 'Invoice')) {
           throw new UnauthorizedError(

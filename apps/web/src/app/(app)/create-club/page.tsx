@@ -1,6 +1,6 @@
 import { auth } from '@/auth/auth'
-import { CreateClubForm } from './create-club-form'
 import { redirect } from 'next/navigation'
+import { CreateClubForm } from './create-club-form'
 
 export default async function CreateClubPage({
   searchParams,
@@ -8,7 +8,7 @@ export default async function CreateClubPage({
   searchParams: Promise<{ checkoutComplete?: string }>
 }) {
   const { user } = await auth()
-  
+
   if (!user) {
     redirect('/auth/sign-in?redirectTo=/create-club')
   }
@@ -23,13 +23,13 @@ export default async function CreateClubPage({
   }
 
   return (
-    <CreateClubForm 
+    <CreateClubForm
       user={{
         id: user.id,
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl,
-      }} 
+      }}
     />
   )
 }

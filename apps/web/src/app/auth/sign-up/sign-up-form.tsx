@@ -1,26 +1,26 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useFormState } from '@/hooks/use-form-state'
 import {
+  AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Flame,
-  ArrowLeft,
-  Trophy,
-  AlertTriangle,
   Loader2,
+  Trophy,
 } from 'lucide-react'
-import { useFormState } from '@/hooks/use-form-state'
-import { signInUpAction } from './actions'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import React from 'react'
 import { signInWithGoogle } from '../actions'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { signInUpAction } from './actions'
 
 export function SignUpForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+
   const role = searchParams.get('role')
   const plan = searchParams.get('plan')
   const redirectTo = searchParams.get('redirectTo')
@@ -37,7 +37,7 @@ export function SignUpForm() {
       if (redirectTo) params.set('redirectTo', redirectTo)
       if (token) params.set('token', token)
       if (inviteId) params.set('inviteId', inviteId)
-      
+
       const queryString = params.toString()
       router.push(`/auth/sign-in${queryString ? `?${queryString}` : ''}`)
     }
@@ -124,9 +124,13 @@ export function SignUpForm() {
           )}
 
           <form action={signInWithGoogle}>
-            {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
+            {redirectTo && (
+              <input type="hidden" name="redirectTo" value={redirectTo} />
+            )}
             {token && <input type="hidden" name="token" value={token} />}
-            {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
+            {inviteId && (
+              <input type="hidden" name="inviteId" value={inviteId} />
+            )}
             <button
               type="submit"
               className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"

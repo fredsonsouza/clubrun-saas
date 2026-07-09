@@ -1,5 +1,5 @@
-import { Suspense } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Suspense } from 'react'
 import { SignInForm } from './sign-in-form'
 
 export default function SignInPage() {

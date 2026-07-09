@@ -62,15 +62,16 @@ export async function updateMemberStatusAction({
     await updateMemberStatus(slug, memberId, status)
     revalidatePath(`/${slug}/invites`)
     revalidatePath(`/${slug}/members`)
-    
-    const message = status === 'ACTIVE' 
-      ? 'Membro aprovado com sucesso!' 
-      : 'Solicitação recusada.'
-      
+
+    const message =
+      status === 'ACTIVE'
+        ? 'Membro aprovado com sucesso!'
+        : 'Solicitação recusada.'
+
     return { success: true, message }
   } catch (err: any) {
     console.error('Erro detalhado na Action de atualizar membro:', err)
-    
+
     let message = 'Erro ao atualizar status do membro.'
     try {
       if (err.response) {

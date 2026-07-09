@@ -1,5 +1,5 @@
-import { prisma } from '../src/lib/prisma'
 import { getISOWeek, getMonth, getYear } from 'date-fns'
+import { prisma } from '../src/lib/prisma'
 
 async function test() {
   const slug = 'corre-macuxi'
@@ -9,7 +9,7 @@ async function test() {
   const week = undefined
 
   const club = await prisma.club.findUnique({
-    where: { slug }
+    where: { slug },
   })
 
   if (!club) {
@@ -35,11 +35,15 @@ async function test() {
 
       const jan4 = new Date(year, 0, 4)
       const dayOfJan4 = jan4.getDay() || 7
-      const startOfFirstWeek = new Date(jan4.getTime() - (dayOfJan4 - 1) * 24 * 3600 * 1000)
-      
-      startDate = new Date(startOfFirstWeek.getTime() + (currentWeek - 1) * 7 * 24 * 3600 * 1000)
+      const startOfFirstWeek = new Date(
+        jan4.getTime() - (dayOfJan4 - 1) * 24 * 3600 * 1000
+      )
+
+      startDate = new Date(
+        startOfFirstWeek.getTime() + (currentWeek - 1) * 7 * 24 * 3600 * 1000
+      )
       startDate.setHours(0, 0, 0, 0)
-      
+
       endDate = new Date(startDate.getTime() + 7 * 24 * 3600 * 1000)
       break
     }
@@ -83,30 +87,36 @@ async function test() {
 
   const athleteIds = rankingsRaw.map((r) => r.athleteId)
 
-  const workoutsStats = athleteIds.length > 0 ? await prisma.workout.groupBy({
-    by: ['athleteId'],
-    where: {
-      athleteId: { in: athleteIds },
-      clubId: club.id,
-      status: 'COMPLETED',
-      date: {
-        gte: startDate,
-        lt: endDate,
-      },
-    },
-    _sum: {
-      distance: true,
-      duration: true,
-    },
-    _count: {
-      id: true,
-    },
-  }) : []
+  const workoutsStats =
+    athleteIds.length > 0
+      ? await prisma.workout.groupBy({
+          by: ['athleteId'],
+          where: {
+            athleteId: { in: athleteIds },
+            clubId: club.id,
+            status: 'COMPLETED',
+            date: {
+              gte: startDate,
+              lt: endDate,
+            },
+          },
+          _sum: {
+            distance: true,
+            duration: true,
+          },
+          _count: {
+            id: true,
+          },
+        })
+      : []
 
   console.log('workoutsStats size:', workoutsStats.length)
   console.log('workoutsStats data:', JSON.stringify(workoutsStats, null, 2))
 
-  const statsMap = new Map<string, { distance: number; duration: number; count: number }>()
+  const statsMap = new Map<
+    string,
+    { distance: number; duration: number; count: number }
+  >()
   workoutsStats.forEach((ws) => {
     statsMap.set(ws.athleteId, {
       distance: ws._sum.distance || 0,
@@ -116,8 +126,13 @@ async function test() {
   })
 
   const rankings = rankingsRaw.map((r) => {
-    const stats = statsMap.get(r.athleteId) || { distance: 0, duration: 0, count: 0 }
-    const paceAvg = stats.distance > 0 ? (stats.duration / 60) / stats.distance : 0
+    const stats = statsMap.get(r.athleteId) || {
+      distance: 0,
+      duration: 0,
+      count: 0,
+    }
+    const paceAvg =
+      stats.distance > 0 ? stats.duration / 60 / stats.distance : 0
 
     return {
       ...r,

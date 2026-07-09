@@ -1,12 +1,12 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowRight, Loader2, CheckCircle2, Flame } from 'lucide-react'
-import { joinClub } from '@/http/join-club'
-import { toast } from 'sonner'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { joinClub } from '@/http/join-club'
+import { ArrowRight, CheckCircle2, Flame, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 
 interface JoinClubFormProps {
   club: {
@@ -31,7 +31,9 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+      setIsSubscribed(
+        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
+      )
     }
   }, [])
 

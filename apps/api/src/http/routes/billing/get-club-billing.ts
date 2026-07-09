@@ -40,7 +40,11 @@ export async function getClubBilling(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('get', 'Billing')) {
           throw new UnauthorizedError(

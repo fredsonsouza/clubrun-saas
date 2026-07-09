@@ -1,10 +1,10 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { getClubs } from '@/http/get-clubs'
 import { getRace } from '@/http/get-race'
-import { getRaceResults } from '@/http/get-race-results'
 import { getRaceParticipants } from '@/http/get-race-participants'
+import { getRaceResults } from '@/http/get-race-results'
 import { redirect } from 'next/navigation'
+import React from 'react'
 import { RaceDetailsClient } from './race-details-client'
 
 interface RaceDetailsPageProps {
@@ -14,7 +14,9 @@ interface RaceDetailsPageProps {
   }>
 }
 
-export default async function RaceDetailsPage({ params }: RaceDetailsPageProps) {
+export default async function RaceDetailsPage({
+  params,
+}: RaceDetailsPageProps) {
   const { slug, raceId } = await params
   const { user } = await auth()
 

@@ -1,15 +1,15 @@
 'use client'
 
-import React from 'react'
 import {
-  Users,
-  MapPin,
   ArrowRight,
   CheckCircle2,
   Clock,
   LayoutDashboard,
+  MapPin,
+  Users,
 } from 'lucide-react'
 import Link from 'next/link'
+import React from 'react'
 
 export interface Club {
   id: string

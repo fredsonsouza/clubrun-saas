@@ -16,7 +16,10 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club monthly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
+    const { token, user, club } = await createAndAuthenticateUser(
+      app,
+      'ATHLETE'
+    )
 
     const year = getYear(new Date())
     const month = getMonth(new Date()) + 1
@@ -33,9 +36,11 @@ describe('Get Club Ranking (E2E)', () => {
         },
         {
           clubId: club?.id!,
-          athleteId: (await prisma.user.create({ 
-            data: { name: 'Other Athlete', email: faker.internet.email() } 
-          })).id,
+          athleteId: (
+            await prisma.user.create({
+              data: { name: 'Other Athlete', email: faker.internet.email() },
+            })
+          ).id,
           year,
           month,
           points: 200,
@@ -56,7 +61,10 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club weekly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
+    const { token, user, club } = await createAndAuthenticateUser(
+      app,
+      'ATHLETE'
+    )
 
     const year = getYear(new Date())
     const week = getISOWeek(new Date())
@@ -82,7 +90,10 @@ describe('Get Club Ranking (E2E)', () => {
   })
 
   it('should be able to get club yearly ranking', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
+    const { token, user, club } = await createAndAuthenticateUser(
+      app,
+      'ATHLETE'
+    )
 
     const year = 2024
 
@@ -109,15 +120,17 @@ describe('Get Club Ranking (E2E)', () => {
 
   it('should not be able to get ranking if user is not a member', async () => {
     const { token } = await createAndAuthenticateUser(app)
-    
+
     // Cria um clube onde o usuário NÃO é membro
     const club = await prisma.club.create({
       data: {
         name: faker.company.name(),
         slug: faker.string.uuid(),
-        ownerId: (await prisma.user.create({ 
-          data: { name: 'Owner', email: faker.internet.email() } 
-        })).id,
+        ownerId: (
+          await prisma.user.create({
+            data: { name: 'Owner', email: faker.internet.email() },
+          })
+        ).id,
       },
     })
 

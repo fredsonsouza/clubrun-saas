@@ -46,7 +46,7 @@ export async function getExploreClubs(app: FastifyInstance) {
             city: true,
             state: true,
             _count: {
-              select: { members: true }
+              select: { members: true },
             },
             members: {
               select: {
@@ -61,13 +61,17 @@ export async function getExploreClubs(app: FastifyInstance) {
 
         const formattedClubs = clubs.map((club) => {
           const userMember = club.members[0]
-          
+
           let membershipStatus: 'ATHLETE' | 'NONE' | 'PENDING' = 'NONE'
           if (userMember) {
-            membershipStatus = userMember.status === 'ACTIVE' ? 'ATHLETE' : 'PENDING'
+            membershipStatus =
+              userMember.status === 'ACTIVE' ? 'ATHLETE' : 'PENDING'
           }
 
-          const location = club.city && club.state ? `${club.city}, ${club.state}` : 'Local não informado'
+          const location =
+            club.city && club.state
+              ? `${club.city}, ${club.state}`
+              : 'Local não informado'
 
           return {
             id: club.id,

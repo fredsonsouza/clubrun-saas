@@ -1,10 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function completeWorkout(app: FastifyInstance) {
   app
@@ -54,9 +54,10 @@ export async function completeWorkout(app: FastifyInstance) {
           throw new BadRequestError('Workout already completed')
         }
 
-        const { distance, duration, notes, stravaActivityId, syncSource } = request.body
+        const { distance, duration, notes, stravaActivityId, syncSource } =
+          request.body
         const finalDistance = distance || workout.distance
-        const finalPace = (duration / 60) / finalDistance
+        const finalPace = duration / 60 / finalDistance
 
         let shoesUsed: string | null = null
         const athleteProfile = await prisma.athleteProfile.findUnique({
@@ -69,7 +70,10 @@ export async function completeWorkout(app: FastifyInstance) {
 
         if (athleteProfile?.shoes) {
           shoesUsed = athleteProfile.shoes
-          if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+          if (
+            athleteProfile.shoesRemainingDistance !== null &&
+            athleteProfile.shoesRemainingDistance !== undefined
+          ) {
             if (athleteProfile.shoesRemainingDistance < finalDistance) {
               throw new BadRequestError(
                 `O treino excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). Por favor, realize a troca do calçado.`
@@ -107,7 +111,9 @@ export async function completeWorkout(app: FastifyInstance) {
         }
 
         // Update AthleteProfile and Ranking
-        const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')
+        const { updateAthleteRanking } = await import(
+          '@/services/update-athlete-ranking'
+        )
         await updateAthleteRanking(userId, club.id, new Date())
 
         const athleteStats = await prisma.workout.aggregate({
@@ -125,7 +131,7 @@ export async function completeWorkout(app: FastifyInstance) {
         if (athleteStats._sum.distance && athleteStats._sum.duration) {
           const totalDistance = athleteStats._sum.distance
           const totalSeconds = athleteStats._sum.duration
-          const newPaceAvg = (totalSeconds / 60) / totalDistance
+          const newPaceAvg = totalSeconds / 60 / totalDistance
 
           await prisma.athleteProfile.upsert({
             where: { userId },

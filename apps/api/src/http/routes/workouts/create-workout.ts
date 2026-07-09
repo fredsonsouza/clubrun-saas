@@ -1,13 +1,13 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
+import { createAuditLog } from '@/utils/audit-log'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { createAuditLog } from '@/utils/audit-log'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function createWorkout(app: FastifyInstance) {
   app
@@ -59,19 +59,29 @@ export async function createWorkout(app: FastifyInstance) {
 
         if (club.status === 'DEACTIVATED') {
           throw new UnauthorizedError(
-            `This club is deactivated and does not allow new workouts.`
+            'This club is deactivated and does not allow new workouts.'
           )
         }
 
         const { cannot } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
 
-        const { title, distance, duration, date, pace, type, notes, athleteId, status, assignmentMode } =
-          request.body
+        const {
+          title,
+          distance,
+          duration,
+          date,
+          pace,
+          type,
+          notes,
+          athleteId,
+          status,
+          assignmentMode,
+        } = request.body
 
         // If target athlete is different from creator, check if can prescribe
         const targetAthleteId = athleteId || userId
@@ -91,12 +101,18 @@ export async function createWorkout(app: FastifyInstance) {
 
         const { routeData } = request.body
 
+        console.log(
+          '[DEBUG] API create-workout routeData:',
+          routeData ? 'PRESENTE' : 'AUSENTE',
+          JSON.stringify(routeData)
+        )
+
         // Business Rule: 2h Lead Time for Prescriptions on the same day
         if (isPrescribing) {
           const now = new Date()
           const workoutDate = new Date(date)
-          
-          const isSameDay = 
+
+          const isSameDay =
             now.getFullYear() === workoutDate.getFullYear() &&
             now.getMonth() === workoutDate.getMonth() &&
             now.getDate() === workoutDate.getDate()
@@ -126,7 +142,10 @@ export async function createWorkout(app: FastifyInstance) {
 
           if (athleteProfile?.shoes) {
             shoesUsed = athleteProfile.shoes
-            if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+            if (
+              athleteProfile.shoesRemainingDistance !== null &&
+              athleteProfile.shoesRemainingDistance !== undefined
+            ) {
               if (athleteProfile.shoesRemainingDistance < distance) {
                 throw new BadRequestError(
                   `O treino excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). Por favor, realize a troca do calçado.`
@@ -148,7 +167,7 @@ export async function createWorkout(app: FastifyInstance) {
             routeData,
             originalDate: isPrescribing ? date : null,
             status: resolvedStatus,
-            assignmentMode: isPrescribing ? (assignmentMode || 'FREE') : null,
+            assignmentMode: isPrescribing ? assignmentMode || 'FREE' : null,
             targetDistance: resolvedStatus === 'PLANNED' ? distance : null,
             targetDuration: resolvedStatus === 'PLANNED' ? duration : null,
             slug: `${createSlug(title)}-${Date.now()}`,
@@ -160,8 +179,10 @@ export async function createWorkout(app: FastifyInstance) {
 
         // Update AthleteProfile and Ranking ONLY if workout is COMPLETED
         if (workout.status === 'COMPLETED') {
-          const { updateAthleteRanking } = await import('@/services/update-athlete-ranking')
-          
+          const { updateAthleteRanking } = await import(
+            '@/services/update-athlete-ranking'
+          )
+
           await updateAthleteRanking(targetAthleteId, club.id, date)
 
           if (shoesUsed) {
@@ -190,7 +211,7 @@ export async function createWorkout(app: FastifyInstance) {
           if (athleteStats._sum.distance && athleteStats._sum.duration) {
             const totalDistance = athleteStats._sum.distance
             const totalSeconds = athleteStats._sum.duration
-            const newPaceAvg = (totalSeconds / 60) / totalDistance
+            const newPaceAvg = totalSeconds / 60 / totalDistance
 
             await prisma.athleteProfile.upsert({
               where: { userId: targetAthleteId },
@@ -210,7 +231,11 @@ export async function createWorkout(app: FastifyInstance) {
           entity: 'WORKOUT',
           entityId: workout.id,
           userId,
-          payload: { clubId: club.id, distance: workout.distance, athleteId: targetAthleteId },
+          payload: {
+            clubId: club.id,
+            distance: workout.distance,
+            athleteId: targetAthleteId,
+          },
         })
 
         return reply.status(201).send({

@@ -1,27 +1,28 @@
 'use client'
 
-import React, { useState } from 'react'
+import { Header } from '@/components/header'
 import {
-  Shield,
   AlertTriangle,
-  Trash2,
-  PauseCircle,
-  Loader2,
-  Lock,
   ArrowLeft,
-  Settings,
-  CreditCard,
   Check,
-  Key,
+  CreditCard,
   Eye,
   EyeOff,
-  Save,
   Globe,
+  Key,
+  Loader2,
+  Lock,
+  PauseCircle,
+  Save,
+  Settings,
+  Shield,
+  Trash2,
 } from 'lucide-react'
-import { Header } from '@/components/header'
-import { toast } from 'sonner'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface ProfileSettingsClientProps {
   user: {
@@ -64,7 +65,9 @@ export function ProfileSettingsClient({ user }: ProfileSettingsClientProps) {
       router.push('/')
       router.refresh()
     } else {
-      toast.error(result?.message || 'Erro ao processar exclusão. Tente novamente.')
+      toast.error(
+        result?.message || 'Erro ao processar exclusão. Tente novamente.'
+      )
       setIsAnonymizing(false)
     }
   }

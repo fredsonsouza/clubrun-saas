@@ -14,7 +14,8 @@ const signUpSchema = z
       .string()
       .min(3, { message: 'Username deve ter pelo menos 3 caracteres.' })
       .regex(/^[a-zA-Z0-9._-]+$/, {
-        message: 'Username só pode conter letras, números, pontos, underscores e hífens.',
+        message:
+          'Username só pode conter letras, números, pontos, underscores e hífens.',
       }),
     email: z.email({ message: 'Por favor, informe um e-mail válido!' }),
     password: z

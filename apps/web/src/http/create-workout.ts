@@ -20,6 +20,7 @@ interface CreateWorkoutRequest {
   athleteId?: string | null
   status?: 'PLANNED' | 'COMPLETED'
   assignmentMode?: 'GOAL' | 'FREE' | null
+  routeData?: any | null
 }
 
 export async function createWorkout({
@@ -34,7 +35,13 @@ export async function createWorkout({
   athleteId,
   status,
   assignmentMode,
+  routeData,
 }: CreateWorkoutRequest) {
+  console.log(
+    '[DEBUG] createWorkout HTTP Client payload routeData:',
+    routeData ? 'PRESENTE' : 'AUSENTE'
+  )
+
   const result = await api
     .post(`clubs/${slug}/workouts`, {
       json: {
@@ -48,6 +55,7 @@ export async function createWorkout({
         athleteId,
         status,
         assignmentMode,
+        routeData,
       },
     })
     .json<{ workoutId: string }>()

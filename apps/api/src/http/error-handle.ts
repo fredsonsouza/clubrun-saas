@@ -1,9 +1,9 @@
-import type { FastifyInstance, FastifyError } from 'fastify'
-import { z, ZodError } from 'zod'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
-import { UnauthorizedError } from './routes/_errors/unauthorized-error'
-import { ResourceNotFoundError } from './routes/_errors/resource-not-found-error'
+import type { FastifyError, FastifyInstance } from 'fastify'
+import { ZodError, z } from 'zod'
 import { ForbiddenError } from './routes/_errors/forbidden-error'
+import { ResourceNotFoundError } from './routes/_errors/resource-not-found-error'
+import { UnauthorizedError } from './routes/_errors/unauthorized-error'
 
 type FastifyErrorHandler = FastifyInstance['errorHandler']
 
@@ -35,7 +35,7 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
       message: error.message,
     })
   }
- 
+
   if (error instanceof ResourceNotFoundError) {
     return reply.status(404).send({
       message: error.message,
@@ -47,7 +47,7 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
       message: error.message,
     })
   }
- 
+
   if (fastifyError.statusCode) {
     return reply.status(fastifyError.statusCode).send({
       message: fastifyError.message,

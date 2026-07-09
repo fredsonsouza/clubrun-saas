@@ -1,16 +1,20 @@
 'use client'
 
-import { useFormState } from '@/hooks/use-form-state'
-import { forgotPasswordAction } from './actions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AlertTriangle, Loader2, MailCheck, Flame, ArrowLeft } from 'lucide-react'
+import { useFormState } from '@/hooks/use-form-state'
+import {
+  AlertTriangle,
+  ArrowLeft,
+  Flame,
+  Loader2,
+  MailCheck,
+} from 'lucide-react'
 import Link from 'next/link'
+import { forgotPasswordAction } from './actions'
 
 export default function ForgotPasswordPage() {
-  const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
-    forgotPasswordAction
-  )
-
+  const [{ success, message, errors }, handleSubmit, isPending] =
+    useFormState(forgotPasswordAction)
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 p-6 font-sans">

@@ -33,7 +33,11 @@ export async function revokeInvite(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('delete', 'Invite')) {
           throw new UnauthorizedError(`You're not allowed to delete an invite.`)

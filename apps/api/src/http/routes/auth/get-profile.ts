@@ -1,9 +1,9 @@
+import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { auth } from '@/http/middlewares/auth'
 
 export function getProfile(app: FastifyInstance) {
   app
@@ -48,9 +48,9 @@ export function getProfile(app: FastifyInstance) {
             members_on: { select: { role: true } },
             athleteProfile: {
               select: {
-                isPremium: true
-              }
-            }
+                isPremium: true,
+              },
+            },
           },
           where: {
             id: userId,
@@ -60,10 +60,18 @@ export function getProfile(app: FastifyInstance) {
           throw new BadRequestError('User not found!')
         }
 
-        const isClubAdmin = user.clubsOwned.length > 0 || user.members_on.some(m => ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role))
-        const isPremium = isClubAdmin || user.isSystemAdmin || user.athleteProfile?.isPremium || false
+        const isClubAdmin =
+          user.clubsOwned.length > 0 ||
+          user.members_on.some((m) =>
+            ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role)
+          )
+        const isPremium =
+          isClubAdmin ||
+          user.isSystemAdmin ||
+          user.athleteProfile?.isPremium ||
+          false
 
-        return reply.send({ 
+        return reply.send({
           user: {
             id: user.id,
             name: user.name,
@@ -72,8 +80,8 @@ export function getProfile(app: FastifyInstance) {
             isSystemAdmin: user.isSystemAdmin,
             emailVerifiedAt: user.emailVerifiedAt,
             hasPassword: !!user.passwordHash,
-            isPremium
-          }
+            isPremium,
+          },
         })
       }
     )

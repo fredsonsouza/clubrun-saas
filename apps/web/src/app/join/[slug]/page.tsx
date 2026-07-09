@@ -1,10 +1,10 @@
-import { Header } from '@/components/header'
 import { auth, isAuthenticated } from '@/auth/auth'
+import { Header } from '@/components/header'
 import { getClubPublicInfo } from '@/http/get-club-public-info'
 import { getInvite } from '@/http/get-invite'
 import { redirect } from 'next/navigation'
-import { JoinClubForm } from './join-club-form'
 import { AcceptInviteForm } from './accept-invite-form'
+import { JoinClubForm } from './join-club-form'
 
 interface JoinPageProps {
   params: Promise<{
@@ -54,7 +54,7 @@ export default async function JoinPage({
   // Verifica se o usuário já é membro do clube
   const { getClubs } = await import('@/http/get-clubs')
   const { clubs: userClubs } = await getClubs()
-  const isAlreadyMember = userClubs.some(c => c.slug === slug)
+  const isAlreadyMember = userClubs.some((c) => c.slug === slug)
 
   if (isAlreadyMember) {
     redirect(`/${slug}/dashboard`)
@@ -64,7 +64,7 @@ export default async function JoinPage({
     // Caso seja um convite privado via e-mail
     if (inviteId) {
       const { invite } = await getInvite(inviteId)
-      
+
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
           <Header user={sanitizedUser} />
@@ -78,7 +78,7 @@ export default async function JoinPage({
     // Caso seja um link público com token
     if (token) {
       const { club } = await getClubPublicInfo(slug)
-      
+
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
           <Header user={sanitizedUser} />
@@ -95,8 +95,13 @@ export default async function JoinPage({
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md rounded-2xl bg-white p-8 shadow-xl text-center">
-          <h1 className="text-xl font-bold text-red-600 mb-2">Ops! Algo deu errado.</h1>
-          <p className="text-gray-600 mb-4">Não conseguimos carregar as informações do convite. Verifique se o link está correto.</p>
+          <h1 className="text-xl font-bold text-red-600 mb-2">
+            Ops! Algo deu errado.
+          </h1>
+          <p className="text-gray-600 mb-4">
+            Não conseguimos carregar as informações do convite. Verifique se o
+            link está correto.
+          </p>
           <pre className="text-[10px] bg-gray-100 p-2 rounded text-left overflow-auto max-h-40">
             {JSON.stringify(error, null, 2)}
           </pre>

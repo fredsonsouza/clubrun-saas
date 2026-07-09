@@ -29,7 +29,7 @@ describe('Get Members (Unit)', () => {
       userId,
       role: 'ADMIN',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.member.findMany).mockResolvedValue([
@@ -44,7 +44,7 @@ describe('Get Members (Unit)', () => {
           email: 'johndoe@example.com',
           avatarUrl: 'http://example.com/avatar.jpg',
         },
-        invoices: []
+        invoices: [],
       },
     ] as any)
 
@@ -58,11 +58,13 @@ describe('Get Members (Unit)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.json().members).toHaveLength(1)
-    expect(response.json().members[0]).toEqual(expect.objectContaining({
-      userId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
-      role: 'OWNER',
-      overdue: false
-    }))
+    expect(response.json().members[0]).toEqual(
+      expect.objectContaining({
+        userId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        role: 'OWNER',
+        overdue: false,
+      })
+    )
   })
 
   it('should be able to list members as BILLING role', async () => {
@@ -74,7 +76,7 @@ describe('Get Members (Unit)', () => {
       userId,
       role: 'BILLING',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.member.findMany).mockResolvedValue([])

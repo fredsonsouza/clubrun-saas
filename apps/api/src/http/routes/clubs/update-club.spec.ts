@@ -34,7 +34,11 @@ describe('Update Club (Unit)', () => {
       id: '81f02179-8d75-474c-8975-c54d8b965c4d',
       userId,
       role: 'OWNER',
-      club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club', ownerId: userId },
+      club: {
+        id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        slug: 'acme-club',
+        ownerId: userId,
+      },
     } as any)
 
     vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)

@@ -1,8 +1,8 @@
 import { auth } from '@/auth/auth'
-import { getClubs } from '@/http/get-clubs'
-import { redirect } from 'next/navigation'
 import { LandingPage } from '@/components/landing-page'
+import { getClubs } from '@/http/get-clubs'
 import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export default async function IndexPage() {
   const token = (await cookies()).get('token')?.value
@@ -21,7 +21,7 @@ export default async function IndexPage() {
 
   // Usuário autenticado e verificado: buscar clubes
   let clubs = []
-  
+
   try {
     const data = await getClubs()
     clubs = data.clubs

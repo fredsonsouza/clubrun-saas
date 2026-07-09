@@ -1,12 +1,12 @@
+import { auth } from '@/http/middlewares/auth'
+import { prisma } from '@/lib/prisma'
+import { getUserPermissions } from '@/utils/get-user-permissions'
+import { workoutSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { workoutSchema } from '@saas/auth'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
-import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function updateWorkout(app: FastifyInstance) {
   app
@@ -56,8 +56,8 @@ export async function updateWorkout(app: FastifyInstance) {
         const authWorkout = workoutSchema.parse(workout)
 
         const { cannot } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
@@ -68,11 +68,15 @@ export async function updateWorkout(app: FastifyInstance) {
           )
         }
 
-        const { title, distance, duration, pace, type, date, routeData } = request.body
+        const { title, distance, duration, pace, type, date, routeData } =
+          request.body
 
         // Logic for Rescheduling and Lead Time
         let updatedRescheduleCount = workout.rescheduleCount
-        if (date && new Date(date).getTime() !== new Date(workout.date).getTime()) {
+        if (
+          date &&
+          new Date(date).getTime() !== new Date(workout.date).getTime()
+        ) {
           // Check limit: 3 reschedules
           if (workout.rescheduleCount >= 3) {
             throw new BadRequestError(
@@ -83,8 +87,8 @@ export async function updateWorkout(app: FastifyInstance) {
           // Rule: 2h Lead Time if moving to today or if today is the day
           const now = new Date()
           const newDate = new Date(date)
-          
-          const isTodayTarget = 
+
+          const isTodayTarget =
             now.getFullYear() === newDate.getFullYear() &&
             now.getMonth() === newDate.getMonth() &&
             now.getDate() === newDate.getDate()
@@ -114,7 +118,10 @@ export async function updateWorkout(app: FastifyInstance) {
           })
 
           if (athleteProfile && athleteProfile.shoes === workout.shoesUsed) {
-            if (athleteProfile.shoesRemainingDistance !== null && athleteProfile.shoesRemainingDistance !== undefined) {
+            if (
+              athleteProfile.shoesRemainingDistance !== null &&
+              athleteProfile.shoesRemainingDistance !== undefined
+            ) {
               if (distanceDifference > athleteProfile.shoesRemainingDistance) {
                 throw new BadRequestError(
                   `A alteração excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). O máximo permitido para este ajuste é +${athleteProfile.shoesRemainingDistance.toFixed(1)} km.`
@@ -165,7 +172,7 @@ export async function updateWorkout(app: FastifyInstance) {
         if (athleteStats._sum.distance && athleteStats._sum.duration) {
           const totalDistance = athleteStats._sum.distance
           const totalSeconds = athleteStats._sum.duration
-          const newPaceAvg = (totalSeconds / 60) / totalDistance
+          const newPaceAvg = totalSeconds / 60 / totalDistance
 
           await prisma.athleteProfile.upsert({
             where: { userId: workout.athleteId },

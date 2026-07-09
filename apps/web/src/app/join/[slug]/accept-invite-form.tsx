@@ -1,13 +1,13 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react'
-import { acceptInvite } from '@/http/accept-invite'
-import { toast } from 'sonner'
+import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
+import { acceptInvite } from '@/http/accept-invite'
+import { CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react'
+import { useParams, useRouter } from 'next/navigation'
+import React, { useState } from 'react'
+import { toast } from 'sonner'
 
 interface AcceptInviteFormProps {
   invite: {
@@ -38,7 +38,9 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsSubscribed(localStorage.getItem('clubrun:athlete_subscribed') === 'true')
+      setIsSubscribed(
+        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
+      )
     }
   }, [])
 
@@ -92,7 +94,7 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
       <div className="relative p-12 text-center">
         {/* Decorative background */}
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-orange-500/5 to-transparent" />
-        
+
         <div className="relative z-10">
           <div className="mb-8 flex justify-center -space-x-4">
             <Avatar className="h-20 w-20 border-4 border-white shadow-lg ring-1 ring-gray-100">
@@ -109,16 +111,27 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
           <h1 className="mb-4 text-3xl font-black tracking-tight text-gray-900">
             Você foi convidado!
           </h1>
-          
+
           <p className="mb-8 text-lg font-medium text-gray-500 leading-relaxed">
-            <span className="font-bold text-gray-900">{invite.author?.name || 'Um administrador'}</span> te convidou para ser{' '}
-            <span className="font-bold text-orange-500">{invite.role === 'ADMIN' ? 'Administrador' : invite.role === 'COACH' ? 'Treinador' : 'Atleta'}</span> no{' '}
+            <span className="font-bold text-gray-900">
+              {invite.author?.name || 'Um administrador'}
+            </span>{' '}
+            te convidou para ser{' '}
+            <span className="font-bold text-orange-500">
+              {invite.role === 'ADMIN'
+                ? 'Administrador'
+                : invite.role === 'COACH'
+                  ? 'Treinador'
+                  : 'Atleta'}
+            </span>{' '}
+            no{' '}
             <span className="font-bold text-gray-900">{invite.club.name}</span>.
           </p>
 
           <div className="mb-10 rounded-2xl bg-orange-50/50 p-6 border border-orange-100">
             <p className="text-sm font-bold text-orange-800">
-              Ao aceitar, você terá acesso imediato aos treinos e métricas do clube.
+              Ao aceitar, você terá acesso imediato aos treinos e métricas do
+              clube.
             </p>
           </div>
 
@@ -135,7 +148,8 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
           </Button>
 
           <p className="mt-8 text-xs font-medium text-gray-400">
-            Conectado como <span className="font-bold text-gray-900">{user.email}</span>
+            Conectado como{' '}
+            <span className="font-bold text-gray-900">{user.email}</span>
           </p>
         </div>
       </div>

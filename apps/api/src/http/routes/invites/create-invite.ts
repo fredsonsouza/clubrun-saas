@@ -1,11 +1,11 @@
+import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { roleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { prisma } from '@/lib/prisma'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 import { auth } from '@/http/middlewares/auth'
 import { resend } from '@/lib/mail'

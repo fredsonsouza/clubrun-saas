@@ -1,9 +1,9 @@
 import '@/app/globals.css'
-import type { Metadata } from 'next'
-import { inter, spaceGrotesk, publicSans } from './fonts'
-import { ThemeProvider } from '@/components/theme/theme-provider'
-import { Toaster } from 'sonner'
 import { SessionSynchronizer } from '@/components/session-synchronizer'
+import { ThemeProvider } from '@/components/theme/theme-provider'
+import type { Metadata } from 'next'
+import { Toaster } from 'sonner'
+import { inter, publicSans, spaceGrotesk } from './fonts'
 
 export const metadata: Metadata = {
   title: 'ClubRun | ClubRun',

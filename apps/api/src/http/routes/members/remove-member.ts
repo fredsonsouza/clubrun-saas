@@ -5,8 +5,8 @@ import { z } from 'zod'
 import { auth } from '@/http/middlewares/auth'
 import { UnauthorizedError } from '@/http/routes/_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
 import { createAuditLog } from '@/utils/audit-log'
+import { getUserPermissions } from '@/utils/get-user-permissions'
 
 export async function removeMember(app: FastifyInstance) {
   app
@@ -39,7 +39,11 @@ export async function removeMember(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('delete', 'User')) {
           throw new UnauthorizedError(
@@ -62,11 +66,11 @@ export async function removeMember(app: FastifyInstance) {
           entity: 'ATHLETE',
           entityId: memberId,
           userId,
-          payload: { 
-            clubId: club.id, 
+          payload: {
+            clubId: club.id,
             slug: club.slug,
             reasons,
-            description
+            description,
           },
         })
 

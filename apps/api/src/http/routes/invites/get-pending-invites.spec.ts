@@ -38,7 +38,11 @@ describe('Get Pending Invites (Unit)', () => {
         email: 'johndoe@example.com',
         createdAt: new Date(),
         club: { name: 'Acme Club' },
-        author: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', name: 'Author', avatarUrl: null },
+        author: {
+          id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+          name: 'Author',
+          avatarUrl: null,
+        },
       },
     ] as any)
 

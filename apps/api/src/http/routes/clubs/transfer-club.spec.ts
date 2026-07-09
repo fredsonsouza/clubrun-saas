@@ -105,6 +105,8 @@ describe('Transfer Club Ownership (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('Target user is not a member of this club')
+    expect(response.json().message).toBe(
+      'Target user is not a member of this club'
+    )
   })
 })

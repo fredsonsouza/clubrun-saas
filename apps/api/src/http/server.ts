@@ -1,81 +1,85 @@
 import 'dotenv/config'
 
-import { fastify } from 'fastify'
+import path from 'node:path'
 import fastifyCors from '@fastify/cors'
-import fastifySwagger from '@fastify/swagger'
-import fastifySwaggerUi from '@fastify/swagger-ui'
 import fastifyJwt from '@fastify/jwt'
 import fastifyStatic from '@fastify/static'
-import path from 'node:path'
+import fastifySwagger from '@fastify/swagger'
+import fastifySwaggerUi from '@fastify/swagger-ui'
+import { fastify } from 'fastify'
 
 import {
+  type ZodTypeProvider,
   jsonSchemaTransform,
   serializerCompiler,
   validatorCompiler,
-  ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 
-import { createAccount } from './routes/auth/create-account'
-import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
-import { getProfile } from './routes/auth/get-profile'
-import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
 import { subscribeAthlete } from './routes/athlete/subscribe-athlete'
-import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
-import { resetPassword } from './routes/auth/reset-password'
+import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
-import { verifyEmail } from './routes/auth/verify-email'
+import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
+import { createAccount } from './routes/auth/create-account'
+import { getProfile } from './routes/auth/get-profile'
+import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resendVerification } from './routes/auth/resend-verification'
+import { resetPassword } from './routes/auth/reset-password'
+import { verifyEmail } from './routes/auth/verify-email'
+import { getClubBilling } from './routes/billing/get-club-billing'
+import { payInvoice } from './routes/billing/pay-invoice'
 import { createClub } from './routes/clubs/create-club'
-import { getMemberShip } from './routes/clubs/get-membership'
 import { getClub } from './routes/clubs/get-club'
+import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
 import { getClubs } from './routes/clubs/get-clubs'
-import { updateClub } from './routes/clubs/update-club'
+import { getMemberShip } from './routes/clubs/get-membership'
 import { shutdownClub } from './routes/clubs/shutdown-club'
 import { transferClub } from './routes/clubs/transfer-club'
-import { createWorkout } from './routes/workouts/create-workout'
-import { deleteWorkout } from './routes/workouts/delete-workout'
-import { getWorkout } from './routes/workouts/get-workout'
-import { getWorkouts } from './routes/workouts/get-workouts'
-import { updateWorkout } from './routes/workouts/update-workout'
-import { getMembers } from './routes/members/get-members'
-import { updateMember } from './routes/members/update-member'
-import { removeMember } from './routes/members/remove-member'
+import { updateClub } from './routes/clubs/update-club'
+import { acceptInvite } from './routes/invites/accept-invite'
+import { approveInvite } from './routes/invites/approve-invite'
 import { createInvite } from './routes/invites/create-invite'
 import { getInvite } from './routes/invites/get-invite'
 import { getInvites } from './routes/invites/get-invites'
-import { acceptInvite } from './routes/invites/accept-invite'
+import { getPendingInvites } from './routes/invites/get-pending-invites'
 import { rejectInvite } from './routes/invites/reject-invite'
 import { revokeInvite } from './routes/invites/revoke-invite'
-import { getPendingInvites } from './routes/invites/get-pending-invites'
-import { getClubBilling } from './routes/billing/get-club-billing'
-import { getMyWorkouts } from './routes/workouts/get-my-workouts'
-import { payInvoice } from './routes/billing/pay-invoice'
-import { getClubeRanking } from './routes/rankings/get-club-ranking'
+import { getMembers } from './routes/members/get-members'
+import { removeMember } from './routes/members/remove-member'
+import { updateMember } from './routes/members/update-member'
 import { createRace } from './routes/races/create-race'
-import { getRaces } from './routes/races/get-races'
-import { getRace } from './routes/races/get-race'
 import { createRaceResult } from './routes/races/create-race-result'
-import { getRaceResults } from './routes/races/get-race-results'
-import { updateRace } from './routes/races/update-race'
 import { deleteRace } from './routes/races/delete-race'
-import { toggleRaceRegistration } from './routes/races/toggle-race-registration'
+import { getRace } from './routes/races/get-race'
 import { getRaceParticipants } from './routes/races/get-race-participants'
+import { getRaceResults } from './routes/races/get-race-results'
+import { getRaces } from './routes/races/get-races'
+import { toggleRaceRegistration } from './routes/races/toggle-race-registration'
+import { updateRace } from './routes/races/update-race'
 import { updateRacePaymentStatus } from './routes/races/update-race-payment-status'
-import { approveInvite } from './routes/invites/approve-invite'
-import { getClubDashBoard } from './routes/clubs/get-club-dashboard'
-import { getSystemStats } from './routes/system/get-system-stats'
-import { getSystemClubs } from './routes/system/get-system-clubs'
-import { getSystemLogs } from './routes/system/get-system-logs'
+import { getClubeRanking } from './routes/rankings/get-club-ranking'
+import { createFeedback } from './routes/system/create-feedback'
+import { createWaitlist } from './routes/system/create-waitlist'
 import { getSystemBilling } from './routes/system/get-system-billing'
-import { getUserProfile } from './routes/users/get-user-profile'
+import { getSystemClubs } from './routes/system/get-system-clubs'
+import { getSystemFeedbacks } from './routes/system/get-system-feedbacks'
+import { getSystemLogs } from './routes/system/get-system-logs'
+import { getSystemStats } from './routes/system/get-system-stats'
+import { getSystemWaitlist } from './routes/system/get-system-waitlist'
 import { uploadImage } from './routes/uploads/upload-image'
 import { anonymizeUser } from './routes/users/anonymize-user'
-import { updatePassword } from './routes/users/update-password'
 import { connectStrava } from './routes/users/connect-strava'
 import { disconnectStrava } from './routes/users/disconnect-strava'
+import { getUserProfile } from './routes/users/get-user-profile'
+import { updatePassword } from './routes/users/update-password'
+import { createWorkout } from './routes/workouts/create-workout'
+import { deleteWorkout } from './routes/workouts/delete-workout'
+import { getMyWorkouts } from './routes/workouts/get-my-workouts'
+import { getWorkout } from './routes/workouts/get-workout'
+import { getWorkouts } from './routes/workouts/get-workouts'
+import { updateWorkout } from './routes/workouts/update-workout'
 
-import { errorHandler } from './error-handle'
 import { env } from '@saas/env'
+import { errorHandler } from './error-handle'
 
 export const app = fastify().withTypeProvider<ZodTypeProvider>()
 
@@ -158,8 +162,8 @@ app.register(completeWorkout)
 app.register(toggleWorkoutReaction)
 
 import { getPendingMembers } from './routes/members/get-pending-members'
-import { updateMemberStatus } from './routes/members/update-member-status'
 import { requestJoinClub } from './routes/members/request-join-club'
+import { updateMemberStatus } from './routes/members/update-member-status'
 
 app.register(getMembers)
 app.register(getPendingMembers)
@@ -211,6 +215,10 @@ app.register(getSystemStats)
 app.register(getSystemClubs)
 app.register(getSystemLogs)
 app.register(getSystemBilling)
+app.register(createWaitlist)
+app.register(createFeedback)
+app.register(getSystemFeedbacks)
+app.register(getSystemWaitlist)
 app.register(getUserProfile)
 app.register(uploadImage)
 app.register(anonymizeUser)
@@ -223,7 +231,8 @@ app.register(disconnectStrava)
 // })
 
 if (process.env.NODE_ENV !== 'test') {
-  app.listen({ port: 3333 }).then(() => {
-    console.log('HTTP server running!✅')
+  const port = process.env.PORT ? Number(process.env.PORT) : 3333
+  app.listen({ port, host: '0.0.0.0' }).then(() => {
+    console.log(`HTTP server running on port ${port}! ✅`)
   })
 }

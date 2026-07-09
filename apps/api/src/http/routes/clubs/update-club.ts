@@ -1,13 +1,13 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
+import { getUserPermissions } from '@/utils/get-user-permissions'
+import { clubSchema } from '@saas/auth'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { clubSchema } from '@saas/auth'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { getUserPermissions } from '@/utils/get-user-permissions'
-import { createAuditLog } from '@/utils/audit-log'
 
 export async function updateClub(app: FastifyInstance) {
   app
@@ -50,21 +50,25 @@ export async function updateClub(app: FastifyInstance) {
           )
         }
 
-        const { 
-          name, 
-          domain, 
-          shouldAttachUsersByDomain, 
-          cnpj, 
-          description, 
-          city, 
-          state, 
-          avatarUrl, 
-          bannerUrl 
+        const {
+          name,
+          domain,
+          shouldAttachUsersByDomain,
+          cnpj,
+          description,
+          city,
+          state,
+          avatarUrl,
+          bannerUrl,
         } = request.body
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('update', authClub)) {
           throw new UnauthorizedError(`You're not allowed to update this club`)
@@ -108,15 +112,15 @@ export async function updateClub(app: FastifyInstance) {
           entity: 'CLUB',
           entityId: club.id,
           userId,
-          payload: { 
-            name, 
-            domain, 
-            cnpj, 
-            description, 
-            city, 
-            state, 
-            avatarUrl, 
-            bannerUrl 
+          payload: {
+            name,
+            domain,
+            cnpj,
+            description,
+            city,
+            state,
+            avatarUrl,
+            bannerUrl,
           },
         })
 

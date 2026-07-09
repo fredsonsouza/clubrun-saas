@@ -1,29 +1,31 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import {
-  Flame,
-  UserPlus,
-  LayoutDashboard,
-  Trophy,
-  Users as UsersIcon,
-  Settings,
-  Compass,
-  Flag,
-  ChevronDown,
-  Zap,
-  BarChart,
-  ShieldCheck,
-  Target,
-} from 'lucide-react'
-import { ProfileButton } from './profile-button'
-import { ClubSwitcher } from './club-switcher'
-import { useEffect, useState, useRef } from 'react'
 import { getClubs } from '@/http/get-clubs'
 import { getCookie } from 'cookies-next'
+import {
+  BarChart,
+  ChevronDown,
+  Compass,
+  Flag,
+  Flame,
+  LayoutDashboard,
+  Menu,
+  Settings,
+  ShieldCheck,
+  Target,
+  Trophy,
+  UserPlus,
+  Users as UsersIcon,
+  X,
+  Zap,
+} from 'lucide-react'
 import Image from 'next/image'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { Logo } from './brand/logo'
+import { ClubSwitcher } from './club-switcher'
+import { ProfileButton } from './profile-button'
 
 interface HeaderProps {
   user: {
@@ -42,6 +44,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   const [activeSlug, setActiveSlug] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string | null>(null)
   const [isSystemMenuOpen, setIsSystemMenuOpen] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const systemMenuRef = useRef<HTMLDivElement>(null)
 
   const [clubs, setClubs] = useState<{ slug: string; role: string }[]>([])
@@ -278,11 +281,112 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             </Link>
           )}
 
+          <div className="h-8 w-px bg-gray-200 xl:hidden"></div>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-gray-100 bg-gray-50 text-gray-600 transition-all hover:bg-gray-100 active:scale-95 xl:hidden"
+            title="Menu"
+          >
+            {isMobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </button>
+
           <div className="h-8 w-px bg-gray-200"></div>
 
           <ProfileButton user={user} />
         </div>
       </div>
+
+      {/* MOBILE MENU DROPDOWN */}
+      {isMobileMenuOpen && (
+        <div className="border-t border-gray-100 bg-white/95 px-4 py-4 shadow-xl backdrop-blur-md xl:hidden">
+          <div className="flex flex-col gap-2 font-bold text-gray-600">
+            <Link
+              href="/explore"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${pathname === '/explore' ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+            >
+              <Compass className="h-5 w-5" />
+              Explorar
+            </Link>
+
+            <Link
+              href={dashboardHref}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${isActive('/dashboard') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+            >
+              <LayoutDashboard className="h-5 w-5" />
+              {effectiveRole === 'ATHLETE' || effectiveRole === 'COACH'
+                ? 'Feed do Clube'
+                : 'Painel'}
+            </Link>
+
+            {(effectiveRole === 'ATHLETE' || effectiveRole === 'COACH') && (
+              <Link
+                href={`/profile/${user.id}`}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${pathname?.startsWith('/profile') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+              >
+                <Target className="h-5 w-5" />
+                Meus Treinos
+              </Link>
+            )}
+
+            <Link
+              href={rankingHref}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${isActive('/ranking') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+            >
+              <Trophy className="h-5 w-5" />
+              Ranking
+            </Link>
+
+            <Link
+              href={racesHref}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${isActive('/races') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+            >
+              <Flag className="h-5 w-5" />
+              Provas
+            </Link>
+
+            <Link
+              href={membersHref}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${isActive('/members') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+            >
+              <UsersIcon className="h-5 w-5" />
+              Pelotão
+            </Link>
+
+            {canManage && (
+              <Link
+                href={settingsHref}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`flex items-center gap-3 rounded-xl px-4 py-3 transition-colors ${isActive('/settings') ? 'bg-orange-50 text-orange-600' : 'hover:bg-gray-50'}`}
+              >
+                <Settings className="h-5 w-5" />
+                Gestão
+              </Link>
+            )}
+
+            {canManage && (
+              <Link
+                href={invitesHref}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="mt-2 flex items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 font-bold text-white shadow-md shadow-orange-500/20"
+              >
+                <UserPlus className="h-4 w-4" /> Convidar
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

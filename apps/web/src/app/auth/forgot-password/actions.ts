@@ -23,7 +23,11 @@ export async function forgotPasswordAction(formData: FormData) {
       json: { email },
     })
 
-    return { success: true, message: 'Link de recuperação enviado com sucesso!', errors: null }
+    return {
+      success: true,
+      message: 'Link de recuperação enviado com sucesso!',
+      errors: null,
+    }
   } catch (err) {
     if (err instanceof HTTPError) {
       try {
@@ -36,7 +40,8 @@ export async function forgotPasswordAction(formData: FormData) {
 
     return {
       success: false,
-      message: 'Ocorreu um erro inesperado ao solicitar a recuperação. Tente novamente.',
+      message:
+        'Ocorreu um erro inesperado ao solicitar a recuperação. Tente novamente.',
       errors: null,
     }
   }

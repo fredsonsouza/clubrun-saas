@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Check,
-  X,
   Flame,
-  Users,
   MapPin,
   ShieldAlert,
   Sparkles,
   UserPlus,
+  Users,
+  X,
 } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { useRouter } from 'next/navigation'
+import React, { useState } from 'react'
 
 interface InviteClientProps {
   invite: {

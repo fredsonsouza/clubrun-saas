@@ -1,6 +1,6 @@
 import { signInWithGoogle } from '@/http/sign-in-with-google'
 import { cookies } from 'next/headers'
-import { NextRequest, NextResponse } from 'next/server'
+import { type NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -19,7 +19,6 @@ export async function GET(request: NextRequest) {
   }
 
   const { token } = await signInWithGoogle({ code })
-
   ;(await cookies()).set('token', token, {
     path: '/',
     maxAge: 60 * 60 * 24 * 7, //7 days
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
         const params = new URLSearchParams()
         if (parsedState.token) params.set('token', parsedState.token)
         if (parsedState.inviteId) params.set('inviteId', parsedState.inviteId)
-        
+
         const queryString = params.toString()
         redirectTo = `${parsedState.redirectTo}${queryString ? `?${queryString}` : ''}`
       }

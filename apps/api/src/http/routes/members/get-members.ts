@@ -1,11 +1,11 @@
+import { auth } from '@/http/middlewares/auth'
+import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { roleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
-import { roleSchema } from '@saas/auth'
-import { auth } from '@/http/middlewares/auth'
 
 export async function getMembers(app: FastifyInstance) {
   app
@@ -51,14 +51,16 @@ export async function getMembers(app: FastifyInstance) {
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
 
         if (cannot('get', 'User')) {
-          throw new UnauthorizedError(`Você não tem permissão para ver os membros deste clube`)
+          throw new UnauthorizedError(
+            `Você não tem permissão para ver os membros deste clube`
+          )
         }
 
         const members = await prisma.member.findMany({
@@ -66,17 +68,19 @@ export async function getMembers(app: FastifyInstance) {
           include: {
             user: {
               include: {
-                athleteProfile: true
-              }
+                athleteProfile: true,
+              },
             },
             invoices: {
-              select: { status: true }
-            }
+              select: { status: true },
+            },
           },
-          orderBy: { role: 'asc' }
+          orderBy: { role: 'asc' },
         })
 
-        const isPrivileged = ['ADMIN', 'OWNER', 'MANAGER'].includes(memberShip.role) || memberShip.isSystemAdmin
+        const isPrivileged =
+          ['ADMIN', 'OWNER', 'MANAGER'].includes(memberShip.role) ||
+          memberShip.isSystemAdmin
 
         const formattedMembers = members.map((m) => {
           return {
@@ -87,12 +91,17 @@ export async function getMembers(app: FastifyInstance) {
             email: isPrivileged ? m.user.email : null,
             avatarUrl: m.user.avatarUrl || null,
             paceAvg: m.user.athleteProfile?.paceAvg || null,
-            overdue: isPrivileged ? m.invoices.some(i => i.status === 'OVERDUE') : false,
+            overdue: isPrivileged
+              ? m.invoices.some((i) => i.status === 'OVERDUE')
+              : false,
             birthDate: m.user.athleteProfile?.birthDate || null,
             shoes: m.user.athleteProfile?.shoes || null,
             watch: m.user.athleteProfile?.watch || null,
-            hasMedicalConditions: m.user.athleteProfile?.hasMedicalConditions || false,
-            medicalConditions: isPrivileged ? (m.user.athleteProfile?.medicalConditions || null) : null,
+            hasMedicalConditions:
+              m.user.athleteProfile?.hasMedicalConditions || false,
+            medicalConditions: isPrivileged
+              ? m.user.athleteProfile?.medicalConditions || null
+              : null,
             joinedAt: m.createdAt.toISOString(),
           }
         })

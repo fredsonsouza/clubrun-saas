@@ -1,9 +1,9 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function createRace(app: FastifyInstance) {
@@ -46,12 +46,21 @@ export async function createRace(app: FastifyInstance) {
           )
         }
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
-        if (cannot('create', 'Invite')) { // Using 'Invite' as a proxy for admin permission if Race is not in CASL yet, but I should probably check Race
+        if (cannot('create', 'Invite')) {
+          // Using 'Invite' as a proxy for admin permission if Race is not in CASL yet, but I should probably check Race
           // In this project, 'OWNER', 'ADMIN', 'MANAGER' can usually create things.
           // Let's assume OWNER or ADMIN for races.
-          if (memberShip.role !== 'OWNER' && memberShip.role !== 'ADMIN' && memberShip.role !== 'MANAGER') {
+          if (
+            memberShip.role !== 'OWNER' &&
+            memberShip.role !== 'ADMIN' &&
+            memberShip.role !== 'MANAGER'
+          ) {
             throw new UnauthorizedError(`You're not allowed to create races`)
           }
         }

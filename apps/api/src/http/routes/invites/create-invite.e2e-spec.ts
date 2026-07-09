@@ -57,7 +57,7 @@ describe('Create Invite (E2E)', () => {
 
   it('should not be able to create an invite if email domain matches club auto-attach domain', async () => {
     const { token, user } = await createAndAuthenticateUser(app)
-    
+
     const domain = faker.internet.domainName()
 
     // Cria um clube com auto-attach
@@ -86,7 +86,9 @@ describe('Create Invite (E2E)', () => {
       })
 
     expect(response.statusCode).toBe(400)
-    expect(response.body.message).toMatch(/will join your club automatically on login/)
+    expect(response.body.message).toMatch(
+      /will join your club automatically on login/
+    )
   })
 
   it('should not be able to create an invite for the same email twice', async () => {
@@ -106,12 +108,14 @@ describe('Create Invite (E2E)', () => {
       .send({ email, role: 'MANAGER' })
 
     expect(response.statusCode).toBe(400)
-    expect(response.body.message).toBe('Another invite with same e-mail already exists')
+    expect(response.body.message).toBe(
+      'Another invite with same e-mail already exists'
+    )
   })
 
   it('should not be able to invite someone who is already a member', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
-    
+
     const secondUserEmail = faker.internet.email()
     await prisma.user.create({
       data: {
@@ -135,7 +139,9 @@ describe('Create Invite (E2E)', () => {
       })
 
     expect(response.statusCode).toBe(400)
-    expect(response.body.message).toBe('Another invite with same e-mail already belongs to your club')
+    expect(response.body.message).toBe(
+      'Another invite with same e-mail already belongs to your club'
+    )
   })
 
   it('should not be able to create an invite with invalid data', async () => {

@@ -15,17 +15,16 @@ describe('Create Workout (E2E)', () => {
   })
 
   it('should be able to register a new workout', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'ATHLETE')
+    const { token, user, club } = await createAndAuthenticateUser(
+      app,
+      'ATHLETE'
+    )
 
     const title = faker.lorem.words(3)
     const distance = faker.number.float({ min: 1, max: 50, fractionDigits: 2 })
     const duration = faker.number.int({ min: 300, max: 18000 })
     const pace = faker.number.float({ min: 3, max: 10, fractionDigits: 2 })
-    const type = faker.helpers.arrayElement([
-      'EASY',
-      'INTERVAL',
-      'LONG',
-    ])
+    const type = faker.helpers.arrayElement(['EASY', 'INTERVAL', 'LONG'])
     const notes = faker.lorem.sentence()
     const date = new Date().toISOString()
 

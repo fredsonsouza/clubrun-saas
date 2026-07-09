@@ -23,7 +23,11 @@ export async function verifyEmailAction(formData: FormData) {
       json: { code },
     })
 
-    return { success: true, message: 'E-mail verificado com sucesso!', errors: null }
+    return {
+      success: true,
+      message: 'E-mail verificado com sucesso!',
+      errors: null,
+    }
   } catch (err) {
     if (err instanceof HTTPError) {
       try {
@@ -36,7 +40,8 @@ export async function verifyEmailAction(formData: FormData) {
 
     return {
       success: false,
-      message: 'Ocorreu um erro ao verificar o e-mail. Verifique o código e tente novamente.',
+      message:
+        'Ocorreu um erro ao verificar o e-mail. Verifique o código e tente novamente.',
       errors: null,
     }
   }
@@ -45,7 +50,10 @@ export async function verifyEmailAction(formData: FormData) {
 export async function resendVerificationAction() {
   try {
     await api.post('auth/resend-verification')
-    return { success: true, message: 'Um novo código foi enviado para o seu e-mail.' }
+    return {
+      success: true,
+      message: 'Um novo código foi enviado para o seu e-mail.',
+    }
   } catch (err) {
     if (err instanceof HTTPError) {
       try {

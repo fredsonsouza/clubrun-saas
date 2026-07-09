@@ -1,18 +1,19 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { Header } from '@/components/header'
 import {
+  AlignLeft,
+  ArrowLeft,
   ArrowRight,
   Globe,
   MapPin,
   Trophy,
   Users,
   Zap,
-  AlignLeft,
-  ArrowLeft,
 } from 'lucide-react'
-import { Header } from '@/components/header'
+import { useRouter } from 'next/navigation'
+import type React from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { createClubAction } from './actions'
 

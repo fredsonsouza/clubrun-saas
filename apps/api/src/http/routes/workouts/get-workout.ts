@@ -1,12 +1,12 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import type { FastifyInstance } from 'fastify'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
+import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function getWorkout(app: FastifyInstance) {
   app
@@ -41,6 +41,7 @@ export async function getWorkout(app: FastifyInstance) {
                 targetDuration: z.number().nullable().optional(),
                 stravaActivityId: z.string().nullable().optional(),
                 syncSource: z.string().nullable().optional(),
+                routeData: z.any().nullish(),
                 clubId: z.uuid(),
                 athlete: z.object({
                   id: z.uuid(),
@@ -59,8 +60,8 @@ export async function getWorkout(app: FastifyInstance) {
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(
-          userId, 
-          memberShip.role, 
+          userId,
+          memberShip.role,
           memberShip.isSystemAdmin,
           memberShip.clubId
         )
@@ -88,6 +89,7 @@ export async function getWorkout(app: FastifyInstance) {
             targetDuration: true,
             stravaActivityId: true,
             syncSource: true,
+            routeData: true,
             createdAt: true,
             athlete: {
               select: {

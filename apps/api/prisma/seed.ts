@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { faker } from '@faker-js/faker'
-import { PrismaClient } from '../generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { hash } from 'bcryptjs'
+import { PrismaClient } from '../generated/prisma/client'
 
 // --- FIX: Definir process corretamente para evitar erros de tipagem ---
 declare const process: any

@@ -41,7 +41,9 @@ describe('Get Membership (Unit)', () => {
     })
 
     if (response.statusCode === 500) {
-      process.stderr.write('500 Error Body: ' + JSON.stringify(response.json(), null, 2) + '\n')
+      process.stderr.write(
+        '500 Error Body: ' + JSON.stringify(response.json(), null, 2) + '\n'
+      )
     }
     expect(response.statusCode).toBe(200)
     expect(response.json()).toEqual({

@@ -1,10 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
+import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
+import { ForbiddenError } from '@/http/routes/_errors/forbidden-error'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { ForbiddenError } from '@/http/routes/_errors/forbidden-error'
-import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 
 export async function updateAthleteProfile(app: FastifyInstance) {
   app
@@ -69,22 +69,32 @@ export async function updateAthleteProfile(app: FastifyInstance) {
                 watch: true,
                 hasMedicalConditions: true,
                 medicalConditions: true,
-              }
-            }
-          }
+              },
+            },
+          },
         })
 
         if (!user) {
           throw new BadRequestError('Usuário não encontrado.')
         }
 
-        const isClubAdmin = user.clubsOwned.length > 0 || user.members_on.some(m => ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role))
-        const isPremium = isClubAdmin || user.isSystemAdmin || user.athleteProfile?.isPremium || false
+        const isClubAdmin =
+          user.clubsOwned.length > 0 ||
+          user.members_on.some((m) =>
+            ['OWNER', 'COACH', 'MANAGER', 'ADMIN'].includes(m.role)
+          )
+        const isPremium =
+          isClubAdmin ||
+          user.isSystemAdmin ||
+          user.athleteProfile?.isPremium ||
+          false
 
         // 2. Se não for premium, barrar qualquer tentativa de alteração de campos restritos
         if (!isPremium) {
           if (name !== undefined && name !== user.name) {
-            throw new ForbiddenError('Edição de nome completo é um recurso exclusivo para Atletas Premium.')
+            throw new ForbiddenError(
+              'Edição de nome completo é um recurso exclusivo para Atletas Premium.'
+            )
           }
 
           const profile = user.athleteProfile
@@ -105,13 +115,24 @@ export async function updateAthleteProfile(app: FastifyInstance) {
             hasChanged(athleteData.stravaUrl, profile?.stravaUrl) ||
             hasChanged(athleteData.coverUrl, profile?.coverUrl) ||
             hasChanged(athleteData.shoes, profile?.shoes) ||
-            hasChanged(athleteData.shoesMaxDistance, profile?.shoesMaxDistance) ||
+            hasChanged(
+              athleteData.shoesMaxDistance,
+              profile?.shoesMaxDistance
+            ) ||
             hasChanged(athleteData.watch, profile?.watch) ||
-            (athleteData.isPublic !== undefined && athleteData.isPublic !== profile?.isPublic) ||
-            (athleteData.hasMedicalConditions !== undefined && athleteData.hasMedicalConditions !== profile?.hasMedicalConditions) ||
-            hasChanged(athleteData.medicalConditions, profile?.medicalConditions)
+            (athleteData.isPublic !== undefined &&
+              athleteData.isPublic !== profile?.isPublic) ||
+            (athleteData.hasMedicalConditions !== undefined &&
+              athleteData.hasMedicalConditions !==
+                profile?.hasMedicalConditions) ||
+            hasChanged(
+              athleteData.medicalConditions,
+              profile?.medicalConditions
+            )
           ) {
-            throw new ForbiddenError('Você tentou alterar campos avançados do perfil que são exclusivos para Atletas Premium.')
+            throw new ForbiddenError(
+              'Você tentou alterar campos avançados do perfil que são exclusivos para Atletas Premium.'
+            )
           }
         }
 
@@ -119,12 +140,26 @@ export async function updateAthleteProfile(app: FastifyInstance) {
         let finalShoesMax = user.athleteProfile?.shoesMaxDistance
         let finalShoesRemaining = user.athleteProfile?.shoesRemainingDistance
 
-        if (athleteData.shoes !== undefined || athleteData.shoesMaxDistance !== undefined) {
-          const newShoes = athleteData.shoes !== undefined ? athleteData.shoes : user.athleteProfile?.shoes
-          const newMax = athleteData.shoesMaxDistance !== undefined ? athleteData.shoesMaxDistance : user.athleteProfile?.shoesMaxDistance
+        if (
+          athleteData.shoes !== undefined ||
+          athleteData.shoesMaxDistance !== undefined
+        ) {
+          const newShoes =
+            athleteData.shoes !== undefined
+              ? athleteData.shoes
+              : user.athleteProfile?.shoes
+          const newMax =
+            athleteData.shoesMaxDistance !== undefined
+              ? athleteData.shoesMaxDistance
+              : user.athleteProfile?.shoesMaxDistance
 
-          if (newShoes && (newMax === undefined || newMax === null || newMax <= 0)) {
-            throw new BadRequestError('Ao informar um tênis, você deve passar uma quilometragem de uso recomendada pelo fabricante maior que zero.')
+          if (
+            newShoes &&
+            (newMax === undefined || newMax === null || newMax <= 0)
+          ) {
+            throw new BadRequestError(
+              'Ao informar um tênis, você deve passar uma quilometragem de uso recomendada pelo fabricante maior que zero.'
+            )
           }
 
           if (!newShoes) {
@@ -140,10 +175,17 @@ export async function updateAthleteProfile(app: FastifyInstance) {
               finalShoesRemaining = newMax
             }
             // Se manteve o tênis mas mudou o max
-            else if (newMax !== undefined && newMax !== null && oldShoesMax !== null && oldShoesMax !== undefined && newMax !== oldShoesMax) {
+            else if (
+              newMax !== undefined &&
+              newMax !== null &&
+              oldShoesMax !== null &&
+              oldShoesMax !== undefined &&
+              newMax !== oldShoesMax
+            ) {
               finalShoesMax = newMax
               const difference = newMax - oldShoesMax
-              finalShoesRemaining = (user.athleteProfile?.shoesRemainingDistance ?? 0) + difference
+              finalShoesRemaining =
+                (user.athleteProfile?.shoesRemainingDistance ?? 0) + difference
             }
           }
         }

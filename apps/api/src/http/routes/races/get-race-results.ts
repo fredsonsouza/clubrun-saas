@@ -1,7 +1,7 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 
 export async function getRaceResults(app: FastifyInstance) {
@@ -58,10 +58,7 @@ export async function getRaceResults(app: FastifyInstance) {
               },
             },
           },
-          orderBy: [
-            { position: 'asc' },
-            { time: 'asc' },
-          ],
+          orderBy: [{ position: 'asc' }, { time: 'asc' }],
         })
 
         return reply.status(200).send({ results })

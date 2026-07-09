@@ -35,7 +35,7 @@ describe('Update Member (Unit)', () => {
       userId,
       role: 'OWNER',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.member.findUnique).mockResolvedValue({
@@ -77,7 +77,7 @@ describe('Update Member (Unit)', () => {
       role: 'OWNER',
       clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
       club: { id: '515560b4-367d-44a6-89bf-ba486e9e46a7', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     vi.mocked(prisma.member.findUnique).mockResolvedValue({
@@ -102,11 +102,11 @@ describe('Update Member (Unit)', () => {
       where: {
         clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
         role: 'MANAGER',
-        id: { not: memberIdToUpdate }
+        id: { not: memberIdToUpdate },
       },
       data: {
-        role: 'ATHLETE'
-      }
+        role: 'ATHLETE',
+      },
     })
   })
 
@@ -120,7 +120,7 @@ describe('Update Member (Unit)', () => {
       userId,
       role: 'ATHLETE',
       club: { id: 'club-id', slug: 'acme-club' },
-      user: { isSystemAdmin: false }
+      user: { isSystemAdmin: false },
     } as any)
 
     const response = await app.inject({

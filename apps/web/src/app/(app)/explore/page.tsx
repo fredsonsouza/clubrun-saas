@@ -1,6 +1,6 @@
-import React from 'react'
 import { auth } from '@/auth/auth'
 import { Club } from '@/components/club-card'
+import React from 'react'
 import { ExploreClubsClient } from './explore-clubs-client'
 
 import { getExploreClubs } from '@/http/get-explore-clubs'
@@ -16,14 +16,14 @@ export default async function ExploreClubsPage() {
   const { clubs } = await getExploreClubs()
 
   return (
-    <ExploreClubsClient 
+    <ExploreClubsClient
       user={{
         id: user.id,
         name: user.name,
         email: user.email,
         avatarUrl: user.avatarUrl,
-      }} 
-      initialClubs={clubs} 
+      }}
+      initialClubs={clubs}
     />
   )
 }

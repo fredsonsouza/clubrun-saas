@@ -1,20 +1,20 @@
 'use client'
 
-import React from 'react'
-import Link from 'next/link'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { useFormState } from '@/hooks/use-form-state'
 import {
+  AlertTriangle,
+  ArrowLeft,
   ArrowRight,
   CheckCircle2,
   Flame,
-  ArrowLeft,
-  AlertTriangle,
   Loader2,
 } from 'lucide-react'
-import { useFormState } from '@/hooks/use-form-state'
-import { signInWithEmailAndPassword } from './actions'
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
+import React from 'react'
 import { signInWithGoogle } from '../actions'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { signInWithEmailAndPassword } from './actions'
 
 export function SignInForm() {
   const router = useRouter()
@@ -136,9 +136,13 @@ export function SignInForm() {
 
           {/* Botão do Google */}
           <form action={signInWithGoogle}>
-            {redirectTo && <input type="hidden" name="redirectTo" value={redirectTo} />}
+            {redirectTo && (
+              <input type="hidden" name="redirectTo" value={redirectTo} />
+            )}
             {token && <input type="hidden" name="token" value={token} />}
-            {inviteId && <input type="hidden" name="inviteId" value={inviteId} />}
+            {inviteId && (
+              <input type="hidden" name="inviteId" value={inviteId} />
+            )}
             <button
               type="submit"
               className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"

@@ -2,8 +2,8 @@
 
 import { createRace } from '@/http/create-race'
 import { createRaceResult } from '@/http/create-race-result'
-import { updateRace } from '@/http/update-race'
 import { deleteRace } from '@/http/delete-race'
+import { updateRace } from '@/http/update-race'
 import { updateRacePaymentStatus } from '@/http/update-race-payment-status'
 import { revalidatePath } from 'next/cache'
 
@@ -83,7 +83,9 @@ export async function createRaceResultAction(formData: FormData) {
   const slug = formData.get('slug') as string
   const raceId = formData.get('raceId') as string
   const timeStr = formData.get('time') as string // HH:MM:SS
-  const position = formData.get('position') ? Number(formData.get('position')) : null
+  const position = formData.get('position')
+    ? Number(formData.get('position'))
+    : null
 
   // Convert HH:MM:SS to seconds
   const [hours, minutes, seconds] = timeStr.split(':').map(Number)

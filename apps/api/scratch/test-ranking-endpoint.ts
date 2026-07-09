@@ -11,11 +11,11 @@ async function test() {
     method: 'GET',
     url: '/clubs/corre-macuxi/rankings',
     query: {
-      type: 'monthly'
+      type: 'monthly',
     },
     headers: {
-      authorization: `Bearer ${token}`
-    }
+      authorization: `Bearer ${token}`,
+    },
   })
 
   console.log('STATUS:', response.statusCode)

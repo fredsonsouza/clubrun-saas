@@ -1,11 +1,11 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { BadRequestError } from '../_errors/bad-request-error'
+import { getUserPermissions } from '@/utils/get-user-permissions'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { getUserPermissions } from '@/utils/get-user-permissions'
+import { BadRequestError } from '../_errors/bad-request-error'
+import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function updateMemberStatus(app: FastifyInstance) {
   app
@@ -39,7 +39,9 @@ export async function updateMemberStatus(app: FastifyInstance) {
         const { cannot } = getUserPermissions(userId, memberShip.role)
 
         if (cannot('update_roles', 'User')) {
-          throw new UnauthorizedError(`You're not allowed to update members status.`)
+          throw new UnauthorizedError(
+            `You're not allowed to update members status.`
+          )
         }
 
         const memberToUpdate = await prisma.member.findUnique({

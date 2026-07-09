@@ -1,11 +1,11 @@
+import { randomBytes } from 'node:crypto'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { env } from '@saas/env'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
-import { randomBytes } from 'node:crypto'
 import z from 'zod'
-import { env } from '@saas/env'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function getClubInviteLink(app: FastifyInstance) {

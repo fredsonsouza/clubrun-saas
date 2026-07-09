@@ -89,7 +89,9 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       })
 
       expect(response.statusCode).toBe(400)
-      expect(response.json().message).toContain('Ao informar um tênis, você deve passar uma quilometragem de uso recomendada')
+      expect(response.json().message).toContain(
+        'Ao informar um tênis, você deve passar uma quilometragem de uso recomendada'
+      )
     })
 
     it('should initialize shoesRemainingDistance to shoesMaxDistance for a new shoe', async () => {
@@ -189,7 +191,7 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
         userId,
         role: 'ATHLETE',
         club: { id: 'club-id', slug: 'acme-club' },
-        user: { isSystemAdmin: false }
+        user: { isSystemAdmin: false },
       } as any)
 
       vi.mocked(prisma.athleteProfile.findUnique).mockResolvedValue({
@@ -211,7 +213,9 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       })
 
       expect(response.statusCode).toBe(400)
-      expect(response.json().message).toContain('O treino excede a vida útil restante do seu tênis')
+      expect(response.json().message).toContain(
+        'O treino excede a vida útil restante do seu tênis'
+      )
     })
 
     it('should decrement shoesRemainingDistance on completed workout creation', async () => {
@@ -223,7 +227,7 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
         userId,
         role: 'ATHLETE',
         club: { id: 'club-id', slug: 'acme-club' },
-        user: { isSystemAdmin: false }
+        user: { isSystemAdmin: false },
       } as any)
 
       vi.mocked(prisma.athleteProfile.findUnique).mockResolvedValue({
@@ -238,7 +242,7 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       } as any)
 
       vi.mocked(prisma.workout.aggregate).mockResolvedValue({
-        _sum: { distance: 10, duration: 3600 }
+        _sum: { distance: 10, duration: 3600 },
       } as any)
 
       const response = await app.inject({

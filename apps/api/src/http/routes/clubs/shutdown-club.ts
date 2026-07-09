@@ -1,11 +1,11 @@
+import { auth } from '@/http/middlewares/auth'
+import { prisma } from '@/lib/prisma'
+import { getUserPermissions } from '@/utils/get-user-permissions'
+import { clubSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { clubSchema } from '@saas/auth'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
-import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
-import { auth } from '@/http/middlewares/auth'
 
 export async function shutdownClub(app: FastifyInstance) {
   app
@@ -33,7 +33,11 @@ export async function shutdownClub(app: FastifyInstance) {
 
         const authClub = clubSchema.parse(club)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role, memberShip.isSystemAdmin)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin
+        )
 
         if (cannot('delete', authClub)) {
           throw new UnauthorizedError(
@@ -51,8 +55,8 @@ export async function shutdownClub(app: FastifyInstance) {
               payload: {
                 clubName: club.name,
                 slug: club.slug,
-              }
-            }
+              },
+            },
           }),
 
           prisma.club.update({
@@ -62,8 +66,8 @@ export async function shutdownClub(app: FastifyInstance) {
             data: {
               status: 'DEACTIVATED',
               // TODO: Cancelar stripeSubscriptionId se existir
-            }
-          })
+            },
+          }),
         ])
 
         // TODO: Enviar notificação/email para todos os membros sugerindo migração

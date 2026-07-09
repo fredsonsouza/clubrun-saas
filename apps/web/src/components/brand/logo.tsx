@@ -1,5 +1,5 @@
-import Image from 'next/image'
 import logo from '@/app/assets/brand/logo.png'
+import Image from 'next/image'
 
 interface LogoProps {
   size?: number

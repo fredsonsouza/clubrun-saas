@@ -13,11 +13,15 @@ export async function createClubAction(formData: FormData) {
       name,
       // slug: slug // A API cria o slug baseado no nome internamente
     })
-    
+
     revalidatePath('/')
     revalidatePath('/explore')
-    
-    return { success: true, clubId, message: 'Seu clube foi criado com sucesso!' }
+
+    return {
+      success: true,
+      clubId,
+      message: 'Seu clube foi criado com sucesso!',
+    }
   } catch (err) {
     if (err instanceof Error) {
       try {
@@ -25,7 +29,10 @@ export async function createClubAction(formData: FormData) {
         const { message } = await err.response.json()
         return { success: false, message }
       } catch {
-        return { success: false, message: 'Erro ao criar o clube. Tente novamente mais tarde.' }
+        return {
+          success: false,
+          message: 'Erro ao criar o clube. Tente novamente mais tarde.',
+        }
       }
     }
 

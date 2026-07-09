@@ -1,11 +1,11 @@
+import { resend } from '@/lib/mail'
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 import { hash } from 'bcryptjs'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { createAuditLog } from '@/utils/audit-log'
-import { resend } from '@/lib/mail'
 
 export async function createAccount(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
@@ -16,7 +16,10 @@ export async function createAccount(app: FastifyInstance) {
         tags: ['auth'],
         body: z.object({
           name: z.string(),
-          username: z.string().min(3).regex(/^[a-zA-Z0-9._-]+$/),
+          username: z
+            .string()
+            .min(3)
+            .regex(/^[a-zA-Z0-9._-]+$/),
           email: z.email(),
           password: z.string(),
         }),
@@ -74,7 +77,9 @@ export async function createAccount(app: FastifyInstance) {
           members_on: {
             create: [
               ...(autoJoinClub ? [{ clubId: autoJoinClub.id }] : []),
-              ...(pendingInvite ? [{ clubId: pendingInvite.clubId, role: pendingInvite.role }] : []),
+              ...(pendingInvite
+                ? [{ clubId: pendingInvite.clubId, role: pendingInvite.role }]
+                : []),
             ],
           },
         },
@@ -96,7 +101,9 @@ export async function createAccount(app: FastifyInstance) {
       })
 
       // Gerar código de verificação de 6 dígitos
-      const verificationCode = Math.floor(100000 + Math.random() * 900000).toString()
+      const verificationCode = Math.floor(
+        100000 + Math.random() * 900000
+      ).toString()
 
       await prisma.token.create({
         data: {

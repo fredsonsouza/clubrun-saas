@@ -13,6 +13,7 @@ interface GetMembersResponse {
     email: string
     avatarUrl: string | null
     overdue: boolean
+    paceAvg: number | null
     birthDate: string | null
     shoes: string | null
     watch: string | null

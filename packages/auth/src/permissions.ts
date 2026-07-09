@@ -14,8 +14,16 @@ export const permissions: Record<Role, PermissionsByRole> = {
   },
   OWNER(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
-    can('manage', ['Workout', 'Race', 'RaceResult', 'Ranking', 'Invite', 'Billing', 'Invoice'])
-    
+    can('manage', [
+      'Workout',
+      'Race',
+      'RaceResult',
+      'Ranking',
+      'Invite',
+      'Billing',
+      'Invoice',
+    ])
+
     can('update', 'Club')
     can('delete', 'Club')
     can('transfer_ownership', 'Club')
@@ -25,13 +33,16 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
   MANAGER(_, { can, cannot }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
-    
-    can(['get', 'create', 'update', 'delete'], ['Workout', 'Race', 'RaceResult'])
+
+    can(
+      ['get', 'create', 'update', 'delete'],
+      ['Workout', 'Race', 'RaceResult']
+    )
     can(['get', 'update'], 'Ranking')
     can('manage', ['Invite', 'Billing', 'Invoice'])
 
     can('update_roles', 'User')
-    
+
     // Restrictions
     cannot('transfer_ownership', 'Club')
     cannot('delete', 'User') // Cannot remove members
@@ -42,9 +53,9 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
     can(['get', 'create'], 'Workout')
     can(['update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
-    
+
     can('get', ['Race', 'RaceResult', 'Ranking'])
-    
+
     can('create', 'Invite')
     can('get', 'Invite', { authorId: { $eq: user.id } })
   },
@@ -54,10 +65,12 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
     // Coach can prescribe workouts to anyone in the club
     can('prescribe', 'Workout')
-    
+
     // Coach can manage their own workouts
-    can(['get', 'create', 'update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
-    
+    can(['get', 'create', 'update', 'delete'], 'Workout', {
+      athleteId: { $eq: user.id },
+    })
+
     // Coach can see all club workouts
     can('get', 'Workout')
 
@@ -68,7 +81,15 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
   BILLING(user, { can, cannot }) {
     // Basic member permissions
-    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'RaceResult', 'Ranking'])
+    can('get', [
+      'Club',
+      'User',
+      'AthleteProfile',
+      'Workout',
+      'Race',
+      'RaceResult',
+      'Ranking',
+    ])
 
     // Billing specific
     can('manage', ['Billing', 'Invoice'])
@@ -77,7 +98,15 @@ export const permissions: Record<Role, PermissionsByRole> = {
     cannot(['create', 'update', 'delete'], 'Workout')
   },
   VISITOR(user, { can }) {
-    can('get', ['Club', 'User', 'AthleteProfile', 'Workout', 'Race', 'RaceResult', 'Ranking'])
+    can('get', [
+      'Club',
+      'User',
+      'AthleteProfile',
+      'Workout',
+      'Race',
+      'RaceResult',
+      'Ranking',
+    ])
     can('update', 'User', { id: { $eq: user.id } })
     can('update', 'AthleteProfile', { userId: { $eq: user.id } })
   },

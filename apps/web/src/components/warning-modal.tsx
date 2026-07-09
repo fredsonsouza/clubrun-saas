@@ -1,7 +1,7 @@
 'use client'
 
-import React from 'react'
 import { AlertTriangle, X } from 'lucide-react'
+import React from 'react'
 
 interface WarningModalProps {
   isOpen: boolean
@@ -31,9 +31,7 @@ export function WarningModal({
         </div>
 
         <div className="text-center">
-          <h3 className="mb-2 text-2xl font-black text-gray-900">
-            {title}
-          </h3>
+          <h3 className="mb-2 text-2xl font-black text-gray-900">{title}</h3>
           <p className="mb-8 text-sm font-medium leading-relaxed text-gray-500">
             {message}
           </p>

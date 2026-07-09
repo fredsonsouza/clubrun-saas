@@ -42,7 +42,10 @@ describe('Create Club (Unit)', () => {
       club: { id: 'club-id', slug: 'acme-club' },
     } as any)
     vi.mocked(prisma.member.findMany).mockResolvedValue([])
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: userId, isSystemAdmin: false } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: userId,
+      isSystemAdmin: false,
+    } as any)
     vi.mocked(prisma.club.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.club.create).mockResolvedValue({
       id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
@@ -62,7 +65,9 @@ describe('Create Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json()).toEqual({ clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7' })
+    expect(response.json()).toEqual({
+      clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+    })
     expect(prisma.club.create).toHaveBeenCalledWith(
       expect.objectContaining({
         data: expect.objectContaining({
@@ -77,8 +82,13 @@ describe('Create Club (Unit)', () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const token = app.jwt.sign({ sub: userId })
 
-    vi.mocked(prisma.member.findMany).mockResolvedValue([{ role: 'ATHLETE', status: 'ACTIVE' } as any])
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: userId, isSystemAdmin: false } as any)
+    vi.mocked(prisma.member.findMany).mockResolvedValue([
+      { role: 'ATHLETE', status: 'ACTIVE' } as any,
+    ])
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: userId,
+      isSystemAdmin: false,
+    } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -92,7 +102,9 @@ describe('Create Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.')
+    expect(response.json().message).toBe(
+      'As a member, coach, or manager, you can only belong to one active club. Owners can have multiple clubs.'
+    )
   })
 
   it('should not be able to create a club with existing domain', async () => {
@@ -100,7 +112,10 @@ describe('Create Club (Unit)', () => {
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findMany).mockResolvedValue([])
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: userId, isSystemAdmin: false } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: userId,
+      isSystemAdmin: false,
+    } as any)
     // First call (slug check) returns null, second call (domain check) returns existing-club
     vi.mocked(prisma.club.findUnique)
       .mockResolvedValueOnce(null)
@@ -119,7 +134,9 @@ describe('Create Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('Another club with same domain already exists!')
+    expect(response.json().message).toBe(
+      'Another club with same domain already exists!'
+    )
   })
 
   it('should not be able to create a club with existing name (slug)', async () => {
@@ -127,8 +144,13 @@ describe('Create Club (Unit)', () => {
     const token = app.jwt.sign({ sub: userId })
 
     vi.mocked(prisma.member.findMany).mockResolvedValue([])
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: userId, isSystemAdmin: false } as any)
-    vi.mocked(prisma.club.findUnique).mockResolvedValue({ id: 'existing-club' } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: userId,
+      isSystemAdmin: false,
+    } as any)
+    vi.mocked(prisma.club.findUnique).mockResolvedValue({
+      id: 'existing-club',
+    } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -142,6 +164,8 @@ describe('Create Club (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('Another club with same name already exists!')
+    expect(response.json().message).toBe(
+      'Another club with same name already exists!'
+    )
   })
 })

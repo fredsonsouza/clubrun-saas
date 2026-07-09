@@ -1,10 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { compare, hash } from 'bcryptjs'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { compare, hash } from 'bcryptjs'
 
 export async function updatePassword(app: FastifyInstance) {
   app
@@ -35,10 +35,15 @@ export async function updatePassword(app: FastifyInstance) {
         })
 
         if (!user || !user.passwordHash) {
-          throw new BadRequestError('User not found or does not have a password set.')
+          throw new BadRequestError(
+            'User not found or does not have a password set.'
+          )
         }
 
-        const isPasswordValid = await compare(currentPassword, user.passwordHash)
+        const isPasswordValid = await compare(
+          currentPassword,
+          user.passwordHash
+        )
 
         if (!isPasswordValid) {
           throw new BadRequestError('A senha atual está incorreta.')

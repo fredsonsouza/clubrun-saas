@@ -67,7 +67,7 @@ describe('Authenticate with Google (Unit)', () => {
 
     expect(response.statusCode).toBe(201)
     expect(response.json()).toHaveProperty('token')
-    
+
     expect(prisma.user.create).toHaveBeenCalledWith({
       data: {
         name: 'John Doe',

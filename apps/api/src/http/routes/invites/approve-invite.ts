@@ -1,6 +1,6 @@
 import { auth } from '@/http/middlewares/auth'
 import type { FastifyInstance } from 'fastify'
-import { ZodTypeProvider } from 'fastify-type-provider-zod'
+import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
@@ -27,7 +27,7 @@ export async function approveInvite(app: FastifyInstance) {
         if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
           throw new UnauthorizedError('Unauthorized')
         }
- 
+
         return reply.status(204).send()
       }
     )

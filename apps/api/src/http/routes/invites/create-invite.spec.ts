@@ -36,7 +36,7 @@ describe('Create Invite (Unit)', () => {
 
     vi.mocked(prisma.invite.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.member.findFirst).mockResolvedValueOnce(null) // second call for existing member
-    
+
     vi.mocked(prisma.invite.create).mockResolvedValue({
       id: '81f02179-8d75-474c-8975-c54d8b965c4d',
     } as any)
@@ -54,7 +54,9 @@ describe('Create Invite (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(201)
-    expect(response.json()).toEqual({ inviteId: '81f02179-8d75-474c-8975-c54d8b965c4d' })
+    expect(response.json()).toEqual({
+      inviteId: '81f02179-8d75-474c-8975-c54d8b965c4d',
+    })
   })
 
   it('should not be able to create an invite if already redirected by domain', async () => {
@@ -65,11 +67,11 @@ describe('Create Invite (Unit)', () => {
       id: 'member-id',
       userId,
       role: 'ADMIN',
-      club: { 
-        id: '515560b4-367d-44a6-89bf-ba486e9e46a7', 
-        slug: 'acme-club', 
+      club: {
+        id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        slug: 'acme-club',
         shouldAttachUsersByDomain: true,
-        domain: 'example.com'
+        domain: 'example.com',
       },
     } as any)
 
@@ -86,6 +88,8 @@ describe('Create Invite (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toContain('will join your club automatically')
+    expect(response.json().message).toContain(
+      'will join your club automatically'
+    )
   })
 })
