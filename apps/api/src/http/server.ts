@@ -1,5 +1,6 @@
 import 'dotenv/config'
 
+import { mkdirSync } from 'node:fs'
 import path from 'node:path'
 import fastifyCors from '@fastify/cors'
 import fastifyJwt from '@fastify/jwt'
@@ -125,8 +126,11 @@ app.register(fastifyRateLimit, {
   timeWindow: '1 minute',
 })
 
+const uploadDir = path.resolve(__dirname, '../../uploads')
+mkdirSync(uploadDir, { recursive: true })
+
 app.register(fastifyStatic, {
-  root: path.resolve(__dirname, '../../uploads'),
+  root: uploadDir,
   prefix: '/uploads',
 })
 

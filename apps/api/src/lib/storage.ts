@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
-import { createWriteStream } from 'node:fs'
+import { createWriteStream, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
+import { env } from '@saas/env'
 
 interface UploadParams {
   filename: string
@@ -18,14 +19,18 @@ export async function uploadFile({
   const uniqueFileName = `${randomUUID()}${fileExtension}`
 
   const uploadDir = path.resolve(__dirname, '../../uploads')
+  
+  // Garantir que a pasta de uploads existe
+  mkdirSync(uploadDir, { recursive: true })
+
   const filePath = path.join(uploadDir, uniqueFileName)
 
   await pipeline(content, createWriteStream(filePath))
 
-  // Retorna a URL pública (ajustar conforme o domínio da API)
-  // Por enquanto usamos localhost:3333
+  // Retorna a URL pública baseada no domínio configurado da API
+  const apiBaseUrl = env.NEXT_PUBLIC_API_URL ? env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3333'
   return {
-    url: `http://localhost:3333/uploads/${uniqueFileName}`,
+    url: `${apiBaseUrl}/uploads/${uniqueFileName}`,
     key: uniqueFileName,
   }
 }
