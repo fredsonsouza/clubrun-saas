@@ -27,7 +27,7 @@ export async function createWorkoutAction(formData: FormData) {
   })
 
   // Cálculo simples de pace para a API (min/km)
-  const pace = distance > 0 && duration ? duration / distance : 0
+  const pace = distance > 0 && duration ? duration / 60 / distance : 0
 
   try {
     await createWorkout({

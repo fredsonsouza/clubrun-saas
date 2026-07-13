@@ -135,18 +135,23 @@ export function CreateWorkoutModal({
   const timeToSeconds = (timeStr: string) => {
     if (!timeStr) return 0
     const parts = timeStr.split(':').map(Number)
-    if (parts.length === 3) return parts[0] * 3600 + parts[1] * 60 + parts[2]
-    if (parts.length === 2) return parts[0] * 60 + parts[1]
-    return parts[0] * 60
+    if (parts.length === 3) {
+      // Format MM:SS:CC (minutes:seconds:centiseconds)
+      return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
+    }
+    if (parts.length === 2) {
+      return (parts[0] || 0) * 60 + (parts[1] || 0)
+    }
+    return (parts[0] || 0) * 60
   }
 
   const pace = useMemo(() => {
     const d = Number.parseFloat(distance) || 0
     const totalSeconds = timeToSeconds(duration)
     if (d <= 0 || totalSeconds <= 0) return '0:00'
-    const paceInSecondsPerKm = totalSeconds / d
+    const paceInSecondsPerKm = Math.round(totalSeconds / d)
     const mins = Math.floor(paceInSecondsPerKm / 60)
-    const secs = Math.floor(paceInSecondsPerKm % 60)
+    const secs = paceInSecondsPerKm % 60
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }, [distance, duration])
 

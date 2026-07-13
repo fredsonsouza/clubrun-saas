@@ -73,17 +73,23 @@ export function CompleteWorkoutModal({
     return `${m}m ${s}s`
   }
 
+  const formatSecondsToTime = (totalSeconds: number) => {
+    if (!totalSeconds || totalSeconds <= 0) return ''
+    const mins = Math.floor(totalSeconds / 60)
+    const rawSecs = totalSeconds % 60
+    const secs = Math.floor(rawSecs)
+    const centis = Math.round((rawSecs - secs) * 100)
+    if (centis > 0) {
+      return `${mins}:${secs.toString().padStart(2, '0')}:${centis.toString().padStart(2, '0')}`
+    }
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   // Initialize with workout values if it's a GOAL
   React.useEffect(() => {
     if (workout) {
       setDistance(workout.distance.toString())
-      if (workout.durationInSeconds > 0) {
-        const mins = Math.floor(workout.durationInSeconds / 60)
-        const secs = workout.durationInSeconds % 60
-        setDuration(`${mins}:${secs.toString().padStart(2, '0')}`)
-      } else {
-        setDuration('')
-      }
+      setDuration(formatSecondsToTime(workout.durationInSeconds))
       setSelectedStravaActivityId(null)
       setShowStravaActivities(false)
     }
@@ -119,7 +125,8 @@ export function CompleteWorkoutModal({
     if (!timeStr) return 0
     const parts = timeStr.split(':').map(Number)
     if (parts.length === 3) {
-      return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0)
+      // Format MM:SS:CC (minutes:seconds:centiseconds)
+      return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
     }
     if (parts.length === 2) {
       return (parts[0] || 0) * 60 + (parts[1] || 0)
@@ -131,9 +138,9 @@ export function CompleteWorkoutModal({
     const d = Number.parseFloat(distance) || 0
     const totalSeconds = timeToSeconds(duration)
     if (d <= 0 || totalSeconds <= 0) return '0:00'
-    const paceInSeconds = totalSeconds / d
+    const paceInSeconds = Math.round(totalSeconds / d)
     const mins = Math.floor(paceInSeconds / 60)
-    const secs = Math.floor(paceInSeconds % 60)
+    const secs = paceInSeconds % 60
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }, [distance, duration])
 
@@ -142,8 +149,10 @@ export function CompleteWorkoutModal({
   const handleDurationChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let val = e.target.value.replace(/[^0-9:]/g, '')
     const digits = val.replace(/\D/g, '')
-    if (digits.length > 2) {
-      val = `${digits.slice(0, 2)}:${digits.slice(2, 4)}`
+    if (digits.length > 2 && digits.length <= 4) {
+      val = `${digits.slice(0, 2)}:${digits.slice(2)}`
+    } else if (digits.length > 4) {
+      val = `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`
     }
     setDuration(val)
   }
