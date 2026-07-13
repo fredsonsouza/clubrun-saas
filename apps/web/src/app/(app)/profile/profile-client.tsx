@@ -489,14 +489,16 @@ export function ProfileClient({
               </div>
 
               <div className="mt-2 flex flex-wrap justify-center gap-3 md:pb-2">
-                <button
-                  type="button"
-                  onClick={() => setIsShareModalOpen(true)}
-                  className="group flex cursor-pointer items-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-black text-gray-700 text-xs shadow-sm transition-all hover:bg-gray-50 hover:text-orange-500 active:scale-95"
-                >
-                  <QrCode className="h-4 w-4 text-gray-500 transition-transform group-hover:scale-110 group-hover:text-orange-500" />
-                  COMPARTILHAR
-                </button>
+                {isOwnProfile && (
+                  <button
+                    type="button"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="group flex cursor-pointer items-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-black text-gray-700 text-xs shadow-sm transition-all hover:bg-gray-50 hover:text-orange-500 active:scale-95"
+                  >
+                    <QrCode className="h-4 w-4 text-gray-500 transition-transform group-hover:scale-110 group-hover:text-orange-500" />
+                    COMPARTILHAR
+                  </button>
+                )}
                 {isOwnProfile && (
                   <button
                     type="button"
