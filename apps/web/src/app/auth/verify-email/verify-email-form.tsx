@@ -37,7 +37,7 @@ export function VerifyEmailForm() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit} className="mt-8 space-y-6" noValidate>
         <div className="space-y-4">
           <div>
             <label htmlFor="code" className="sr-only">

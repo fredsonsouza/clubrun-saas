@@ -69,7 +69,7 @@ function ResetPasswordForm() {
                 </AlertDescription>
               </Alert>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-6" noValidate>
                 <input type="hidden" name="code" value={code} />
 
                 <div className="space-y-1.5">

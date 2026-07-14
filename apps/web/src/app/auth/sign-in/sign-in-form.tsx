@@ -178,7 +178,7 @@ export function SignInForm() {
             <div className="grow border-t border-gray-200"></div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
               <label
                 htmlFor="login"

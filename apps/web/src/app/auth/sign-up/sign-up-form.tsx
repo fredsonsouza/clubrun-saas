@@ -166,7 +166,7 @@ export function SignUpForm() {
             <div className="grow border-t border-gray-200"></div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
               <label htmlFor="name" className="text-sm font-bold text-gray-700">
                 Nome Completo

@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
               </Alert>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
