@@ -47,8 +47,12 @@ export async function signInUpAction(data: FormData) {
     })
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json() //pega a mensagem do nosso back-end
-
+      let { message } = await err.response.json()
+      if (message === 'User already exists with same email') {
+        message = 'Este e-mail já está sendo utilizado por outra conta.'
+      } else if (message === 'User already exists with same username') {
+        message = 'Este nome de usuário (username) já está sendo utilizado.'
+      }
       return { success: false, message, errors: null }
     }
 
@@ -56,7 +60,7 @@ export async function signInUpAction(data: FormData) {
 
     return {
       success: false,
-      message: 'Unexpected error, try again in few minutes',
+      message: 'Erro inesperado, tente novamente em alguns minutos.',
       errors: null,
     }
   }

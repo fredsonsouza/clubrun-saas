@@ -14,8 +14,9 @@ import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { logToServerAction } from '@/app/(app)/[slug]/dashboard/actions'
 import mapboxgl from 'mapbox-gl'
+import { env } from '@saas/env'
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+const MAPBOX_TOKEN = env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 if (MAPBOX_TOKEN) {
   mapboxgl.accessToken = MAPBOX_TOKEN
 }

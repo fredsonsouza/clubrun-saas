@@ -18,6 +18,7 @@ import dynamic from 'next/dynamic'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { env } from '@saas/env'
 import { DatePicker } from './date-picker'
 import { WarningModal } from './warning-modal'
 
@@ -33,7 +34,7 @@ const MapEditor = dynamic(
   }
 )
 
-const MAPBOX_TOKEN = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
+const MAPBOX_TOKEN = env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 interface CreateRaceModalProps {
   isOpen: boolean

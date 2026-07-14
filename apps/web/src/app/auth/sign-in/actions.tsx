@@ -35,7 +35,10 @@ export async function signInWithEmailAndPassword(data: FormData) {
     })
   } catch (err) {
     if (err instanceof HTTPError) {
-      const { message } = await err.response.json()
+      let { message } = await err.response.json()
+      if (message === 'Invalid credentials') {
+        message = 'Credenciais inválidas. Por favor, verifique seu e-mail/usuário e senha.'
+      }
       return { success: false, message, errors: null }
     }
     return {
