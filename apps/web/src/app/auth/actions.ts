@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import { env } from '@saas/env'
 
 export async function signInWithGoogle(formData?: FormData) {
   const googleSignInUrl = new URL(
@@ -14,11 +15,11 @@ export async function signInWithGoogle(formData?: FormData) {
 
   googleSignInUrl.searchParams.set(
     'client_id',
-    '415804455100-l9d0fqkj1lqmaf2gnsgd79e489jeeq2b.apps.googleusercontent.com'
+    env.GOOGLE_OAUTH_CLIENT_ID
   )
   googleSignInUrl.searchParams.set(
     'redirect_uri',
-    'http://localhost:3000/api/auth/callback'
+    env.GOOGLE_OAUTH_CLIENT_REDIRECT_URI
   )
   googleSignInUrl.searchParams.set('response_type', 'code')
   googleSignInUrl.searchParams.set('scope', 'openid email profile')
