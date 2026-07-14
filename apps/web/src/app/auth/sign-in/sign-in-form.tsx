@@ -193,7 +193,7 @@ export function SignInForm() {
                 required
                 placeholder="atleta@exemplo.com ou username"
                 className={`w-full rounded-xl border bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 ${
-                  errors?.login
+                  errors?.login || (success === false && message)
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                     : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/50'
                 }`}
@@ -223,7 +223,7 @@ export function SignInForm() {
                 required
                 placeholder="••••••••"
                 className={`w-full rounded-xl border bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 ${
-                  errors?.password
+                  errors?.password || (success === false && message)
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                     : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/50'
                 }`}
