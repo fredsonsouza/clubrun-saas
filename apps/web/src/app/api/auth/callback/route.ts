@@ -1,6 +1,7 @@
 import { signInWithGoogle } from '@/http/sign-in-with-google'
 import { cookies } from 'next/headers'
 import { type NextRequest, NextResponse } from 'next/server'
+import { env } from '@saas/env'
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams
@@ -43,5 +44,5 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(new URL(redirectTo, request.nextUrl))
+  return NextResponse.redirect(new URL(redirectTo, env.NEXT_PUBLIC_APP_URL))
 }
