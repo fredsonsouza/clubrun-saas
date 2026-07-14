@@ -2,6 +2,7 @@
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useFormState } from '@/hooks/use-form-state'
+import { FormError } from '@/components/form-error'
 import {
   AlertTriangle,
   ArrowRight,
@@ -84,13 +85,13 @@ function ResetPasswordForm() {
                     type="password"
                     required
                     placeholder="Mínimo 8 caracteres"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className={`w-full rounded-xl border bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 ${
+                      errors?.password
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/50'
+                    }`}
                   />
-                  {errors?.password && (
-                    <p className="text-xs font-bold text-orange-600">
-                      {errors.password[0]}
-                    </p>
-                  )}
+                  <FormError message={errors?.password?.[0]} />
                 </div>
 
                 <div className="space-y-1.5">
@@ -106,13 +107,13 @@ function ResetPasswordForm() {
                     type="password"
                     required
                     placeholder="Repita a nova senha"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className={`w-full rounded-xl border bg-gray-50 px-4 py-3.5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:bg-white focus:outline-none focus:ring-2 ${
+                      errors?.password_confirmation
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                        : 'border-gray-200 focus:border-orange-500 focus:ring-orange-500/50'
+                    }`}
                   />
-                  {errors?.password_confirmation && (
-                    <p className="text-xs font-bold text-orange-600">
-                      {errors.password_confirmation[0]}
-                    </p>
-                  )}
+                  <FormError message={errors?.password_confirmation?.[0]} />
                 </div>
 
                 <button

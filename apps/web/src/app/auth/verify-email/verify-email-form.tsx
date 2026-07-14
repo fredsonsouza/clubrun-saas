@@ -1,6 +1,7 @@
 'use client'
 
 import { useFormState } from '@/hooks/use-form-state'
+import { FormError } from '@/components/form-error'
 import { AlertCircle, CheckCircle2, Loader2, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
@@ -49,11 +50,13 @@ export function VerifyEmailForm() {
               required
               maxLength={6}
               placeholder="000000"
-              className="block w-full rounded-xl border border-gray-300 px-4 py-4 text-center text-3xl font-bold tracking-[1em] text-gray-900 placeholder:text-gray-300 placeholder:tracking-normal focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
+              className={`block w-full rounded-xl border px-4 py-4 text-center text-3xl font-bold tracking-[1em] text-gray-900 placeholder:text-gray-300 placeholder:tracking-normal focus:outline-none focus:ring-2 ${
+                errors?.code
+                  ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
+                  : 'border-gray-300 focus:border-orange-500 focus:ring-orange-500/20'
+              }`}
             />
-            {errors?.code && (
-              <p className="mt-2 text-xs text-red-500">{errors.code[0]}</p>
-            )}
+            <FormError message={errors?.code?.[0]} />
           </div>
         </div>
 
