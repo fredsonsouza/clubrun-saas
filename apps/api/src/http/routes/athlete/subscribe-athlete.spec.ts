@@ -1,6 +1,14 @@
 import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -17,6 +25,26 @@ describe('Subscribe Athlete (Unit)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it('returns 403 without mutating premium outside development/test', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const token = app.jwt.sign({
+      sub: '4f88e178-57d5-4537-8e68-c1d00c4c4af5',
+    })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/profile/athlete/subscribe',
+      headers: { authorization: `Bearer ${token}` },
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(prisma.athleteProfile.update).not.toHaveBeenCalled()
   })
 
   it('should be able to activate premium subscription', async () => {

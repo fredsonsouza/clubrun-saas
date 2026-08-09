@@ -10,8 +10,13 @@ export default async function CheckoutPage() {
     redirect('/auth/sign-in?redirectTo=/checkout')
   }
 
+  const simulationEnabled = ['development', 'test'].includes(
+    process.env.NODE_ENV ?? ''
+  )
+
   return (
     <CheckoutClient
+      simulationEnabled={simulationEnabled}
       user={{
         id: user.id,
         name: user.name,

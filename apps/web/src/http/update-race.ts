@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface UpdateRaceRequest {
   name?: string
@@ -14,7 +14,7 @@ export async function updateRace(
   raceId: string,
   data: UpdateRaceRequest
 ) {
-  await api.put(`clubs/${slug}/races/${raceId}`, {
+  await mutationApi.put(`clubs/${slug}/races/${raceId}`, {
     json: data,
   })
 }

@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface UpdateAthleteProfileRequest {
   name?: string
@@ -21,7 +21,7 @@ interface UpdateAthleteProfileRequest {
 }
 
 export async function updateAthleteProfile(data: UpdateAthleteProfileRequest) {
-  const result = await api
+  const result = await mutationApi
     .put('profile/athlete', {
       json: data,
     })

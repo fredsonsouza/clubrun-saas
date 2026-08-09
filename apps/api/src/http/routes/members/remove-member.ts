@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
 import { auth } from '@/http/middlewares/auth'
+import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { UnauthorizedError } from '@/http/routes/_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
@@ -42,7 +43,9 @@ export async function removeMember(app: FastifyInstance) {
         const { cannot } = getUserPermissions(
           userId,
           memberShip.role,
-          memberShip.isSystemAdmin
+          memberShip.isSystemAdmin,
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (cannot('delete', 'User')) {
@@ -51,8 +54,20 @@ export async function removeMember(app: FastifyInstance) {
           )
         }
 
-        // Se o motivo for APENAS financeiro, podemos validar se realmente há boleto em atraso
-        // mas para dar flexibilidade ao owner, vamos apenas registrar os motivos no log.
+        const targetMember = await prisma.member.findUnique({
+          where: { id: memberId, clubId: club.id },
+          select: { userId: true },
+        })
+
+        if (!targetMember) {
+          throw new BadRequestError('Member not found.')
+        }
+
+        if (targetMember.userId === club.ownerId) {
+          throw new UnauthorizedError(
+            'The club owner can only leave through the transfer flow.'
+          )
+        }
 
         await prisma.member.delete({
           where: {
@@ -74,7 +89,7 @@ export async function removeMember(app: FastifyInstance) {
           },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

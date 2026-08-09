@@ -5,6 +5,7 @@ import { workoutSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
+import { WorkoutType } from '../../../../generated/prisma/enums'
 import { BadRequestError } from '../_errors/bad-request-error'
 import { UnauthorizedError } from '../_errors/unauthorized-error'
 
@@ -24,7 +25,7 @@ export async function updateWorkout(app: FastifyInstance) {
             distance: z.number(),
             duration: z.number().nullable(),
             pace: z.number().nullable(),
-            type: z.string(),
+            type: z.enum(WorkoutType),
             date: z.coerce.date().optional(),
             routeData: z.any().optional(),
           }),
@@ -186,7 +187,7 @@ export async function updateWorkout(app: FastifyInstance) {
           })
         }
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

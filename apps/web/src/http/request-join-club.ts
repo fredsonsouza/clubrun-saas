@@ -1,5 +1,5 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 export async function requestJoinClub(slug: string) {
-  await api.post(`clubs/${slug}/join-request`)
+  await mutationApi.post(`clubs/${slug}/join-request`)
 }

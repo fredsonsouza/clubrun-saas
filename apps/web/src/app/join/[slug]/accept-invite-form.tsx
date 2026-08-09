@@ -1,6 +1,5 @@
 'use client'
 
-import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { acceptInvite } from '@/http/accept-invite'
@@ -33,22 +32,8 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
   const slug = (params?.slug as string) || ''
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsSubscribed(
-        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
-      )
-    }
-  }, [])
 
   const handleAccept = async () => {
-    if (invite.role === 'ATHLETE' && !isSubscribed) {
-      setIsIncentiveOpen(true)
-      return
-    }
     setIsLoading(true)
     try {
       await acceptInvite(invite.id)
@@ -70,18 +55,18 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="animate-in zoom-in-95 w-full max-w-lg rounded-[2.5rem] border border-gray-100 bg-white p-12 text-center shadow-xl duration-500">
-        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-orange-50 text-orange-500 shadow-xl shadow-orange-500/10">
+      <div className="zoom-in-95 w-full max-w-lg animate-in rounded-[2.5rem] border border-gray-100 bg-white p-12 text-center shadow-xl duration-500">
+        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-orange-50 text-orange-500 shadow-orange-500/10 shadow-xl">
           <Sparkles className="h-12 w-12" />
         </div>
-        <h2 className="mb-4 text-3xl font-black tracking-tight text-gray-900">
+        <h2 className="mb-4 font-black text-3xl text-gray-900 tracking-tight">
           Convite Aceito!
         </h2>
-        <p className="mb-10 text-lg font-medium text-gray-500">
+        <p className="mb-10 font-medium text-gray-500 text-lg">
           Agora você é oficialmente parte do{' '}
           <span className="font-bold text-orange-500">{invite.club.name}</span>.
         </p>
-        <div className="flex items-center justify-center gap-2 text-xs font-black tracking-widest text-gray-400 uppercase">
+        <div className="flex items-center justify-center gap-2 font-black text-gray-400 text-xs uppercase tracking-widest">
           <Loader2 className="h-4 w-4 animate-spin" />
           Preparando seu dashboard...
         </div>
@@ -90,16 +75,16 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-2xl duration-700">
+    <div className="fade-in slide-in-from-bottom-8 w-full max-w-lg animate-in overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-2xl duration-700">
       <div className="relative p-12 text-center">
         {/* Decorative background */}
-        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-orange-500/5 to-transparent" />
+        <div className="absolute top-0 left-0 h-32 w-full bg-gradient-to-b from-orange-500/5 to-transparent" />
 
         <div className="relative z-10">
-          <div className="mb-8 flex justify-center -space-x-4">
+          <div className="-space-x-4 mb-8 flex justify-center">
             <Avatar className="h-20 w-20 border-4 border-white shadow-lg ring-1 ring-gray-100">
               <AvatarImage src={invite.author?.avatarUrl || ''} />
-              <AvatarFallback className="bg-gray-100 text-gray-400 font-bold">
+              <AvatarFallback className="bg-gray-100 font-bold text-gray-400">
                 {invite.author?.name?.charAt(0) || '?'}
               </AvatarFallback>
             </Avatar>
@@ -108,11 +93,11 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
             </div>
           </div>
 
-          <h1 className="mb-4 text-3xl font-black tracking-tight text-gray-900">
+          <h1 className="mb-4 font-black text-3xl text-gray-900 tracking-tight">
             Você foi convidado!
           </h1>
 
-          <p className="mb-8 text-lg font-medium text-gray-500 leading-relaxed">
+          <p className="mb-8 font-medium text-gray-500 text-lg leading-relaxed">
             <span className="font-bold text-gray-900">
               {invite.author?.name || 'Um administrador'}
             </span>{' '}
@@ -128,8 +113,8 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
             <span className="font-bold text-gray-900">{invite.club.name}</span>.
           </p>
 
-          <div className="mb-10 rounded-2xl bg-orange-50/50 p-6 border border-orange-100">
-            <p className="text-sm font-bold text-orange-800">
+          <div className="mb-10 rounded-2xl border border-orange-100 bg-orange-50/50 p-6">
+            <p className="font-bold text-orange-800 text-sm">
               Ao aceitar, você terá acesso imediato aos treinos e métricas do
               clube.
             </p>
@@ -138,7 +123,7 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
           <Button
             onClick={handleAccept}
             disabled={isLoading}
-            className="h-16 w-full rounded-2xl bg-orange-500 text-lg font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 hover:shadow-orange-500/40 active:scale-95"
+            className="h-16 w-full rounded-2xl bg-orange-500 font-black text-lg text-white shadow-orange-500/20 shadow-xl transition-all hover:bg-orange-600 hover:shadow-orange-500/40 active:scale-95"
           >
             {isLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />
@@ -147,19 +132,12 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
             )}
           </Button>
 
-          <p className="mt-8 text-xs font-medium text-gray-400">
+          <p className="mt-8 font-medium text-gray-400 text-xs">
             Conectado como{' '}
             <span className="font-bold text-gray-900">{user.email}</span>
           </p>
         </div>
       </div>
-
-      <SubscriptionIncentiveModal
-        isOpen={isIncentiveOpen}
-        onClose={() => setIsIncentiveOpen(false)}
-        clubName={invite.club.name}
-        clubSlug={slug}
-      />
     </div>
   )
 }

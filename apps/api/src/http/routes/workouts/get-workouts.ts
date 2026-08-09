@@ -1,6 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
+import {
+  getEffectiveClubRole,
+  getUserPermissions,
+} from '@/utils/get-user-permissions'
+import { getWorkoutVisibilityFilter } from '@/utils/workout-visibility'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -49,6 +53,7 @@ export async function getWorkouts(app: FastifyInstance) {
                   routeData: z.any().nullish(),
                   createdAt: z.coerce.date(),
                   clubId: z.uuid(),
+                  visibility: z.enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE']),
                   athlete: z.object({
                     id: z.string().uuid(),
                     name: z.string().nullable(),
@@ -89,7 +94,8 @@ export async function getWorkouts(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (!can('get', 'Workout')) {
@@ -98,10 +104,21 @@ export async function getWorkouts(app: FastifyInstance) {
           )
         }
 
+        const effectiveRole = getEffectiveClubRole(
+          userId,
+          memberShip.role,
+          club.ownerId
+        )
+        const visibilityFilter = getWorkoutVisibilityFilter(
+          userId,
+          effectiveRole,
+          memberShip.isSystemAdmin
+        )
         const where = {
           clubId: club.id,
           status,
           ...(athleteId ? { athleteId } : {}),
+          ...visibilityFilter,
         }
 
         const [total, workouts] = await Promise.all([
@@ -115,6 +132,7 @@ export async function getWorkouts(app: FastifyInstance) {
               slug: true,
               imageUrl: true,
               clubId: true,
+              visibility: true,
               distance: true,
               duration: true,
               pace: true,

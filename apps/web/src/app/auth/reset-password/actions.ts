@@ -1,6 +1,6 @@
 'use server'
 
-import { api } from '@/http/api-client'
+import { mutationApi } from '@/http/api-client'
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
@@ -28,7 +28,7 @@ export async function resetPasswordAction(formData: FormData) {
   const { code, password } = result.data
 
   try {
-    await api.post('password/reset', {
+    await mutationApi.post('password/reset', {
       json: { code, password },
     })
 

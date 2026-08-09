@@ -6,6 +6,13 @@ import { shutdownClub, updateClub } from '@/http/update-club'
 import { revalidatePath } from 'next/cache'
 
 export async function activateBillingAction(slug: string) {
+  if (!['development', 'test'].includes(process.env.NODE_ENV ?? '')) {
+    return {
+      success: false,
+      message: 'Fluxo de simulação indisponível fora de development/test.',
+    }
+  }
+
   try {
     await activateClubBilling(slug)
     revalidatePath('/', 'layout')
@@ -13,7 +20,7 @@ export async function activateBillingAction(slug: string) {
       success: true,
       message: 'Plano Pro ativado com sucesso! Bem-vindo de volta.',
     }
-  } catch (err) {
+  } catch (_err) {
     return {
       success: false,
       message: 'Erro ao ativar o plano. Tente novamente.',
@@ -51,7 +58,7 @@ export async function updateClubAction(formData: FormData) {
     revalidatePath('/', 'layout')
 
     return { success: true, message: 'Definições do clube atualizadas!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao atualizar as definições.' }
   }
 }
@@ -77,7 +84,7 @@ export async function transferOwnershipAction({
           success: false,
           message: errorData?.message || 'Erro ao transferir propriedade.',
         }
-      } catch (e) {
+      } catch (_error) {
         return {
           success: false,
           message: err.message || 'Erro ao transferir propriedade.',
@@ -94,7 +101,7 @@ export async function shutdownClubAction(slug: string) {
     await shutdownClub(slug)
     revalidatePath('/', 'layout')
     return { success: true, message: 'Clube encerrado com sucesso.' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao encerrar o clube.' }
   }
 }

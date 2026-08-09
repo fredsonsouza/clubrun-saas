@@ -1,5 +1,6 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { updateAthleteRanking } from '@/services/update-athlete-ranking'
 import { createAuditLog } from '@/utils/audit-log'
 import { createSlug } from '@/utils/create-slug'
 import { getUserPermissions } from '@/utils/get-user-permissions'
@@ -41,6 +42,9 @@ export async function createWorkout(app: FastifyInstance) {
             date: z.coerce.date(),
             notes: z.string().nullish(),
             routeData: z.any().optional(),
+            visibility: z
+              .enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE'])
+              .default('PUBLIC'),
           }),
           params: z.object({
             slug: z.string(),
@@ -67,7 +71,8 @@ export async function createWorkout(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId,
+          club.ownerId
         )
 
         const {
@@ -81,6 +86,7 @@ export async function createWorkout(app: FastifyInstance) {
           athleteId,
           status,
           assignmentMode,
+          visibility,
         } = request.body
 
         // If target athlete is different from creator, check if can prescribe
@@ -173,16 +179,13 @@ export async function createWorkout(app: FastifyInstance) {
             slug: `${createSlug(title)}-${Date.now()}`,
             clubId: club.id,
             athleteId: targetAthleteId,
+            visibility,
             shoesUsed,
           },
         })
 
         // Update AthleteProfile and Ranking ONLY if workout is COMPLETED
         if (workout.status === 'COMPLETED') {
-          const { updateAthleteRanking } = await import(
-            '@/services/update-athlete-ranking'
-          )
-
           await updateAthleteRanking(targetAthleteId, club.id, date)
 
           if (shoesUsed) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { toggleWorkoutReactionAction } from '@/app/(app)/[slug]/dashboard/actions'
+import { setWorkoutReactionAction } from '@/app/(app)/[slug]/dashboard/actions'
 import { ShoeIcon } from '@/components/shoe-icon'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { isBefore, isToday, parseISO, startOfDay } from 'date-fns'
@@ -48,7 +48,7 @@ export interface Workout {
   distance: number // em km
   durationInSeconds: number
   type: WorkoutType
-  visibility: 'PUBLIC' | 'PRIVATE'
+  visibility: 'PUBLIC' | 'COACH_ONLY' | 'PRIVATE'
   status: 'PLANNED' | 'COMPLETED'
   assignmentMode?: 'GOAL' | 'FREE' | null
   createdAt: string
@@ -194,17 +194,17 @@ export function WorkoutCard({
   const [isReacting, setIsReacting] = React.useState(false)
   const [isRouteOpen, setIsRouteOpen] = React.useState(false)
 
-  const handleToggleReaction = async (
+  const handleSetReaction = async (
     type: 'LIKE' | 'FIRE' | 'CLAP' | 'TROPHY'
   ) => {
     if (isReacting) return
     setIsReacting(true)
     setShowPicker(false)
     try {
-      const result = await toggleWorkoutReactionAction({
+      const result = await setWorkoutReactionAction({
         slug: workout.club.slug,
         workoutId: workout.id,
-        type,
+        type: workout.currentUserReaction === type ? null : type,
       })
       if (!result.success) {
         toast.error(result.message)
@@ -612,7 +612,7 @@ export function WorkoutCard({
                 return (
                   <button
                     onClick={() =>
-                      handleToggleReaction(workout.currentUserReaction as any)
+                      handleSetReaction(workout.currentUserReaction as any)
                     }
                     disabled={isReacting}
                     className={`flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1 font-bold text-sm transition-all duration-300 ${style.bgClass} ${style.colorClass} ${style.borderClass} shadow-sm hover:scale-105 active:scale-95 disabled:opacity-50`}
@@ -643,7 +643,7 @@ export function WorkoutCard({
                   {Object.entries(REACTION_STYLES).map(([key, style]) => (
                     <button
                       key={key}
-                      onClick={() => handleToggleReaction(key as any)}
+                      onClick={() => handleSetReaction(key as any)}
                       disabled={isReacting}
                       className="cursor-pointer rounded-full p-1 text-xl transition-transform duration-200 hover:scale-125 hover:bg-gray-50 active:scale-95 disabled:opacity-50"
                       title={style.label}

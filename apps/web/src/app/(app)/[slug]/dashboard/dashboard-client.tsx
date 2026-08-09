@@ -3,7 +3,7 @@
 import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
 import { Header } from '@/components/header'
 import { JoinFeedbackModal } from '@/components/join-feedback-modal'
-import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Dialog,
@@ -40,7 +40,7 @@ import {
   Users,
 } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useMemo } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { useEffect } from 'react'
 import { toast } from 'sonner'
 import { deleteWorkoutAction } from './actions'
@@ -109,17 +109,34 @@ export function DashboardClient({
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(1 < initialTotalPages)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const loadMoreControllerRef = useRef<AbortController | null>(null)
+  const feedGenerationRef = useRef(0)
+  const activeFeedSlugRef = useRef(club.slug)
 
   const handleLoadMore = async () => {
     if (isLoadingMore || !hasMore) return
+    loadMoreControllerRef.current?.abort()
+    const controller = new AbortController()
+    const generation = feedGenerationRef.current
+    const requestedSlug = club.slug
+    loadMoreControllerRef.current = controller
     setIsLoadingMore(true)
     try {
       const nextPage = page + 1
       const result = await getWorkouts({
-        slug: club.slug,
+        slug: requestedSlug,
         page: nextPage,
         limit: 10,
+        signal: controller.signal,
       })
+
+      if (
+        controller.signal.aborted ||
+        generation !== feedGenerationRef.current ||
+        requestedSlug !== activeFeedSlugRef.current
+      ) {
+        return
+      }
 
       const newWorkoutsFormatted = result.workouts.map((w: any) => ({
         id: w.id,
@@ -129,7 +146,7 @@ export function DashboardClient({
         distance: w.distance,
         durationInSeconds: w.duration || 0,
         type: w.type as any,
-        visibility: 'PUBLIC' as const,
+        visibility: w.visibility as 'PUBLIC' | 'COACH_ONLY' | 'PRIVATE',
         status: w.status as any,
         assignmentMode: w.assignmentMode as any,
         createdAt:
@@ -157,10 +174,15 @@ export function DashboardClient({
       setPage(nextPage)
       setHasMore(nextPage < result.meta.totalPages)
     } catch (error) {
-      console.error('Erro ao carregar mais atividades:', error)
-      toast.error('Não foi possível carregar mais atividades.')
+      if (!controller.signal.aborted) {
+        console.error('Erro ao carregar mais atividades:', error)
+        toast.error('Não foi possível carregar mais atividades.')
+      }
     } finally {
-      setIsLoadingMore(false)
+      if (loadMoreControllerRef.current === controller) {
+        loadMoreControllerRef.current = null
+        setIsLoadingMore(false)
+      }
     }
   }
   const [workoutToDelete, setWorkoutToDelete] = useState<string | null>(null)
@@ -248,29 +270,13 @@ export function DashboardClient({
     return map
   }, [myPlannedWorkouts, myCompletedWorkouts])
 
-  // Assinatura do Atleta e Adesão ao Clube
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const [feedbackType, setFeedbackType] = useState<'success' | 'error'>(
     'success'
   )
   const [isPendingState, setIsPendingState] = useState(false)
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsSubscribed(
-        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
-      )
-    }
-  }, [])
-
   const handleJoinRequest = async () => {
-    if (!isSubscribed) {
-      setIsIncentiveOpen(true)
-      return
-    }
-
     try {
       const { requestJoinClub } = await import('@/http/request-join-club')
       await requestJoinClub(club.slug)
@@ -309,9 +315,17 @@ export function DashboardClient({
   }, [club.slug])
 
   useEffect(() => {
-    // Sincroniza o feed com as props atualizadas vindas do servidor
+    activeFeedSlugRef.current = club.slug
+    feedGenerationRef.current += 1
+    loadMoreControllerRef.current?.abort()
+    loadMoreControllerRef.current = null
     setFeed(initialFeed)
-  }, [initialFeed])
+    setPage(1)
+    setHasMore(initialTotalPages > 1)
+    setIsLoadingMore(false)
+
+    return () => loadMoreControllerRef.current?.abort()
+  }, [club.slug, initialFeed, initialTotalPages])
 
   const _currentUserId = 'usr-1'
 
@@ -971,13 +985,6 @@ export function DashboardClient({
         onClose={() => setIsFeedbackOpen(false)}
         type={feedbackType}
         clubName={club.name}
-      />
-
-      <SubscriptionIncentiveModal
-        isOpen={isIncentiveOpen}
-        onClose={() => setIsIncentiveOpen(false)}
-        clubName={club.name}
-        clubSlug={club.slug}
       />
 
       <CompleteWorkoutModal

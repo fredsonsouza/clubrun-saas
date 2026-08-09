@@ -1,6 +1,7 @@
 'use client'
 
 import { createRaceAction } from '@/app/(app)/[slug]/races/actions'
+import { env } from '@saas/env'
 import { addHours, isBefore, parse } from 'date-fns'
 import {
   Activity,
@@ -18,7 +19,6 @@ import dynamic from 'next/dynamic'
 import type React from 'react'
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { env } from '@saas/env'
 import { DatePicker } from './date-picker'
 import { WarningModal } from './warning-modal'
 
@@ -27,7 +27,7 @@ const MapEditor = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[400px] w-full animate-pulse rounded-2xl bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">
+      <div className="flex h-[400px] w-full animate-pulse items-center justify-center rounded-2xl bg-gray-100 font-bold text-gray-400 text-xs">
         Carregando mapa...
       </div>
     ),
@@ -73,63 +73,86 @@ export function CreateRaceModal({
   const [isLoadingCities, setIsLoadingCities] = useState(false)
 
   useEffect(() => {
-    if (isOpen) {
-      async function loadUfs() {
-        try {
-          setIsLoadingUfs(true)
-          const response = await fetch(
-            'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'
-          )
-          const data = await response.json()
-          setUfs(data)
-        } catch (error) {
+    if (!isOpen) return
+
+    const controller = new AbortController()
+
+    async function loadUfs() {
+      try {
+        setIsLoadingUfs(true)
+        const response = await fetch(
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome',
+          { signal: controller.signal }
+        )
+        const data = await response.json()
+        if (!controller.signal.aborted) setUfs(data)
+      } catch (error) {
+        if (!controller.signal.aborted) {
           console.error('Erro ao carregar UFs:', error)
-        } finally {
-          setIsLoadingUfs(false)
         }
+      } finally {
+        if (!controller.signal.aborted) setIsLoadingUfs(false)
       }
-      loadUfs()
     }
+
+    loadUfs()
+    return () => controller.abort()
   }, [isOpen])
 
   useEffect(() => {
+    if (!selectedState) {
+      setCities([])
+      setIsLoadingCities(false)
+      return
+    }
+
+    const controller = new AbortController()
+
     async function loadCities() {
-      if (!selectedState) {
-        setCities([])
-        return
-      }
       try {
         setIsLoadingCities(true)
         const response = await fetch(
-          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedState}/municipios?orderBy=nome`
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedState}/municipios?orderBy=nome`,
+          { signal: controller.signal }
         )
         const data = await response.json()
-        setCities(data)
+        if (!controller.signal.aborted) setCities(data)
       } catch (error) {
-        console.error('Erro ao carregar cidades:', error)
+        if (!controller.signal.aborted) {
+          console.error('Erro ao carregar cidades:', error)
+        }
       } finally {
-        setIsLoadingCities(false)
+        if (!controller.signal.aborted) setIsLoadingCities(false)
       }
     }
+
     loadCities()
+    return () => controller.abort()
   }, [selectedState])
 
   // Geocoding to center map
   useEffect(() => {
-    if (selectedCity && selectedState && MAPBOX_TOKEN) {
-      const cityName = `${selectedCity}, ${selectedState}, Brasil`
-      fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cityName)}.json?access_token=${MAPBOX_TOKEN}&limit=1`
-      )
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.features && data.features.length > 0) {
-            const [lng, lat] = data.features[0].center
-            setMapCenter({ longitude: lng, latitude: lat })
-          }
-        })
-        .catch((err) => console.error('Geocoding error:', err))
-    }
+    if (!selectedCity || !selectedState || !MAPBOX_TOKEN) return
+
+    const controller = new AbortController()
+    const cityName = `${selectedCity}, ${selectedState}, Brasil`
+
+    fetch(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(cityName)}.json?access_token=${MAPBOX_TOKEN}&limit=1`,
+      { signal: controller.signal }
+    )
+      .then((res) => res.json())
+      .then((data) => {
+        if (!controller.signal.aborted && data.features?.length > 0) {
+          const [lng, lat] = data.features[0].center
+          setMapCenter({ longitude: lng, latitude: lat })
+        }
+      })
+      .catch((error) => {
+        if (!controller.signal.aborted) console.error('Geocoding error:', error)
+      })
+
+    return () => controller.abort()
   }, [selectedCity, selectedState])
 
   if (!isOpen) return null
@@ -197,15 +220,15 @@ export function CreateRaceModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
       <div
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl duration-200">
-        <header className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-5">
-          <h2 className="flex items-center gap-3 text-xl font-black text-gray-900">
+      <div className="zoom-in-95 relative flex max-h-[90vh] w-full max-w-4xl animate-in flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl duration-200">
+        <header className="flex items-center justify-between border-gray-100 border-b bg-white px-6 py-5">
+          <h2 className="flex items-center gap-3 font-black text-gray-900 text-xl">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
               <Flag className="h-5 w-5" />
             </div>
@@ -225,7 +248,7 @@ export function CreateRaceModal({
               {/* ESQUERDA: CAMPOS DE TEXTO */}
               <div className="space-y-6">
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                  <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                     <Flag className="h-3.5 w-3.5 text-orange-500" /> Nome da
                     Corrida
                   </label>
@@ -241,7 +264,7 @@ export function CreateRaceModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                       <Activity className="h-3.5 w-3.5 text-orange-500" />{' '}
                       Distância
                     </label>
@@ -253,16 +276,16 @@ export function CreateRaceModal({
                         value={distance}
                         onChange={(e) => setDistance(e.target.value)}
                         placeholder="0.0"
-                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
+                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                       />
-                      <span className="absolute top-1/2 right-4 -translate-y-1/2 font-black text-gray-400">
+                      <span className="-translate-y-1/2 absolute top-1/2 right-4 font-black text-gray-400">
                         km
                       </span>
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                       <CalendarIcon className="h-3.5 w-3.5 text-orange-500" />{' '}
                       Hora
                     </label>
@@ -279,9 +302,9 @@ export function CreateRaceModal({
                           setTime(val)
                         }}
                         placeholder="06:00"
-                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 pr-12 pl-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
+                        className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                       />
-                      <span className="absolute top-1/2 right-12 -translate-y-1/2 text-sm font-bold text-gray-400 pointer-events-none">
+                      <span className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-12 font-bold text-gray-400 text-sm">
                         h
                       </span>
                     </div>
@@ -297,7 +320,7 @@ export function CreateRaceModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                       <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
                     </label>
                     <div className="relative">
@@ -315,12 +338,12 @@ export function CreateRaceModal({
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-4 h-4 w-4 text-gray-400" />
                     </div>
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                       <MapPin className="h-3.5 w-3.5 text-orange-500" /> Cidade
                     </label>
                     <div className="relative">
@@ -338,13 +361,13 @@ export function CreateRaceModal({
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute top-1/2 right-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                      <ChevronDown className="-translate-y-1/2 pointer-events-none absolute top-1/2 right-4 h-4 w-4 text-gray-400" />
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                  <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                     <ImageIcon className="h-3.5 w-3.5 text-orange-500" /> URL da
                     Imagem (Opcional)
                   </label>
@@ -360,14 +383,14 @@ export function CreateRaceModal({
 
               {/* DIREITA: MAPA */}
               <div className="flex flex-col space-y-3 lg:h-full">
-                <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                   <MapIcon className="h-3.5 w-3.5 text-orange-500" /> Desenhar
                   Percurso (Opcional)
                 </label>
                 <div className="flex-1 overflow-hidden">
                   <MapEditor onChange={setRouteData} center={mapCenter} />
                 </div>
-                <p className="text-[10px] font-medium leading-relaxed text-gray-400">
+                <p className="font-medium text-[10px] text-gray-400 leading-relaxed">
                   O mapa centralizará automaticamente na cidade selecionada. Use
                   o botão de linha para desenhar o trajeto oficial.
                 </p>
@@ -376,11 +399,11 @@ export function CreateRaceModal({
           </form>
         </div>
 
-        <footer className="flex items-center justify-end gap-4 rounded-b-[2.5rem] border-t border-gray-100 bg-gray-50 px-8 py-6">
+        <footer className="flex items-center justify-end gap-4 rounded-b-[2.5rem] border-gray-100 border-t bg-gray-50 px-8 py-6">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer h-14 rounded-2xl px-8 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
+            className="h-14 cursor-pointer rounded-2xl px-8 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
           >
             Cancelar
           </button>
@@ -388,7 +411,7 @@ export function CreateRaceModal({
             type="submit"
             form="race-form"
             disabled={isLoading}
-            className="cursor-pointer flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 px-10 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="flex h-14 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-orange-500 px-10 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
             {isLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />

@@ -74,6 +74,7 @@ describe('Create Workout (Unit)', () => {
         type: 'EASY',
         date: new Date().toISOString(),
         notes: 'Feeling good',
+        visibility: 'PRIVATE',
       },
     })
 
@@ -86,6 +87,7 @@ describe('Create Workout (Unit)', () => {
         data: expect.objectContaining({
           title: 'Morning Run',
           athleteId: userId,
+          visibility: 'PRIVATE',
         }),
       })
     )

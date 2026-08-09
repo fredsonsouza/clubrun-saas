@@ -1,15 +1,17 @@
 'use client'
 
-import { useFormState } from '@/hooks/use-form-state'
 import { FormError } from '@/components/form-error'
+import { useFormState } from '@/hooks/use-form-state'
 import { AlertCircle, CheckCircle2, Loader2, LogOut } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useRef, useState, useTransition } from 'react'
 import { resendVerificationAction, verifyEmailAction } from './actions'
 
 export function VerifyEmailForm() {
   const router = useRouter()
   const [isResending, startResendTransition] = useTransition()
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const resendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [resendStatus, setResendStatus] = useState<{
     success?: boolean
     message?: string
@@ -18,20 +20,27 @@ export function VerifyEmailForm() {
   const [{ success, message, errors }, handleSubmit, isPending] = useFormState(
     verifyEmailAction,
     () => {
-      // On success
-      setTimeout(() => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current)
+      redirectTimerRef.current = setTimeout(() => {
         window.location.href = '/explore'
       }, 2000)
     }
   )
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current)
+      if (resendTimerRef.current) clearTimeout(resendTimerRef.current)
+    }
+  }, [])
 
   async function handleResend() {
     startResendTransition(async () => {
       const result = await resendVerificationAction()
       setResendStatus(result)
 
-      // Limpa a mensagem após 5 segundos
-      setTimeout(() => setResendStatus(null), 5000)
+      if (resendTimerRef.current) clearTimeout(resendTimerRef.current)
+      resendTimerRef.current = setTimeout(() => setResendStatus(null), 5000)
     })
   }
 
@@ -50,7 +59,7 @@ export function VerifyEmailForm() {
               required
               maxLength={6}
               placeholder="000000"
-              className={`block w-full rounded-xl border px-4 py-4 text-center text-3xl font-bold tracking-[1em] text-gray-900 placeholder:text-gray-300 placeholder:tracking-normal focus:outline-none focus:ring-2 ${
+              className={`block w-full rounded-xl border px-4 py-4 text-center font-bold text-3xl text-gray-900 tracking-[1em] placeholder:text-gray-300 placeholder:tracking-normal focus:outline-none focus:ring-2 ${
                 errors?.code
                   ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20'
                   : 'border-gray-300 focus:border-orange-500 focus:ring-orange-500/20'
@@ -61,14 +70,14 @@ export function VerifyEmailForm() {
         </div>
 
         {message && !success && (
-          <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-sm text-red-600">
+          <div className="flex items-center gap-2 rounded-lg bg-red-50 p-3 text-red-600 text-sm">
             <AlertCircle className="h-4 w-4" />
             <p>{message}</p>
           </div>
         )}
 
         {success && (
-          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-sm text-green-600">
+          <div className="flex items-center gap-2 rounded-lg bg-green-50 p-3 text-green-600 text-sm">
             <CheckCircle2 className="h-4 w-4" />
             <p>{message} Redirecionando...</p>
           </div>
@@ -91,7 +100,7 @@ export function VerifyEmailForm() {
           <button
             type="submit"
             disabled={isPending || success}
-            className="group relative flex w-full justify-center rounded-xl bg-orange-600 px-4 py-4 text-sm font-bold text-white transition-all hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:opacity-50 active:scale-[0.98]"
+            className="group relative flex w-full justify-center rounded-xl bg-orange-600 px-4 py-4 font-bold text-sm text-white transition-all hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 active:scale-[0.98] disabled:opacity-50"
           >
             {isPending ? (
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -102,7 +111,7 @@ export function VerifyEmailForm() {
         </div>
 
         <div className="text-center">
-          <p className="text-sm text-gray-500">
+          <p className="text-gray-500 text-sm">
             Não recebeu o código?{' '}
             <button
               type="button"
@@ -116,15 +125,10 @@ export function VerifyEmailForm() {
         </div>
       </form>
 
-      <div className="border-t border-gray-100 pt-6 text-center">
+      <div className="border-gray-100 border-t pt-6 text-center">
         <a
           href="/api/auth/sign-out"
-          onClick={() => {
-            if (typeof window !== 'undefined') {
-              localStorage.removeItem('clubrun:athlete_subscribed')
-            }
-          }}
-          className="inline-flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-gray-600"
+          className="inline-flex items-center gap-2 font-medium text-gray-400 text-sm transition-colors hover:text-gray-600"
         >
           <LogOut className="h-4 w-4" />
           Sair ou usar outro e-mail

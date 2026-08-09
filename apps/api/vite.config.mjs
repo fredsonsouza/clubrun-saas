@@ -23,6 +23,8 @@ export default defineConfig({
       GOOGLE_OAUTH_CLIENT_SECRET: 'test-google-client-secret',
       GOOGLE_OAUTH_CLIENT_REDIRECT_URI:
         'http://localhost:3333/api/auth/callback/google',
+      NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: 'test-mapbox-token',
+      RESEND_API_KEY: 'test-resend-api-key',
     },
     globalSetup: ['./src/test/global-teardown.ts'],
     projects: [

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "check-types": "tsc --noEmit --incremental false",
     "start": "next start"
   },
   "dependencies": {
@@ -27,12 +28,12 @@
     "lucide-react": "^0.561.0",
     "mapbox-gl": "^3.23.1",
     "motion": "^12.38.0",
-    "next": "16.0.8",
+    "next": "16.3.0",
     "next-themes": "^0.4.6",
     "radix-ui": "^1.4.3",
-    "react": "19.2.1",
+    "react": "19.2.8",
     "react-day-picker": "^9.13.0",
-    "react-dom": "19.2.1",
+    "react-dom": "19.2.8",
     "react-map-gl": "^8.1.1",
     "recharts": "^3.8.1",
     "sonner": "^2.0.7",

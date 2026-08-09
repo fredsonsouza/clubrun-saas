@@ -5,8 +5,8 @@ import { getUserPermissions } from '@/utils/get-user-permissions'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
+import { ForbiddenError } from '../_errors/forbidden-error'
 import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
 
 export async function payInvoice(app: FastifyInstance) {
   app
@@ -31,35 +31,45 @@ export async function payInvoice(app: FastifyInstance) {
       async (request, reply) => {
         const { slug, invoiceId } = request.params
         const userId = await request.getCurrentUserId()
-        const { memberShip } = await request.getUserMemberShip(slug)
+        const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(
           userId,
           memberShip.role,
-          memberShip.isSystemAdmin
+          memberShip.isSystemAdmin,
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (cannot('update', 'Invoice')) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             `You don't have permission to manage invoices`
           )
         }
 
         const invoice = await prisma.invoice.findUnique({
-          where: { id: invoiceId },
+          where: { id: invoiceId, clubId: club.id },
         })
 
         if (!invoice) {
           throw new ResourceNotFoundError('Invoice not found')
         }
 
-        await prisma.invoice.update({
-          where: { id: invoiceId },
+        const paid = await prisma.invoice.updateMany({
+          where: {
+            id: invoiceId,
+            clubId: club.id,
+            status: { not: 'PAID' },
+          },
           data: {
             status: 'PAID',
             paidAt: new Date(),
           },
         })
+
+        if (paid.count === 0) {
+          return reply.status(204).send(null)
+        }
 
         createAuditLog({
           action: 'INVOICE_PAID',
@@ -69,7 +79,7 @@ export async function payInvoice(app: FastifyInstance) {
           payload: { amount: invoice.amount, status: 'PAID' },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

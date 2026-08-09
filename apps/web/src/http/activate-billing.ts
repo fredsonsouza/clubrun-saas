@@ -1,5 +1,5 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 export async function activateClubBilling(slug: string) {
-  await api.patch(`clubs/${slug}/billing/activate`)
+  await mutationApi.patch(`clubs/${slug}/billing/activate`)
 }

@@ -65,6 +65,17 @@ describe('Get Members (Unit)', () => {
         overdue: false,
       })
     )
+    expect(response.json().members[0]).not.toHaveProperty('email')
+    expect(response.json().members[0]).not.toHaveProperty('birthDate')
+    expect(response.json().members[0]).not.toHaveProperty(
+      'hasMedicalConditions'
+    )
+    expect(response.json().members[0]).not.toHaveProperty('medicalConditions')
+    expect(prisma.member.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { clubId: 'club-id', status: 'ACTIVE' },
+      })
+    )
   })
 
   it('should be able to list members as BILLING role', async () => {
@@ -90,5 +101,35 @@ describe('Get Members (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(200)
+  })
+
+  it('should not list members to a pending visitor', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'pending-member-id',
+      userId,
+      role: 'ATHLETE',
+      status: 'PENDING',
+      clubId: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+      club: {
+        id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        slug: 'acme-club',
+        ownerId: 'owner-id',
+      },
+      user: { isSystemAdmin: false },
+    } as any)
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/clubs/acme-club/members',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(prisma.member.findMany).not.toHaveBeenCalled()
   })
 })

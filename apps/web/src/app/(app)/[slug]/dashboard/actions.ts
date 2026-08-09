@@ -2,7 +2,7 @@
 
 import { createWorkout } from '@/http/create-workout'
 import { deleteWorkout } from '@/http/delete-workout'
-import { toggleWorkoutReaction } from '@/http/toggle-workout-reaction'
+import { setWorkoutReaction } from '@/http/workout-reactions'
 import { revalidatePath } from 'next/cache'
 
 export async function createWorkoutAction(formData: FormData) {
@@ -19,6 +19,10 @@ export async function createWorkoutAction(formData: FormData) {
   const assignmentMode = formData.get('assignmentMode') as any
   const routeDataRaw = formData.get('routeData') as string | null
   const routeData = routeDataRaw ? JSON.parse(routeDataRaw) : null
+  const visibility = formData.get('visibility') as
+    | 'PUBLIC'
+    | 'COACH_ONLY'
+    | 'PRIVATE'
 
   console.log('[DEBUG] createWorkoutAction formData:', {
     title,
@@ -43,6 +47,7 @@ export async function createWorkoutAction(formData: FormData) {
       status,
       assignmentMode,
       routeData,
+      visibility,
     })
 
     revalidatePath(`/${slug}/dashboard`)
@@ -88,20 +93,20 @@ export async function deleteWorkoutAction({
   }
 }
 
-export async function toggleWorkoutReactionAction({
+export async function setWorkoutReactionAction({
   slug,
   workoutId,
   type,
 }: {
   slug: string
   workoutId: string
-  type: 'LIKE' | 'FIRE' | 'CLAP' | 'TROPHY'
+  type: 'LIKE' | 'FIRE' | 'CLAP' | 'TROPHY' | null
 }) {
   try {
-    const res = await toggleWorkoutReaction({ slug, workoutId, type })
+    await setWorkoutReaction({ slug, workoutId, type })
     revalidatePath(`/${slug}/dashboard`)
     revalidatePath('/profile')
-    return { success: true, ...res }
+    return { success: true }
   } catch (_err) {
     return { success: false, message: 'Erro ao reagir ao treino.' }
   }

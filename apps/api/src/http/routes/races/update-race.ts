@@ -71,7 +71,7 @@ export async function updateRace(app: FastifyInstance) {
           },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

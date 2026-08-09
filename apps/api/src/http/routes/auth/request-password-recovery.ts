@@ -31,7 +31,7 @@ export async function requestPasswordRecovery(app: FastifyInstance) {
 
       // We don't want people to know if user really exists!
       if (!userFromEmail) {
-        return reply.status(201).send()
+        return reply.status(201).send(null)
       }
 
       const { id: code } = await prisma.token.create({
@@ -54,7 +54,7 @@ export async function requestPasswordRecovery(app: FastifyInstance) {
               <p>Recebemos uma solicitação para redefinir a senha da sua conta no ClubRun.</p>
               <p>Para prosseguir, clique no botão abaixo:</p>
               <div style="margin-top: 24px;">
-                <a href="${env.NEXT_PUBLIC_APP_URL}/auth/reset-password?code=${code}" 
+                <a href="${env.NEXT_PUBLIC_APP_URL}/auth/reset-password?code=${code}"
                    style="background-color: #f97316; color: #fff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">
                    REDEFINIR SENHA
                 </a>
@@ -69,7 +69,7 @@ export async function requestPasswordRecovery(app: FastifyInstance) {
         console.error('Falha ao enviar e-mail de recuperação:', error)
       }
 
-      return reply.status(201).send()
+      return reply.status(201).send(null)
     }
   )
 }

@@ -56,15 +56,27 @@ export function AdminWaitlistClient({
       return
     }
 
+    const controller = new AbortController()
+
     startTransition(async () => {
       try {
-        const result = await getSystemWaitlist({ page, limit: 20 })
-        setWaitlist(result.waitlist)
-        setTotalPages(result.totalPages)
+        const result = await getSystemWaitlist({
+          page,
+          limit: 20,
+          signal: controller.signal,
+        })
+        if (!controller.signal.aborted) {
+          setWaitlist(result.waitlist)
+          setTotalPages(result.totalPages)
+        }
       } catch (error) {
-        console.error('Erro ao buscar lista de espera:', error)
+        if (!controller.signal.aborted) {
+          console.error('Erro ao buscar lista de espera:', error)
+        }
       }
     })
+
+    return () => controller.abort()
   }, [page, initialWaitlist, initialTotalPages])
 
   // Filtragem local baseada na busca por email ou nome

@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface SignInWithGoogleRequest {
   code: string
@@ -9,7 +9,7 @@ interface SignInWithGoogleResponse {
 }
 
 export async function signInWithGoogle({ code }: SignInWithGoogleRequest) {
-  const result = await api
+  const result = await mutationApi
     .post('sessions/google', {
       json: {
         code,

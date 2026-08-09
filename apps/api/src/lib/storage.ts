@@ -1,36 +1,59 @@
 import { randomUUID } from 'node:crypto'
-import { createWriteStream, mkdirSync } from 'node:fs'
+import { mkdir, rename, rm, writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { pipeline } from 'node:stream/promises'
-import { env } from '@saas/env'
 
 interface UploadParams {
-  filename: string
-  mimetype: string
-  content: any // Multiparts stream
+  content: Buffer
+  extension: 'webp'
 }
 
-export async function uploadFile({
-  filename,
-  mimetype,
-  content,
-}: UploadParams) {
-  const fileExtension = path.extname(filename)
-  const uniqueFileName = `${randomUUID()}${fileExtension}`
+export function getUploadDirectory() {
+  const configuredDirectory = process.env.UPLOAD_DIR?.trim()
 
-  const uploadDir = path.resolve(__dirname, '../../uploads')
-  
-  // Garantir que a pasta de uploads existe
-  mkdirSync(uploadDir, { recursive: true })
+  if (configuredDirectory) {
+    return path.resolve(configuredDirectory)
+  }
 
-  const filePath = path.join(uploadDir, uniqueFileName)
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NODE_ENV === 'test'
+  ) {
+    return path.resolve(process.cwd(), 'uploads')
+  }
 
-  await pipeline(content, createWriteStream(filePath))
+  throw new Error(
+    'UPLOAD_DIR must be configured outside development and test environments.'
+  )
+}
 
-  // Retorna a URL pública baseada no domínio configurado da API
-  const apiBaseUrl = env.NEXT_PUBLIC_API_URL ? env.NEXT_PUBLIC_API_URL.replace(/\/$/, '') : 'http://localhost:3333'
+export async function uploadFile({ content, extension }: UploadParams) {
+  const uploadDirectory = getUploadDirectory()
+  const key = `${randomUUID()}.${extension}`
+  const temporaryPath = path.join(
+    uploadDirectory,
+    `.${randomUUID()}.${extension}.tmp`
+  )
+  const finalPath = path.join(uploadDirectory, key)
+
+  await mkdir(uploadDirectory, { recursive: true, mode: 0o750 })
+
+  try {
+    await writeFile(temporaryPath, content, {
+      flag: 'wx',
+      mode: 0o640,
+    })
+    await rename(temporaryPath, finalPath)
+  } catch (error) {
+    await rm(temporaryPath, { force: true }).catch(() => undefined)
+    throw error
+  }
+
+  const apiBaseUrl = (
+    process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
+  ).replace(/\/$/, '')
+
   return {
-    url: `${apiBaseUrl}/uploads/${uniqueFileName}`,
-    key: uniqueFileName,
+    url: `${apiBaseUrl}/uploads/${key}`,
+    key,
   }
 }

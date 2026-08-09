@@ -84,7 +84,7 @@ export default async function ClubDashboardPage({
     distance: w.distance,
     durationInSeconds: w.duration || 0,
     type: w.type as any,
-    visibility: 'PUBLIC' as const,
+    visibility: w.visibility as 'PUBLIC' | 'COACH_ONLY' | 'PRIVATE',
     status: w.status as any,
     assignmentMode: w.assignmentMode as any,
     createdAt:

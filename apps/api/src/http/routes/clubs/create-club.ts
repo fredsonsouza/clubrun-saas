@@ -2,10 +2,12 @@ import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
 import { createSlug } from '@/utils/create-slug'
+import { isSimulatedFlowAllowed } from '@/utils/simulated-flow-policy'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function createClub(app: FastifyInstance) {
   app
@@ -33,6 +35,19 @@ export async function createClub(app: FastifyInstance) {
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { isSystemAdmin: true },
+        })
+
+        if (
+          !isSimulatedFlowAllowed(process.env.NODE_ENV) &&
+          !user?.isSystemAdmin
+        ) {
+          throw new ForbiddenError(
+            'A criação de clubes em produção está restrita a administradores do sistema até a integração do entitlement real.'
+          )
+        }
 
         const userMemberShips = await prisma.member.findMany({
           where: {
@@ -43,8 +58,6 @@ export async function createClub(app: FastifyInstance) {
 
         const isOwnerOfAll = userMemberShips.every((m) => m.role === 'OWNER')
         const hasMemberShips = userMemberShips.length > 0
-
-        const user = await prisma.user.findUnique({ where: { id: userId } })
 
         // Super admins can create as many as they want
         // Owners can create as many as they want

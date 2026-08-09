@@ -17,8 +17,10 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation'
 import type React from 'react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 interface CheckoutClientProps {
+  simulationEnabled: boolean
   user: {
     id: string
     name: string | null
@@ -27,13 +29,16 @@ interface CheckoutClientProps {
   }
 }
 
-export function CheckoutClient({ user }: CheckoutClientProps) {
+export function CheckoutClient({
+  simulationEnabled,
+  user,
+}: CheckoutClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const plan = searchParams.get('plan') || 'pro'
 
   const [isLoading, setIsLoading] = useState(false)
-  const [showSuccess, setShowSuccess] = useState(false)
+
   const [cardNumber, setCardNumber] = useState('')
   const [expiry, setExpiry] = useState('')
   const [cvc, setCvc] = useState('')
@@ -119,57 +124,34 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
 
   const planInfo = getPlanInfo(plan)
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    if (!simulationEnabled) return
+
     setIsLoading(true)
+    try {
+      const role = searchParams.get('role')
+      if (role === 'athlete' || plan === 'athlete') {
+        await subscribeAthlete()
 
-    // Simulação de processamento de pagamento
-    setTimeout(() => {
-      setIsLoading(false)
-      setShowSuccess(true)
-
-      // Pequeno delay para mostrar o sucesso antes de redirecionar
-      setTimeout(async () => {
-        const role = searchParams.get('role')
-        if (role === 'athlete' || plan === 'athlete') {
-          // Persiste a assinatura premium do atleta no banco de dados
-          try {
-            await subscribeAthlete()
-          } catch (err) {
-            console.error('Erro ao salvar assinatura no banco de dados:', err)
-          }
-
-          // Salva no localStorage e nos cookies que o atleta é assinado
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('clubrun:athlete_subscribed', 'true')
-            document.cookie =
-              'athlete_subscribed=true; path=/; max-age=31536000'
-          }
-
-          const clubSlug = searchParams.get('clubSlug')
-          const clubName = searchParams.get('clubName')
-
-          if (clubSlug) {
-            try {
-              const { requestJoinClub } = await import(
-                '@/http/request-join-club'
-              )
-              await requestJoinClub(clubSlug)
-              router.push(
-                `/explore?checkoutComplete=true&joinedClubName=${encodeURIComponent(clubName || 'Clube')}`
-              )
-            } catch (err) {
-              console.error('Erro ao pedir para participar:', err)
-              router.push('/explore?checkoutComplete=true')
-            }
-          } else {
-            router.push('/explore?checkoutComplete=true')
-          }
-        } else {
-          router.push('/create-club?checkoutComplete=true')
+        const clubSlug = searchParams.get('clubSlug')
+        if (clubSlug) {
+          const { requestJoinClub } = await import('@/http/request-join-club')
+          await requestJoinClub(clubSlug)
         }
-      }, 2500)
-    }, 3000)
+
+        router.push('/explore')
+      } else {
+        router.push('/create-club')
+      }
+      router.refresh()
+    } catch (err) {
+      console.error('Erro ao processar simulação de pagamento:', err)
+      toast.error('Não foi possível processar a simulação.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   // Máscaras simples
@@ -201,29 +183,6 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
-      {/* Overlay de Sucesso */}
-      {showSuccess && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white">
-          <div className="zoom-in-95 fade-in flex animate-in flex-col items-center text-center duration-500">
-            <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 text-green-500 shadow-green-500/10 shadow-xl">
-              <CheckCircle2 className="h-12 w-12" />
-            </div>
-            <h2 className="mb-2 font-black text-4xl text-gray-900 tracking-tight">
-              Pagamento Confirmado!
-            </h2>
-            <p className="max-w-xs font-medium text-gray-500 text-lg">
-              Sua assinatura {planInfo.name} foi ativada com sucesso. Prepare-se
-              para decolar!
-            </p>
-
-            <div className="mt-12 flex items-center gap-2 font-black text-gray-400 text-xs uppercase tracking-widest">
-              <div className="h-2 w-2 animate-pulse rounded-full bg-orange-500" />
-              Redirecionando para criação do clube...
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Header Estilo Checkout (sem distrações) */}
       <Header user={user} />
 
@@ -258,20 +217,22 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
                 >
                   Lista de Espera (PRO)
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setTab('checkout')}
-                  className={`flex-1 cursor-pointer rounded-xl py-3 text-center font-black text-xs uppercase tracking-wider transition-all ${
-                    tab === 'checkout'
-                      ? 'bg-white text-gray-900 shadow-sm'
-                      : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  Simular Pagamento
-                </button>
+                {simulationEnabled && (
+                  <button
+                    type="button"
+                    onClick={() => setTab('checkout')}
+                    className={`flex-1 cursor-pointer rounded-xl py-3 text-center font-black text-xs uppercase tracking-wider transition-all ${
+                      tab === 'checkout'
+                        ? 'bg-white text-gray-900 shadow-sm'
+                        : 'text-gray-400 hover:text-gray-600'
+                    }`}
+                  >
+                    Simular Pagamento
+                  </button>
+                )}
               </div>
 
-              {tab === 'waitlist' ? (
+              {tab === 'waitlist' || !simulationEnabled ? (
                 waitlistSuccess ? (
                   <div className="flex flex-col items-center justify-center py-8 text-center">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-500">
@@ -452,8 +413,9 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
                 </span>
               </div>
               <p className="max-w-md font-medium text-[10px] text-gray-400 leading-relaxed">
-                O ClubRun não armazena os seus dados de cartão. Todo o
-                processamento é realizado por parceiros certificados PCI-DSS.
+                {simulationEnabled
+                  ? 'Ambiente de desenvolvimento: nenhum pagamento real será processado.'
+                  : 'Pagamentos ainda não estão disponíveis. Entre na lista de espera para receber novidades.'}
               </p>
             </div>
           </div>
@@ -506,7 +468,7 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
                 </div>
 
                 <div className="border-white/10 border-t pt-8">
-                  {tab === 'waitlist' ? (
+                  {tab === 'waitlist' || !simulationEnabled ? (
                     <button
                       type="submit"
                       form="waitlist-form"
@@ -543,9 +505,9 @@ export function CheckoutClient({ user }: CheckoutClientProps) {
                   )}
                   <p className="mt-6 text-center font-bold text-[10px] text-gray-500 uppercase tracking-widest">
                     <Sparkles className="mr-1 inline h-3 w-3 text-orange-500" />{' '}
-                    {tab === 'waitlist'
-                      ? 'Inscrição gratuita para teste de produção'
-                      : '7 dias de garantia ou seu dinheiro de volta'}
+                    {tab === 'waitlist' || !simulationEnabled
+                      ? 'Inscrição gratuita na lista de espera'
+                      : 'Simulação disponível apenas fora de produção'}
                   </p>
                 </div>
               </div>

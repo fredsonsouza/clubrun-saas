@@ -1,9 +1,8 @@
-import 'dotenv/config'
-
 import { mkdirSync } from 'node:fs'
-import path from 'node:path'
 import fastifyCors from '@fastify/cors'
 import fastifyJwt from '@fastify/jwt'
+import fastifyMultipart from '@fastify/multipart'
+import fastifyRateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
@@ -26,6 +25,7 @@ import { requestPasswordRecovery } from './routes/auth/request-password-recovery
 import { resendVerification } from './routes/auth/resend-verification'
 import { resetPassword } from './routes/auth/reset-password'
 import { verifyEmail } from './routes/auth/verify-email'
+import { activateBilling } from './routes/billing/activate-billing'
 import { getClubBilling } from './routes/billing/get-club-billing'
 import { payInvoice } from './routes/billing/pay-invoice'
 import { createClub } from './routes/clubs/create-club'
@@ -54,7 +54,7 @@ import { getRace } from './routes/races/get-race'
 import { getRaceParticipants } from './routes/races/get-race-participants'
 import { getRaceResults } from './routes/races/get-race-results'
 import { getRaces } from './routes/races/get-races'
-import { toggleRaceRegistration } from './routes/races/toggle-race-registration'
+import { raceRegistration } from './routes/races/race-registration'
 import { updateRace } from './routes/races/update-race'
 import { updateRacePaymentStatus } from './routes/races/update-race-payment-status'
 import { getClubeRanking } from './routes/rankings/get-club-ranking'
@@ -72,17 +72,31 @@ import { connectStrava } from './routes/users/connect-strava'
 import { disconnectStrava } from './routes/users/disconnect-strava'
 import { getUserProfile } from './routes/users/get-user-profile'
 import { updatePassword } from './routes/users/update-password'
+import { completeWorkout } from './routes/workouts/complete-workout'
 import { createWorkout } from './routes/workouts/create-workout'
 import { deleteWorkout } from './routes/workouts/delete-workout'
 import { getMyWorkouts } from './routes/workouts/get-my-workouts'
 import { getWorkout } from './routes/workouts/get-workout'
 import { getWorkouts } from './routes/workouts/get-workouts'
 import { updateWorkout } from './routes/workouts/update-workout'
+import { workoutReactions } from './routes/workouts/workout-reactions'
 
 import { env } from '@saas/env'
+import { getUploadDirectory } from '../lib/storage'
 import { errorHandler } from './error-handle'
 
-export const app = fastify().withTypeProvider<ZodTypeProvider>()
+type StaticHeaderResponse =
+  | { setHeader(name: string, value: string): void }
+  | { header(name: string, value: string): unknown }
+
+const trustedProxies = (process.env.TRUSTED_PROXY ?? '')
+  .split(',')
+  .map((proxy) => proxy.trim())
+  .filter(Boolean)
+
+export const app = fastify({
+  trustProxy: trustedProxies.length > 0 ? trustedProxies : false,
+}).withTypeProvider<ZodTypeProvider>()
 
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)
@@ -119,23 +133,38 @@ app.register(fastifyJwt, {
 
 app.register(fastifyCors)
 
-import fastifyRateLimit from '@fastify/rate-limit'
-
 app.register(fastifyRateLimit, {
   max: 100,
   timeWindow: '1 minute',
 })
 
-const uploadDir = path.resolve(__dirname, '../../uploads')
-mkdirSync(uploadDir, { recursive: true })
+app.register(fastifyMultipart, {
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1,
+    fields: 0,
+    parts: 1,
+  },
+})
+
+const uploadDir = getUploadDirectory()
+mkdirSync(uploadDir, { recursive: true, mode: 0o750 })
 
 app.register(fastifyStatic, {
   root: uploadDir,
-  prefix: '/uploads',
-})
+  prefix: '/uploads/',
+  dotfiles: 'deny',
+  index: false,
+  setHeaders(response) {
+    const headerResponse = response as unknown as StaticHeaderResponse
 
-import { completeWorkout } from './routes/workouts/complete-workout'
-import { toggleWorkoutReaction } from './routes/workouts/toggle-workout-reaction'
+    if ('setHeader' in headerResponse) {
+      headerResponse.setHeader('X-Content-Type-Options', 'nosniff')
+    } else {
+      headerResponse.header('X-Content-Type-Options', 'nosniff')
+    }
+  },
+})
 
 app.register(createAccount)
 app.register(authenticateWithPassword)
@@ -163,7 +192,7 @@ app.register(getWorkouts)
 app.register(updateWorkout)
 app.register(getMyWorkouts)
 app.register(completeWorkout)
-app.register(toggleWorkoutReaction)
+app.register(workoutReactions)
 
 import { getPendingMembers } from './routes/members/get-pending-members'
 import { requestJoinClub } from './routes/members/request-join-club'
@@ -190,8 +219,6 @@ app.register(rejectInvite)
 app.register(revokeInvite)
 app.register(getPendingInvites)
 
-import { activateBilling } from './routes/billing/activate-billing'
-
 app.register(getClubBilling)
 app.register(activateBilling)
 app.register(payInvoice)
@@ -210,7 +237,7 @@ app.register(getRaces)
 app.register(getRace)
 app.register(updateRace)
 app.register(deleteRace)
-app.register(toggleRaceRegistration)
+app.register(raceRegistration)
 app.register(getRaceParticipants)
 app.register(updateRacePaymentStatus)
 app.register(createRaceResult)

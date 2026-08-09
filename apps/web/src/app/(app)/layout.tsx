@@ -1,6 +1,6 @@
 import { auth } from '@/auth/auth'
 import { FeedbackButton } from '@/components/feedback-button'
-import { SessionCookieSync } from '@/components/session-cookie-sync'
+
 import { redirect } from 'next/navigation'
 
 export default async function AppLayout({
@@ -22,7 +22,6 @@ export default async function AppLayout({
 
   return (
     <>
-      <SessionCookieSync isPremium={user.isPremium} />
       {children}
       <FeedbackButton />
     </>

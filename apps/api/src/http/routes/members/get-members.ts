@@ -1,11 +1,11 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
-import { roleSchema } from '@saas/auth'
+import { persistedRoleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function getMembers(app: FastifyInstance) {
   app
@@ -27,17 +27,13 @@ export async function getMembers(app: FastifyInstance) {
                 z.object({
                   id: z.string().uuid(),
                   userId: z.string().uuid(),
-                  role: roleSchema,
+                  role: persistedRoleSchema,
                   name: z.string().nullable(),
-                  email: z.string().email().or(z.null()),
                   avatarUrl: z.string().nullable(),
                   overdue: z.boolean(),
                   paceAvg: z.number().nullable(),
-                  birthDate: z.any().nullable().optional(),
                   shoes: z.string().nullable().optional(),
                   watch: z.string().nullable().optional(),
-                  hasMedicalConditions: z.boolean().optional(),
-                  medicalConditions: z.string().nullable().optional(),
                   joinedAt: z.string().datetime(),
                 })
               ),
@@ -54,21 +50,34 @@ export async function getMembers(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (cannot('get', 'User')) {
-          throw new UnauthorizedError(
-            `Você não tem permissão para ver os membros deste clube`
+          throw new ForbiddenError(
+            'Você não tem permissão para ver os membros deste clube'
           )
         }
 
         const members = await prisma.member.findMany({
-          where: { clubId: club.id },
-          include: {
+          where: { clubId: club.id, status: 'ACTIVE' },
+          select: {
+            id: true,
+            role: true,
+            createdAt: true,
             user: {
-              include: {
-                athleteProfile: true,
+              select: {
+                id: true,
+                name: true,
+                avatarUrl: true,
+                athleteProfile: {
+                  select: {
+                    paceAvg: true,
+                    shoes: true,
+                    watch: true,
+                  },
+                },
               },
             },
             invoices: {
@@ -79,7 +88,8 @@ export async function getMembers(app: FastifyInstance) {
         })
 
         const isPrivileged =
-          ['ADMIN', 'OWNER', 'MANAGER'].includes(memberShip.role) ||
+          club.ownerId === userId ||
+          ['ADMIN', 'MANAGER', 'BILLING'].includes(memberShip.role) ||
           memberShip.isSystemAdmin
 
         const formattedMembers = members.map((m) => {
@@ -88,20 +98,13 @@ export async function getMembers(app: FastifyInstance) {
             userId: m.user.id,
             role: m.role,
             name: m.user.name || 'Atleta',
-            email: isPrivileged ? m.user.email : null,
             avatarUrl: m.user.avatarUrl || null,
             paceAvg: m.user.athleteProfile?.paceAvg || null,
             overdue: isPrivileged
               ? m.invoices.some((i) => i.status === 'OVERDUE')
               : false,
-            birthDate: m.user.athleteProfile?.birthDate || null,
             shoes: m.user.athleteProfile?.shoes || null,
             watch: m.user.athleteProfile?.watch || null,
-            hasMedicalConditions:
-              m.user.athleteProfile?.hasMedicalConditions || false,
-            medicalConditions: isPrivileged
-              ? m.user.athleteProfile?.medicalConditions || null
-              : null,
             joinedAt: m.createdAt.toISOString(),
           }
         })

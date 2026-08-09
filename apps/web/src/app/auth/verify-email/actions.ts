@@ -1,6 +1,6 @@
 'use server'
 
-import { api } from '@/http/api-client'
+import { mutationApi } from '@/http/api-client'
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
@@ -19,7 +19,7 @@ export async function verifyEmailAction(formData: FormData) {
   const { code } = result.data
 
   try {
-    await api.post('auth/verify-email', {
+    await mutationApi.post('auth/verify-email', {
       json: { code },
     })
 
@@ -49,7 +49,7 @@ export async function verifyEmailAction(formData: FormData) {
 
 export async function resendVerificationAction() {
   try {
-    await api.post('auth/resend-verification')
+    await mutationApi.post('auth/resend-verification')
     return {
       success: true,
       message: 'Um novo código foi enviado para o seu e-mail.',

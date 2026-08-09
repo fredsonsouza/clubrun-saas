@@ -8,6 +8,7 @@ interface GetSystemLogsRequest {
   search?: string
   startDate?: string
   endDate?: string
+  signal?: AbortSignal
 }
 
 interface GetSystemLogsResponse {
@@ -34,6 +35,7 @@ export async function getSystemLogs({
   search,
   startDate,
   endDate,
+  signal,
 }: GetSystemLogsRequest = {}) {
   const searchParams = new URLSearchParams()
   searchParams.set('page', String(page))
@@ -45,7 +47,7 @@ export async function getSystemLogs({
   if (endDate) searchParams.set('endDate', endDate)
 
   const result = await api
-    .get('system/logs', { searchParams })
+    .get('system/logs', { searchParams, signal })
     .json<GetSystemLogsResponse>()
 
   return result

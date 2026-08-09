@@ -26,7 +26,6 @@ export async function anonymizeUser(app: FastifyInstance) {
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
-        const { password } = request.body
 
         const user = await prisma.user.findUnique({
           where: { id: userId },
@@ -70,7 +69,7 @@ export async function anonymizeUser(app: FastifyInstance) {
           },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

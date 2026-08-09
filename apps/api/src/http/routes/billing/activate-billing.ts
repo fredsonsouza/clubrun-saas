@@ -2,6 +2,7 @@ import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { assertSimulatedFlowAllowed } from '@/utils/simulated-flow-policy'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -29,6 +30,7 @@ export async function activateBilling(app: FastifyInstance) {
       async (request, reply) => {
         const { slug } = request.params
         const userId = await request.getCurrentUserId()
+        assertSimulatedFlowAllowed()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
         const { cannot } = getUserPermissions(
@@ -61,7 +63,7 @@ export async function activateBilling(app: FastifyInstance) {
           payload: { slug, subscriptionStatus: 'ACTIVE' },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

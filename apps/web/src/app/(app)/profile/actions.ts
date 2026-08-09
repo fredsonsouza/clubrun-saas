@@ -1,7 +1,7 @@
 'use server'
 
 import { anonymizeUser } from '@/http/anonymize-user'
-import { api } from '@/http/api-client'
+import { mutationApi } from '@/http/api-client'
 import { updateAthleteProfile } from '@/http/update-athlete-profile'
 import { deleteCookie } from 'cookies-next'
 import { HTTPError } from 'ky'
@@ -119,7 +119,7 @@ export async function completeWorkoutAction(formData: FormData) {
   const syncSource = formData.get('syncSource') as string | null
 
   try {
-    await api.patch(`clubs/${slug}/workouts/${workoutId}/complete`, {
+    await mutationApi.patch(`clubs/${slug}/workouts/${workoutId}/complete`, {
       json: {
         distance,
         duration,
@@ -151,7 +151,7 @@ export async function deleteWorkoutAction({
   workoutId: string
 }) {
   try {
-    await api.delete(`clubs/${slug}/workouts/${workoutId}`)
+    await mutationApi.delete(`clubs/${slug}/workouts/${workoutId}`)
     revalidatePath('/', 'layout')
     return { success: true, message: 'Treino removido com sucesso.' }
   } catch (err) {
@@ -172,7 +172,7 @@ export async function updateWorkoutAction(formData: FormData) {
   const date = formData.get('date') as string
 
   try {
-    await api.put(`clubs/${slug}/workouts/${workoutId}`, {
+    await mutationApi.put(`clubs/${slug}/workouts/${workoutId}`, {
       json: {
         title,
         distance,

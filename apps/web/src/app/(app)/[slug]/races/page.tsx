@@ -49,6 +49,7 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       }),
       rawDate: race.date,
       participants: race.participants.map((p) => ({
+        id: p.athlete.id,
         avatarUrl: p.athlete.avatarUrl,
       })),
       distances: [`${race.distance}km`],
@@ -73,6 +74,7 @@ export default async function ClubRacesPage({ params }: ClubRacesPageProps) {
       }),
       rawDate: race.date,
       participants: race.participants.map((p) => ({
+        id: p.athlete.id,
         avatarUrl: p.athlete.avatarUrl,
       })),
       distances: [`${race.distance}km`],

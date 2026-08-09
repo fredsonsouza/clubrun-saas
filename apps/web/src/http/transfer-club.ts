@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 export async function transferClubOwnership({
   slug,
@@ -9,7 +9,7 @@ export async function transferClubOwnership({
   transferToUserId: string
   leaveAfterTransfer: boolean
 }) {
-  await api.patch(`clubs/${slug}/owner`, {
+  await mutationApi.patch(`clubs/${slug}/owner`, {
     json: {
       transferToUserId,
       leaveAfterTransfer,

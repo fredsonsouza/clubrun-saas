@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { api, mutationApi } from './api-client'
 
 interface JoinWaitlistRequest {
   email: string
@@ -26,7 +26,7 @@ interface GetFeedbacksResponse {
 
 // Rota pública para Lista de Espera
 export async function joinWaitlist({ email, name }: JoinWaitlistRequest) {
-  const result = await api
+  const result = await mutationApi
     .post('waitlist', {
       json: { email, name: name || undefined },
     })
@@ -37,7 +37,7 @@ export async function joinWaitlist({ email, name }: JoinWaitlistRequest) {
 
 // Rota autenticada para Feedback
 export async function submitFeedback({ type, comment }: SubmitFeedbackRequest) {
-  const result = await api
+  const result = await mutationApi
     .post('feedbacks', {
       json: { type, comment },
     })
@@ -50,13 +50,14 @@ export async function submitFeedback({ type, comment }: SubmitFeedbackRequest) {
 export async function getSystemFeedbacks({
   page = 1,
   limit = 20,
-}: { page?: number; limit?: number } = {}) {
+  signal,
+}: { page?: number; limit?: number; signal?: AbortSignal } = {}) {
   const searchParams = new URLSearchParams()
   searchParams.set('page', String(page))
   searchParams.set('limit', String(limit))
 
   const result = await api
-    .get('system/feedbacks', { searchParams })
+    .get('system/feedbacks', { searchParams, signal })
     .json<GetFeedbacksResponse>()
 
   return result
@@ -76,13 +77,14 @@ interface GetWaitlistResponse {
 export async function getSystemWaitlist({
   page = 1,
   limit = 20,
-}: { page?: number; limit?: number } = {}) {
+  signal,
+}: { page?: number; limit?: number; signal?: AbortSignal } = {}) {
   const searchParams = new URLSearchParams()
   searchParams.set('page', String(page))
   searchParams.set('limit', String(limit))
 
   const result = await api
-    .get('system/waitlist', { searchParams })
+    .get('system/waitlist', { searchParams, signal })
     .json<GetWaitlistResponse>()
 
   return result

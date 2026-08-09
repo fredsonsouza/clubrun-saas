@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
     redirect('/auth/sign-in')
   }
 
-  if (!user.isSystemAdmin && user.email !== 'admin@clubrun.com') {
+  if (!user.isSystemAdmin) {
     redirect('/')
   }
 

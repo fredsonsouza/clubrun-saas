@@ -2,24 +2,19 @@ import { auth } from '@/auth/auth'
 import { redirect } from 'next/navigation'
 import { CreateClubForm } from './create-club-form'
 
-export default async function CreateClubPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ checkoutComplete?: string }>
-}) {
+export default async function CreateClubPage() {
   const { user } = await auth()
 
   if (!user) {
     redirect('/auth/sign-in?redirectTo=/create-club')
   }
 
-  const resolvedSearchParams = await searchParams
+  const simulationEnabled = ['development', 'test'].includes(
+    process.env.NODE_ENV ?? ''
+  )
 
-  const isSuperAdmin = user.isSystemAdmin || user.email === 'admin@clubrun.com'
-
-  // Se não for super admin e não veio do checkout recém-finalizado, manda pro checkout
-  if (!isSuperAdmin && resolvedSearchParams.checkoutComplete !== 'true') {
-    redirect('/checkout?plan=pro')
+  if (!simulationEnabled && !user.isSystemAdmin) {
+    redirect('/checkout?plan=starter')
   }
 
   return (

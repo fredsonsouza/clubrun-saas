@@ -49,7 +49,5 @@ get_credentials.ts
 fix_passwords.ts
 
 # Local Uploads
-uploads/
-apps/api/uploads/
-
-
+/uploads/
+/apps/api/uploads/

@@ -1,11 +1,11 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface ConnectStravaResponse {
   isStravaConnected: boolean
 }
 
 export async function connectStrava(code?: string) {
-  const result = await api
+  const result = await mutationApi
     .post('users/strava/connect', {
       json: { code },
     })

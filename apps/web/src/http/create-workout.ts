@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface CreateWorkoutRequest {
   slug: string
@@ -21,6 +21,7 @@ interface CreateWorkoutRequest {
   status?: 'PLANNED' | 'COMPLETED'
   assignmentMode?: 'GOAL' | 'FREE' | null
   routeData?: any | null
+  visibility?: 'PUBLIC' | 'COACH_ONLY' | 'PRIVATE'
 }
 
 export async function createWorkout({
@@ -36,13 +37,14 @@ export async function createWorkout({
   status,
   assignmentMode,
   routeData,
+  visibility,
 }: CreateWorkoutRequest) {
   console.log(
     '[DEBUG] createWorkout HTTP Client payload routeData:',
     routeData ? 'PRESENTE' : 'AUSENTE'
   )
 
-  const result = await api
+  const result = await mutationApi
     .post(`clubs/${slug}/workouts`, {
       json: {
         title,
@@ -56,6 +58,7 @@ export async function createWorkout({
         status,
         assignmentMode,
         routeData,
+        visibility,
       },
     })
     .json<{ workoutId: string }>()

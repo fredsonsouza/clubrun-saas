@@ -1,7 +1,7 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 export async function anonymizeUser(password: string) {
-  await api.post('users/me/anonymize', {
+  await mutationApi.post('users/me/anonymize', {
     json: {
       password,
     },

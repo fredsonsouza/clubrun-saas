@@ -76,7 +76,7 @@ export async function resendVerification(app: FastifyInstance) {
           console.error('[MAIL-ERROR] Falha ao reenviar e-mail:', mailError)
         }
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

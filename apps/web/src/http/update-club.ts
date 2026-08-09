@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface UpdateClubRequest {
   slug: string
@@ -25,7 +25,7 @@ export async function updateClub({
   bannerUrl,
   shouldAttachUsersByDomain,
 }: UpdateClubRequest) {
-  await api.put(`clubs/${slug}`, {
+  await mutationApi.put(`clubs/${slug}`, {
     json: {
       name,
       domain,
@@ -41,5 +41,5 @@ export async function updateClub({
 }
 
 export async function shutdownClub(slug: string) {
-  await api.delete(`clubs/${slug}`)
+  await mutationApi.delete(`clubs/${slug}`)
 }

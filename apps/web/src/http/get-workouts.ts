@@ -6,6 +6,7 @@ interface GetWorkoutsRequest {
   limit?: number
   status?: 'PLANNED' | 'COMPLETED'
   athleteId?: string
+  signal?: AbortSignal
 }
 
 interface GetWorkoutsResponse {
@@ -39,6 +40,7 @@ interface GetWorkoutsResponse {
       count: number
     }>
     currentUserReaction?: string | null
+    visibility: 'PUBLIC' | 'COACH_ONLY' | 'PRIVATE'
   }>
   meta: {
     total: number
@@ -54,9 +56,11 @@ export async function getWorkouts({
   limit = 20,
   status = 'COMPLETED',
   athleteId,
+  signal,
 }: GetWorkoutsRequest) {
   const result = await api
     .get(`clubs/${slug}/workouts`, {
+      signal,
       searchParams: {
         page,
         limit,

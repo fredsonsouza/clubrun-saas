@@ -1,10 +1,12 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { updateAthleteRanking } from '@/services/update-athlete-ranking'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
+import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function completeWorkout(app: FastifyInstance) {
   app
@@ -38,16 +40,16 @@ export async function completeWorkout(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club } = await request.getUserMemberShip(slug)
 
-        const workout = await prisma.workout.findUnique({
-          where: { id: workoutId },
+        const workout = await prisma.workout.findFirst({
+          where: { id: workoutId, clubId: club.id },
         })
 
         if (!workout) {
-          throw new BadRequestError('Workout not found')
+          throw new ResourceNotFoundError('Workout not found')
         }
 
         if (workout.athleteId !== userId) {
-          throw new UnauthorizedError('You can only complete your own workouts')
+          throw new ForbiddenError('You can only complete your own workouts')
         }
 
         if (workout.status === 'COMPLETED') {
@@ -82,8 +84,13 @@ export async function completeWorkout(app: FastifyInstance) {
           }
         }
 
-        await prisma.workout.update({
-          where: { id: workoutId },
+        const transitioned = await prisma.workout.updateMany({
+          where: {
+            id: workoutId,
+            clubId: club.id,
+            athleteId: userId,
+            status: 'PLANNED',
+          },
           data: {
             distance: finalDistance,
             duration,
@@ -99,6 +106,10 @@ export async function completeWorkout(app: FastifyInstance) {
           },
         })
 
+        if (transitioned.count !== 1) {
+          throw new BadRequestError('Workout already completed')
+        }
+
         if (shoesUsed) {
           await prisma.athleteProfile.update({
             where: { userId },
@@ -111,9 +122,6 @@ export async function completeWorkout(app: FastifyInstance) {
         }
 
         // Update AthleteProfile and Ranking
-        const { updateAthleteRanking } = await import(
-          '@/services/update-athlete-ranking'
-        )
         await updateAthleteRanking(userId, club.id, new Date())
 
         const athleteStats = await prisma.workout.aggregate({
@@ -145,7 +153,7 @@ export async function completeWorkout(app: FastifyInstance) {
           })
         }
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

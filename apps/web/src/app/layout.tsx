@@ -1,5 +1,5 @@
 import '@/app/globals.css'
-import { SessionSynchronizer } from '@/components/session-synchronizer'
+
 import { ThemeProvider } from '@/components/theme/theme-provider'
 import type { Metadata } from 'next'
 import { Toaster } from 'sonner'
@@ -26,7 +26,6 @@ export default function RootLayout({
           defaultTheme="light"
           disableTransitionOnChange
         >
-          <SessionSynchronizer />
           {children}
           <Toaster richColors closeButton position="top-right" />
         </ThemeProvider>

@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface CreateClubRequest {
   name: string
@@ -17,7 +17,7 @@ export async function createClub({
   cnpj,
   shouldAttachUsersByDomain,
 }: CreateClubRequest) {
-  const result = await api
+  const result = await mutationApi
     .post('clubs', {
       json: {
         name,

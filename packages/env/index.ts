@@ -36,6 +36,5 @@ export const env = createEnv({
   },
 
   emptyStringAsUndefined: true,
-  skipValidation:
-    !!process.env.SKIP_ENV_VALIDATION || typeof window !== 'undefined',
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION || 'window' in globalThis,
 })

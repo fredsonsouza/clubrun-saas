@@ -147,16 +147,12 @@ export function ProfileClient({
   const [isOAuthDialogOpen, setIsOAuthDialogOpen] = useState(false)
   const [isStravaActionLoading, setIsStravaActionLoading] = useState(false)
 
-  const [isSubscribed, setIsSubscribed] = useState(false)
+  const isSubscribed = athleteProfile?.isPremium ?? false
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
-    const apiPremium = athleteProfile?.isPremium || false
-    const storedSubscribed =
-      localStorage.getItem('clubrun:athlete_subscribed') === 'true'
-    setIsSubscribed(apiPremium || storedSubscribed)
-  }, [athleteProfile])
+  }, [])
 
   // Gráficos de Evolução Pessoal
   const evolutionData = useMemo(() => {

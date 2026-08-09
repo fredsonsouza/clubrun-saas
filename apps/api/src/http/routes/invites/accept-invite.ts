@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { prisma } from '@/lib/prisma'
+import { assertPremiumEntitlement } from '@/utils/premium-entitlement'
 
 export async function acceptInvite(app: FastifyInstance) {
   app
@@ -42,6 +43,20 @@ export async function acceptInvite(app: FastifyInstance) {
           where: {
             id: userId,
           },
+          select: {
+            email: true,
+            isSystemAdmin: true,
+            athleteProfile: {
+              select: { isPremium: true },
+            },
+            clubsOwned: {
+              select: { id: true },
+            },
+            members_on: {
+              where: { status: 'ACTIVE' },
+              select: { role: true, status: true },
+            },
+          },
         })
 
         if (!user) {
@@ -50,6 +65,10 @@ export async function acceptInvite(app: FastifyInstance) {
 
         if (invite.email !== user.email) {
           throw new BadRequestError('This invite belongs to another user.')
+        }
+
+        if (invite.role === 'ATHLETE') {
+          assertPremiumEntitlement(user)
         }
 
         await prisma.$transaction([
@@ -68,7 +87,7 @@ export async function acceptInvite(app: FastifyInstance) {
           }),
         ])
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

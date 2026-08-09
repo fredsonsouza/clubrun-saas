@@ -9,8 +9,10 @@ type PermissionsByRole = (
 ) => void
 
 export const permissions: Record<Role, PermissionsByRole> = {
-  ADMIN(_, { can }) {
+  ADMIN(_, { can, cannot }) {
     can('manage', 'all')
+    cannot('transfer_ownership', 'Club')
+    cannot('update_roles', 'User')
   },
   OWNER(user, { can }) {
     can('get', ['Club', 'User', 'AthleteProfile'])
@@ -26,7 +28,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
     can('update', 'Club')
     can('delete', 'Club')
-    can('transfer_ownership', 'Club')
+    can('transfer_ownership', 'Club', { ownerId: { $eq: user.id } })
     can('update_roles', 'User')
     can('delete', 'User') // Removing members
   },
@@ -40,8 +42,6 @@ export const permissions: Record<Role, PermissionsByRole> = {
     )
     can(['get', 'update'], 'Ranking')
     can('manage', ['Invite', 'Billing', 'Invoice'])
-
-    can('update_roles', 'User')
 
     // Restrictions
     cannot('transfer_ownership', 'Club')
@@ -79,7 +79,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     can('get', 'Ranking')
   },
 
-  BILLING(user, { can, cannot }) {
+  BILLING(_, { can, cannot }) {
     // Basic member permissions
     can('get', [
       'Club',
@@ -97,17 +97,7 @@ export const permissions: Record<Role, PermissionsByRole> = {
     // Restrictions
     cannot(['create', 'update', 'delete'], 'Workout')
   },
-  VISITOR(user, { can }) {
-    can('get', [
-      'Club',
-      'User',
-      'AthleteProfile',
-      'Workout',
-      'Race',
-      'RaceResult',
-      'Ranking',
-    ])
-    can('update', 'User', { id: { $eq: user.id } })
-    can('update', 'AthleteProfile', { userId: { $eq: user.id } })
+  VISITOR(_, { can }) {
+    can('get', ['Club', 'Workout', 'Race', 'RaceResult', 'Ranking'])
   },
 }

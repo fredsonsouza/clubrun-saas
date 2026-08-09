@@ -70,6 +70,19 @@ describe('Get Workout (Unit)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.json().workout.title).toBe('Morning Run')
+    expect(response.json().workout.visibility).toBe('PUBLIC')
+    expect(prisma.workout.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          clubId,
+          OR: [
+            { athleteId: userId },
+            { visibility: 'PUBLIC' },
+            { visibility: 'COACH_ONLY' },
+          ],
+        }),
+      })
+    )
   })
 
   it('should return 400 if workout is not found', async () => {

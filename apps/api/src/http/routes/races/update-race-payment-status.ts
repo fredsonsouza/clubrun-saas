@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
+import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function updateRacePaymentStatus(app: FastifyInstance) {
   app
@@ -39,27 +39,29 @@ export async function updateRacePaymentStatus(app: FastifyInstance) {
 
         // Enforce administrative check
         const isPrivileged =
-          memberShip.role === 'OWNER' ||
+          club.ownerId === userId ||
           memberShip.role === 'ADMIN' ||
-          memberShip.role === 'MANAGER'
+          memberShip.role === 'MANAGER' ||
+          memberShip.isSystemAdmin
 
         if (!isPrivileged) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'Você não tem permissão para gerenciar pagamentos de corrida.'
           )
         }
 
-        const participant = await prisma.raceParticipant.findUnique({
+        const participant = await prisma.raceParticipant.findFirst({
           where: {
-            raceId_athleteId: {
-              raceId,
-              athleteId,
+            raceId,
+            athleteId,
+            race: {
+              clubId: club.id,
             },
           },
         })
 
         if (!participant) {
-          throw new BadRequestError(
+          throw new ResourceNotFoundError(
             'Inscrição do atleta não encontrada nesta corrida.'
           )
         }
@@ -69,6 +71,7 @@ export async function updateRacePaymentStatus(app: FastifyInstance) {
         await prisma.raceParticipant.update({
           where: {
             id: participant.id,
+            raceId,
           },
           data: {
             paymentStatus,

@@ -50,6 +50,7 @@ describe('Transfer Club Ownership (Unit)', () => {
       id: 'target-member-id',
       userId: targetUserId,
       clubId: 'club-id',
+      status: 'ACTIVE',
     } as any)
 
     vi.mocked(prisma.member.update).mockResolvedValue({} as any)
@@ -106,7 +107,39 @@ describe('Transfer Club Ownership (Unit)', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.json().message).toBe(
-      'Target user is not a member of this club'
+      'Target user must be an active member of this club'
     )
+  })
+
+  it('should reject a persisted OWNER who is not Club.ownerId', async () => {
+    const staleOwnerId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const targetUserId = '515560b4-367d-44a6-89bf-ba486e9e46a7'
+    const token = app.jwt.sign({ sub: staleOwnerId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'stale-owner-member-id',
+      userId: staleOwnerId,
+      role: 'OWNER',
+      club: {
+        id: 'club-id',
+        slug: 'acme-club',
+        ownerId: 'real-owner-id',
+      },
+    } as any)
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: '/clubs/acme-club/owner',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        transferToUserId: targetUserId,
+      },
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(prisma.member.findUnique).not.toHaveBeenCalled()
+    expect(prisma.club.update).not.toHaveBeenCalled()
   })
 })

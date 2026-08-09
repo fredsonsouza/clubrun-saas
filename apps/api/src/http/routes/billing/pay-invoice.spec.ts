@@ -9,7 +9,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     invoice: {
       findUnique: vi.fn(),
-      update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }))
@@ -39,6 +39,7 @@ describe('Pay Invoice (Unit)', () => {
       id: invoiceId,
       status: 'PENDING',
     } as any)
+    vi.mocked(prisma.invoice.updateMany).mockResolvedValue({ count: 1 })
 
     const response = await app.inject({
       method: 'PATCH',
@@ -49,8 +50,12 @@ describe('Pay Invoice (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.invoice.update).toHaveBeenCalledWith({
-      where: { id: invoiceId },
+    expect(prisma.invoice.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: invoiceId,
+        clubId: 'club-id',
+        status: { not: 'PAID' },
+      },
       data: expect.objectContaining({
         status: 'PAID',
       }),
@@ -77,7 +82,38 @@ describe('Pay Invoice (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
+  })
+
+  it('should keep an already-paid invoice unchanged on a repeated request', async () => {
+    const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const invoiceId = '90f9689b-9c5c-4d8b-96d5-4d8b965c4d8b'
+    const token = app.jwt.sign({ sub: userId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'member-id',
+      userId,
+      role: 'OWNER',
+      club: { id: 'club-id', slug: 'acme-club' },
+    } as any)
+    vi.mocked(prisma.invoice.findUnique).mockResolvedValue({
+      id: invoiceId,
+      status: 'PAID',
+    } as any)
+    vi.mocked(prisma.invoice.updateMany).mockResolvedValue({ count: 0 })
+
+    const response = await app.inject({
+      method: 'PATCH',
+      url: `/clubs/acme-club/invoices/${invoiceId}/pay`,
+      headers: { authorization: `Bearer ${token}` },
+    })
+
+    expect(response.statusCode).toBe(204)
+    expect(prisma.invoice.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ status: { not: 'PAID' } }),
+      })
+    )
   })
 
   it('should return 404 if invoice does not exist', async () => {
@@ -104,5 +140,8 @@ describe('Pay Invoice (Unit)', () => {
 
     expect(response.statusCode).toBe(404)
     expect(response.json().message).toBe('Invoice not found')
+    expect(prisma.invoice.findUnique).toHaveBeenCalledWith({
+      where: { id: invoiceId, clubId: 'club-id' },
+    })
   })
 })

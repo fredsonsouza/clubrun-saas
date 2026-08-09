@@ -12,9 +12,13 @@ interface GetRaceResponse {
   }
 }
 
-export async function getRace(slug: string, raceId: string) {
+export async function getRace(
+  slug: string,
+  raceId: string,
+  signal?: AbortSignal
+) {
   const result = await api
-    .get(`clubs/${slug}/races/${raceId}`)
+    .get(`clubs/${slug}/races/${raceId}`, { signal })
     .json<GetRaceResponse>()
 
   return result

@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface CreateRaceResultRequest {
   slug: string
@@ -13,7 +13,7 @@ export async function createRaceResult({
   time,
   position,
 }: CreateRaceResultRequest) {
-  const result = await api
+  const result = await mutationApi
     .post(`clubs/${slug}/races/${raceId}/results`, {
       json: {
         time,

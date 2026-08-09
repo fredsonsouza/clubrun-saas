@@ -79,6 +79,17 @@ describe('Get Workouts (Unit)', () => {
 
     expect(response.statusCode).toBe(200)
     expect(response.json().workouts).toHaveLength(1)
+    expect(response.json().workouts[0].visibility).toBe('PUBLIC')
     expect(response.json().meta.total).toBe(1)
+    expect(prisma.workout.count).toHaveBeenCalledWith({
+      where: expect.objectContaining({
+        clubId,
+        OR: [
+          { athleteId: userId },
+          { visibility: 'PUBLIC' },
+          { visibility: 'COACH_ONLY' },
+        ],
+      }),
+    })
   })
 })

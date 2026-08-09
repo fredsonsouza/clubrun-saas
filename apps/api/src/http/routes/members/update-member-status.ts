@@ -36,9 +36,15 @@ export async function updateMemberStatus(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { memberShip, club } = await request.getUserMemberShip(slug)
 
-        const { cannot } = getUserPermissions(userId, memberShip.role)
+        const { cannot } = getUserPermissions(
+          userId,
+          memberShip.role,
+          memberShip.isSystemAdmin,
+          memberShip.clubId,
+          club.ownerId
+        )
 
-        if (cannot('update_roles', 'User')) {
+        if (club.ownerId !== userId || cannot('update_roles', 'User')) {
           throw new UnauthorizedError(
             `You're not allowed to update members status.`
           )
@@ -57,17 +63,17 @@ export async function updateMemberStatus(app: FastifyInstance) {
 
         if (status === 'INACTIVE') {
           await prisma.member.delete({
-            where: { id: memberId },
+            where: { id: memberId, clubId: club.id },
           })
-          return reply.status(204).send()
+          return reply.status(204).send(null)
         }
 
         await prisma.member.update({
-          where: { id: memberId },
+          where: { id: memberId, clubId: club.id },
           data: { status },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

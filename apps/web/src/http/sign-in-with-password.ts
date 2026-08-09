@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface SignInWithPasswordRequest {
   login: string
@@ -13,7 +13,7 @@ export async function signInWithPassword({
   login,
   password,
 }: SignInWithPasswordRequest) {
-  const result = await api
+  const result = await mutationApi
     .post('sessions/password', {
       json: {
         login,

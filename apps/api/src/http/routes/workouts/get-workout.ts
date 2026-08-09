@@ -1,7 +1,11 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { createSlug } from '@/utils/create-slug'
-import { getUserPermissions } from '@/utils/get-user-permissions'
+import {
+  getEffectiveClubRole,
+  getUserPermissions,
+} from '@/utils/get-user-permissions'
+import { getWorkoutVisibilityFilter } from '@/utils/workout-visibility'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -43,6 +47,7 @@ export async function getWorkout(app: FastifyInstance) {
                 syncSource: z.string().nullable().optional(),
                 routeData: z.any().nullish(),
                 clubId: z.uuid(),
+                visibility: z.enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE']),
                 athlete: z.object({
                   id: z.uuid(),
                   name: z.string().nullable(),
@@ -63,12 +68,24 @@ export async function getWorkout(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (cannot('get', 'Workout')) {
           throw new UnauthorizedError(`You're not allowed to see this workout`)
         }
+
+        const effectiveRole = getEffectiveClubRole(
+          userId,
+          memberShip.role,
+          club.ownerId
+        )
+        const visibilityFilter = getWorkoutVisibilityFilter(
+          userId,
+          effectiveRole,
+          memberShip.isSystemAdmin
+        )
 
         const workout = await prisma.workout.findFirst({
           select: {
@@ -77,6 +94,7 @@ export async function getWorkout(app: FastifyInstance) {
             slug: true,
             imageUrl: true,
             clubId: true,
+            visibility: true,
             distance: true,
             duration: true,
             pace: true,
@@ -102,6 +120,7 @@ export async function getWorkout(app: FastifyInstance) {
           where: {
             slug: workoutSlug,
             clubId: club.id,
+            ...visibilityFilter,
           },
         })
 

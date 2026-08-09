@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 
 import Link from 'next/link'
 import { toast } from 'sonner'
@@ -80,17 +80,7 @@ export function UpdateProfileModal({
   })
   const [isSaving, setIsSaving] = useState(false)
 
-  // Assinatura do Atleta
-  const [isSubscribed, setIsSubscribed] = useState(false)
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedSubscribed =
-        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
-      const premiumByRole = initialData?.isPremium ?? false
-      setIsSubscribed(storedSubscribed || premiumByRole)
-    }
-  }, [isOpen, initialData])
+  const isSubscribed = initialData?.isPremium ?? false
 
   if (!isOpen) return null
 
@@ -156,15 +146,15 @@ export function UpdateProfileModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
       <div
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-200">
-        <header className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-5">
-          <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+      <div className="zoom-in-95 relative flex max-h-[90vh] w-full max-w-2xl animate-in flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-200">
+        <header className="flex items-center justify-between border-gray-100 border-b bg-white px-6 py-5">
+          <h2 className="flex items-center gap-2 font-extrabold text-gray-900 text-xl">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-500">
               <User className="h-4 w-4" />
             </div>
@@ -185,19 +175,19 @@ export function UpdateProfileModal({
             className="space-y-10"
           >
             {!isSubscribed && (
-              <div className="relative overflow-hidden rounded-[1.75rem] bg-gradient-to-r from-gray-900 via-orange-950 to-orange-500 p-6 text-white shadow-xl border border-orange-500/10">
+              <div className="relative overflow-hidden rounded-[1.75rem] border border-orange-500/10 bg-gradient-to-r from-gray-900 via-orange-950 to-orange-500 p-6 text-white shadow-xl">
                 {/* Efeitos de Luz */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-orange-500/20 blur-xl" />
+                <div className="-mt-4 -mr-4 absolute top-0 right-0 h-24 w-24 rounded-full bg-orange-500/20 blur-xl" />
 
-                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-1">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-widest">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-500 px-2.5 py-0.5 font-black text-[9px] uppercase tracking-widest">
                       👑 Premium
                     </span>
-                    <h4 className="text-sm font-black tracking-tight leading-snug">
+                    <h4 className="font-black text-sm leading-snug tracking-tight">
                       Desbloqueie o seu perfil completo
                     </h4>
-                    <p className="text-[10px] font-bold text-gray-300 leading-normal max-w-sm">
+                    <p className="max-w-sm font-bold text-[10px] text-gray-300 leading-normal">
                       Personalize sua capa, adicione bio, peso, altura,
                       vestíveis, ficha de saúde e participe dos rankings!
                     </p>
@@ -205,7 +195,7 @@ export function UpdateProfileModal({
                   <Link
                     href="/checkout?plan=athlete"
                     onClick={onClose}
-                    className="shrink-0 flex items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-[10px] font-black text-gray-900 tracking-wider uppercase shadow-lg shadow-black/10 transition-all hover:bg-orange-500 hover:text-white active:scale-95 text-center"
+                    className="flex shrink-0 items-center justify-center gap-1.5 rounded-xl bg-white px-4 py-3 text-center font-black text-[10px] text-gray-900 uppercase tracking-wider shadow-black/10 shadow-lg transition-all hover:bg-orange-500 hover:text-white active:scale-95"
                   >
                     Assinar Agora
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -234,11 +224,11 @@ export function UpdateProfileModal({
                   token={token}
                 />
                 {!isSubscribed && (
-                  <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 p-4 text-center">
-                    <span className="text-[10px] font-black text-orange-500 uppercase tracking-widest flex items-center gap-1">
+                  <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-gray-200 border-dashed bg-white/70 p-4 text-center backdrop-blur-xs">
+                    <span className="flex items-center gap-1 font-black text-[10px] text-orange-500 uppercase tracking-widest">
                       👑 Premium
                     </span>
-                    <p className="text-[9px] font-bold text-gray-400 mt-1">
+                    <p className="mt-1 font-bold text-[9px] text-gray-400">
                       Personalize sua capa
                     </p>
                   </div>
@@ -248,7 +238,7 @@ export function UpdateProfileModal({
 
             {/* NOME COMPLETO */}
             <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
                 Seu Nome Completo
               </label>
               <input
@@ -260,18 +250,18 @@ export function UpdateProfileModal({
                   setFormData({ ...formData, name: e.target.value })
                 }
                 placeholder="Ex: Fredson Souza"
-                className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                className="w-full rounded-2xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
               />
             </div>
 
             {/* BIO E LOCALIZAÇÃO */}
             <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500">
+              <h3 className="font-black text-orange-500 text-xs uppercase tracking-widest">
                 Informações Básicas
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Sobre Você (Bio)
                   </label>
                   <textarea
@@ -285,13 +275,13 @@ export function UpdateProfileModal({
                         ? 'Conte sua história no esporte...'
                         : 'Conteúdo exclusivo para atletas Premium 👑'
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed h-24 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="h-24 w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
 
                 {/* Data de Nascimento (Obrigatória para todos - Liberada) */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Data de Nascimento *
                   </label>
                   <input
@@ -301,12 +291,12 @@ export function UpdateProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, birthDate: e.target.value })
                     }
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
                     <MapPin className="h-3 w-3" /> Cidade / Estado
                   </label>
                   <input
@@ -316,12 +306,12 @@ export function UpdateProfileModal({
                       setFormData({ ...formData, city: e.target.value })
                     }
                     placeholder="Ex: Boa Vista, RR"
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Gênero
                   </label>
                   <select
@@ -330,7 +320,7 @@ export function UpdateProfileModal({
                     onChange={(e) =>
                       setFormData({ ...formData, gender: e.target.value })
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer w-full appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full cursor-pointer appearance-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold text-gray-700 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <option value="MALE">Masculino</option>
                     <option value="FEMALE">Feminino</option>
@@ -342,12 +332,12 @@ export function UpdateProfileModal({
 
             {/* DADOS FÍSICOS */}
             <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500">
+              <h3 className="font-black text-orange-500 text-xs uppercase tracking-widest">
                 Dados Físicos (Opcional)
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
                     <Scale className="h-3 w-3" /> Peso (kg)
                   </label>
                   <input
@@ -358,11 +348,11 @@ export function UpdateProfileModal({
                       setFormData({ ...formData, weight: e.target.value })
                     }
                     placeholder={isSubscribed ? '0.0' : 'Bloqueado'}
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
                     <Ruler className="h-3 w-3" /> Altura (cm)
                   </label>
                   <input
@@ -373,21 +363,21 @@ export function UpdateProfileModal({
                       setFormData({ ...formData, height: e.target.value })
                     }
                     placeholder={isSubscribed ? '0' : 'Bloqueado'}
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
               </div>
             </div>
 
             {/* EQUIPAMENTOS DE CORRIDA (Premium) */}
-            <div className="space-y-4 relative">
-              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
+            <div className="relative space-y-4">
+              <h3 className="flex items-center gap-1.5 font-black text-orange-500 text-xs uppercase tracking-widest">
                 Equipamentos de Corrida{' '}
                 {!isSubscribed && <Crown className="h-3.5 w-3.5" />}
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Tênis de Treino
                   </label>
                   <input
@@ -402,11 +392,11 @@ export function UpdateProfileModal({
                         ? 'Ex: Nike Pegasus 40'
                         : 'Exclusivo Atleta Premium 👑'
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Vida Útil Máxima (KM)
                   </label>
                   <input
@@ -421,11 +411,11 @@ export function UpdateProfileModal({
                       })
                     }
                     placeholder={!formData.shoes ? 'Defina o tênis' : 'Ex: 500'}
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-500 uppercase">
+                  <label className="font-bold text-gray-500 text-xs uppercase">
                     Relógio / Smartwatch
                   </label>
                   <input
@@ -440,7 +430,7 @@ export function UpdateProfileModal({
                         ? 'Ex: Garmin Forerunner 255'
                         : 'Exclusivo Atleta Premium 👑'
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
               </div>
@@ -448,13 +438,13 @@ export function UpdateProfileModal({
 
             {/* FICHA MÉDICA E SEGURANÇA (Premium) */}
             <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500 flex items-center gap-1.5">
+              <h3 className="flex items-center gap-1.5 font-black text-orange-500 text-xs uppercase tracking-widest">
                 Saúde & Ficha Médica{' '}
                 {!isSubscribed && <Crown className="h-3.5 w-3.5" />}
               </h3>
 
               <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex cursor-pointer items-center gap-3">
                   <input
                     type="checkbox"
                     disabled={!isSubscribed}
@@ -465,17 +455,17 @@ export function UpdateProfileModal({
                         hasMedicalConditions: e.target.checked,
                       })
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                    className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
                   />
-                  <span className="text-sm font-bold text-gray-700">
+                  <span className="font-bold text-gray-700 text-sm">
                     Possuo alguma condição médica, limitação física ou problema
                     de saúde
                   </span>
                 </label>
 
                 {isSubscribed && formData.hasMedicalConditions && (
-                  <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <label className="text-xs font-bold text-red-500 uppercase">
+                  <div className="fade-in slide-in-from-top-2 animate-in space-y-1.5 duration-300">
+                    <label className="font-bold text-red-500 text-xs uppercase">
                       Descreva suas condições médicas (ex: Asma, Diabetes,
                       Hipertensão, Lesão, etc.) *
                     </label>
@@ -489,7 +479,7 @@ export function UpdateProfileModal({
                         })
                       }
                       placeholder="Estas informações ajudam os treinadores do seu clube a resguardarem sua segurança física durante os treinos..."
-                      className="h-24 w-full rounded-xl border border-red-200 bg-red-50/20 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-red-500 focus:bg-white focus:ring-2 focus:ring-red-500/20 focus:outline-none"
+                      className="h-24 w-full rounded-xl border border-red-200 bg-red-50/20 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-red-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500/20"
                     />
                   </div>
                 )}
@@ -498,12 +488,12 @@ export function UpdateProfileModal({
 
             {/* REDES SOCIAIS */}
             <div className="space-y-4">
-              <h3 className="text-xs font-black uppercase tracking-widest text-orange-500">
+              <h3 className="font-black text-orange-500 text-xs uppercase tracking-widest">
                 Redes Sociais
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
                     <Instagram className="h-3 w-3" /> Instagram URL
                   </label>
                   <input
@@ -521,11 +511,11 @@ export function UpdateProfileModal({
                         ? 'https://instagram.com/seu.perfil'
                         : 'Exclusivo Atleta Premium 👑'
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 text-xs font-bold text-gray-500 uppercase">
+                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
                     <Activity className="h-3 w-3" /> Strava URL
                   </label>
                   <input
@@ -540,14 +530,14 @@ export function UpdateProfileModal({
                         ? 'https://strava.com/athletes/seu.id'
                         : 'Exclusivo Atleta Premium 👑'
                     }
-                    className="disabled:opacity-60 disabled:cursor-not-allowed w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-gray-900 text-sm shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50 disabled:cursor-not-allowed disabled:opacity-60"
                   />
                 </div>
               </div>
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="text-xs font-black uppercase tracking-widest text-orange-500">
+              <label className="font-black text-orange-500 text-xs uppercase tracking-widest">
                 Privacidade do Perfil
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -569,10 +559,10 @@ export function UpdateProfileModal({
                       <Activity className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="block text-sm font-bold text-gray-900">
+                      <span className="block font-bold text-gray-900 text-sm">
                         Público
                       </span>
-                      <span className="text-[10px] font-medium text-gray-400">
+                      <span className="font-medium text-[10px] text-gray-400">
                         Todos podem ver suas estatísticas
                       </span>
                     </div>
@@ -596,10 +586,10 @@ export function UpdateProfileModal({
                       <Activity className="h-5 w-5" />
                     </div>
                     <div>
-                      <span className="block text-sm font-bold text-gray-900">
+                      <span className="block font-bold text-gray-900 text-sm">
                         Privado
                       </span>
-                      <span className="text-[10px] font-medium text-gray-400">
+                      <span className="font-medium text-[10px] text-gray-400">
                         Apenas você vê seus dados físicos
                       </span>
                     </div>
@@ -610,11 +600,11 @@ export function UpdateProfileModal({
           </form>
         </div>
 
-        <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-t border-gray-100 bg-gray-50 px-6 py-5">
+        <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-gray-100 border-t bg-gray-50 px-6 py-5">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer h-11 rounded-xl px-5 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
+            className="h-11 cursor-pointer rounded-xl px-5 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
           >
             Cancelar
           </button>
@@ -622,7 +612,7 @@ export function UpdateProfileModal({
             type="submit"
             form="profile-form"
             disabled={isSaving}
-            className="cursor-pointer flex h-11 items-center gap-2 rounded-xl bg-orange-500 px-6 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="flex h-11 cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-6 font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
             {isSaving ? (
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />

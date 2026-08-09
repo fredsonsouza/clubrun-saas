@@ -1,5 +1,6 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { requirePremiumEntitlement } from '@/utils/premium-entitlement'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
@@ -31,6 +32,7 @@ export async function joinClubViaLink(app: FastifyInstance) {
         const { slug } = request.params
         const { token } = request.body
         const userId = await request.getCurrentUserId()
+        await requirePremiumEntitlement(userId)
 
         const club = await prisma.club.findUnique({
           where: { slug, inviteToken: token },
@@ -62,7 +64,7 @@ export async function joinClubViaLink(app: FastifyInstance) {
           },
         })
 
-        return reply.status(201).send()
+        return reply.status(201).send(null)
       }
     )
 }

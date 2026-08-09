@@ -1,11 +1,11 @@
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
-import { roleSchema } from '@saas/auth'
+import { persistedRoleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 import { auth } from '@/http/middlewares/auth'
 import { resend } from '@/lib/mail'
@@ -24,7 +24,7 @@ export async function createInvite(app: FastifyInstance) {
           security: [{ bearerAuth: [] }],
           body: z.object({
             email: z.email(),
-            role: roleSchema,
+            role: persistedRoleSchema,
           }),
           params: z.object({
             slug: z.string(),
@@ -44,27 +44,34 @@ export async function createInvite(app: FastifyInstance) {
         const { cannot } = getUserPermissions(
           userId,
           memberShip.role,
-          memberShip.isSystemAdmin
+          memberShip.isSystemAdmin,
+          memberShip.clubId,
+          club.ownerId
         )
 
         if (cannot('create', 'Invite')) {
-          throw new UnauthorizedError(
-            `You're not allowed to create new invites`
-          )
+          throw new ForbiddenError(`You're not allowed to create new invites`)
         }
 
         const { email, role } = request.body
 
         // Role security validation
         if (memberShip.role === 'ATHLETE' && role !== 'ATHLETE') {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'As an athlete, you can only invite other athletes.'
           )
         }
 
         if (role === 'OWNER') {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'You cannot invite someone as an owner. Use the transfer ownership flow instead.'
+          )
+        }
+
+        const administrativeRoles = ['MANAGER', 'ADMIN', 'COACH', 'BILLING']
+        if (administrativeRoles.includes(role) && club.ownerId !== userId) {
+          throw new ForbiddenError(
+            'Only the club owner can create administrative invites.'
           )
         }
 
@@ -132,10 +139,10 @@ export async function createInvite(app: FastifyInstance) {
             html: `
             <div style="font-family: sans-serif; line-height: 1.6; color: #111;">
               <h2 style="color: #f97316;">Olá, corredor!</h2>
-              <p>Você foi convidado por <strong>${memberShip.name || 'um administrador'}</strong> para se juntar ao clube <strong>${club.name}</strong> no ClubRun.</p>
+              <p>Você foi convidado por <strong>um administrador</strong> para se juntar ao clube <strong>${club.name}</strong> no ClubRun.</p>
               <p>Como membro do clube, você poderá acompanhar treinos, participar de rankings e evoluir sua performance junto com o time.</p>
               <div style="margin-top: 24px;">
-                <a href="${env.NEXT_PUBLIC_APP_URL}/join/${club.slug}?inviteId=${invite.id}&email=${email}" 
+                <a href="${env.NEXT_PUBLIC_APP_URL}/join/${club.slug}?inviteId=${invite.id}&email=${email}"
                    style="background-color: #f97316; color: #fff; padding: 12px 24px; border-radius: 12px; text-decoration: none; font-weight: bold; display: inline-block;">
                    ACEITAR CONVITE
                 </a>

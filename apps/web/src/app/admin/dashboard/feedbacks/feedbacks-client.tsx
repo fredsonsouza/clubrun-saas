@@ -57,15 +57,27 @@ export function AdminFeedbacksClient({
       return
     }
 
+    const controller = new AbortController()
+
     startTransition(async () => {
       try {
-        const result = await getSystemFeedbacks({ page, limit: 15 })
-        setFeedbacks(result.feedbacks)
-        setTotalPages(result.totalPages)
+        const result = await getSystemFeedbacks({
+          page,
+          limit: 15,
+          signal: controller.signal,
+        })
+        if (!controller.signal.aborted) {
+          setFeedbacks(result.feedbacks)
+          setTotalPages(result.totalPages)
+        }
       } catch (error) {
-        console.error('Erro ao buscar feedbacks:', error)
+        if (!controller.signal.aborted) {
+          console.error('Erro ao buscar feedbacks:', error)
+        }
       }
     })
+
+    return () => controller.abort()
   }, [page, initialFeedbacks, initialTotalPages])
 
   // Filtragem local simples baseada em tipo de feedback

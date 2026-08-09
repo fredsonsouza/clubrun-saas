@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 export async function revokeInvite({
   slug,
@@ -7,5 +7,5 @@ export async function revokeInvite({
   slug: string
   inviteId: string
 }) {
-  await api.delete(`clubs/${slug}/invites/${inviteId}`)
+  await mutationApi.delete(`clubs/${slug}/invites/${inviteId}`)
 }

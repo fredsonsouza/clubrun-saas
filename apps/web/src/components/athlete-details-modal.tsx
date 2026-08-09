@@ -79,15 +79,25 @@ const TYPE_CONFIG = {
   },
 }
 
-export function AthleteDetailsModal({
-  isOpen,
+export function AthleteDetailsModal(props: AthleteDetailsModalProps) {
+  if (!props.isOpen || !props.athlete) return null
+
+  return <AthleteDetailsModalContent {...props} athlete={props.athlete} />
+}
+
+type AthleteDetailsModalContentProps = Omit<
+  AthleteDetailsModalProps,
+  'athlete'
+> & {
+  athlete: NonNullable<AthleteDetailsModalProps['athlete']>
+}
+
+function AthleteDetailsModalContent({
   onClose,
   athlete,
   completedWorkouts,
   plannedWorkouts,
-}: AthleteDetailsModalProps) {
-  if (!isOpen || !athlete) return null
-
+}: AthleteDetailsModalContentProps) {
   // Filtrar treinos do atleta
   const athleteCompleted = useMemo(() => {
     return completedWorkouts

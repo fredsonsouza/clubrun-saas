@@ -61,8 +61,13 @@ export default async function ClubSettingsPage({
 
   const { token } = await auth()
 
+  const simulationEnabled = ['development', 'test'].includes(
+    process.env.NODE_ENV ?? ''
+  )
+
   return (
     <SettingsClient
+      simulationEnabled={simulationEnabled}
       user={{
         id: user.id,
         name: user.name,

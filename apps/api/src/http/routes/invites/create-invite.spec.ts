@@ -92,4 +92,55 @@ describe('Create Invite (Unit)', () => {
       'will join your club automatically'
     )
   })
+
+  it('should reject administrative invites from a non-owner admin', async () => {
+    const adminId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: adminId })
+
+    vi.mocked(prisma.member.findFirst).mockResolvedValue({
+      id: 'admin-member-id',
+      userId: adminId,
+      role: 'ADMIN',
+      club: {
+        id: '515560b4-367d-44a6-89bf-ba486e9e46a7',
+        slug: 'acme-club',
+        ownerId: 'real-owner-id',
+      },
+    } as any)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs/acme-club/invites',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        email: 'manager@example.com',
+        role: 'MANAGER',
+      },
+    })
+
+    expect(response.statusCode).toBe(403)
+    expect(prisma.invite.create).not.toHaveBeenCalled()
+  })
+
+  it('should reject VISITOR as a persisted invite role', async () => {
+    const adminId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+    const token = app.jwt.sign({ sub: adminId })
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/clubs/acme-club/invites',
+      headers: {
+        authorization: `Bearer ${token}`,
+      },
+      body: {
+        email: 'visitor@example.com',
+        role: 'VISITOR',
+      },
+    })
+
+    expect(response.statusCode).toBe(400)
+    expect(prisma.invite.create).not.toHaveBeenCalled()
+  })
 })

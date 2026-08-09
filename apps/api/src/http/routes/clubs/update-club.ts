@@ -46,7 +46,7 @@ export async function updateClub(app: FastifyInstance) {
 
         if (club.status === 'DEACTIVATED') {
           throw new UnauthorizedError(
-            `This club is deactivated and cannot be updated.`
+            'This club is deactivated and cannot be updated.'
           )
         }
 
@@ -124,7 +124,7 @@ export async function updateClub(app: FastifyInstance) {
           },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

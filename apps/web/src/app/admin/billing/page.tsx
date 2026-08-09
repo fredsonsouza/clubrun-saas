@@ -12,7 +12,7 @@ export default async function AdminBillingPage() {
     redirect('/auth/sign-in')
   }
 
-  if (!user.isSystemAdmin && user.email !== 'admin@clubrun.com') {
+  if (!user.isSystemAdmin) {
     redirect('/')
   }
 
@@ -29,15 +29,15 @@ export default async function AdminBillingPage() {
         }}
       />
 
-      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+      <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="mb-2 flex items-center gap-3 text-3xl font-extrabold tracking-tight text-gray-900">
+          <h1 className="mb-2 flex items-center gap-3 font-extrabold text-3xl text-gray-900 tracking-tight">
             <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-green-100 bg-green-50 text-green-500 shadow-sm">
               <CreditCard className="h-6 w-6" />
             </div>
             Faturação Global
           </h1>
-          <p className="text-sm font-medium text-gray-500">
+          <p className="font-medium text-gray-500 text-sm">
             Acompanhe a receita recorrente (MRR) e as transações de toda a
             plataforma ClubRun.
           </p>
@@ -47,15 +47,15 @@ export default async function AdminBillingPage() {
         <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* MRR Principal */}
           <div className="relative overflow-hidden rounded-[2rem] bg-gray-900 p-8 text-white shadow-xl lg:col-span-2">
-            <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-green-500/20 blur-3xl" />
+            <div className="-top-24 -right-24 pointer-events-none absolute h-64 w-64 rounded-full bg-green-500/20 blur-3xl" />
 
             <div className="relative z-10 mb-8 flex items-start justify-between">
               <div>
-                <p className="mb-2 text-sm font-bold tracking-widest text-gray-400 uppercase">
+                <p className="mb-2 font-bold text-gray-400 text-sm uppercase tracking-widest">
                   Receita Recorrente Mensal (MRR)
                 </p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-black text-white">
+                  <span className="font-black text-5xl text-white">
                     {new Intl.NumberFormat('pt-BR', {
                       style: 'currency',
                       currency: 'BRL',
@@ -63,17 +63,17 @@ export default async function AdminBillingPage() {
                   </span>
                 </div>
               </div>
-              <div className="flex items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/20 px-3 py-1.5 text-sm font-bold text-green-400">
+              <div className="flex items-center gap-1 rounded-lg border border-green-500/30 bg-green-500/20 px-3 py-1.5 font-bold text-green-400 text-sm">
                 Dados reais
               </div>
             </div>
 
-            <div className="relative z-10 grid grid-cols-2 gap-4 border-t border-gray-800 pt-6">
+            <div className="relative z-10 grid grid-cols-2 gap-4 border-gray-800 border-t pt-6">
               <div>
-                <p className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                <p className="mb-1 font-bold text-gray-500 text-xs uppercase tracking-wider">
                   Receita de Clubes (B2B)
                 </p>
-                <p className="text-xl font-bold text-white">
+                <p className="font-bold text-white text-xl">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
@@ -81,10 +81,10 @@ export default async function AdminBillingPage() {
                 </p>
               </div>
               <div>
-                <p className="mb-1 text-xs font-bold tracking-wider text-gray-500 uppercase">
+                <p className="mb-1 font-bold text-gray-500 text-xs uppercase tracking-wider">
                   Receita de Atletas (B2C)
                 </p>
-                <p className="text-xl font-bold text-white">
+                <p className="font-bold text-white text-xl">
                   {new Intl.NumberFormat('pt-BR', {
                     style: 'currency',
                     currency: 'BRL',
@@ -96,23 +96,23 @@ export default async function AdminBillingPage() {
 
           {/* Saldo Disponível (Stripe/Pagar.me) */}
           <div className="flex flex-col justify-center rounded-[2rem] border border-gray-100 bg-white p-8 shadow-sm">
-            <p className="mb-2 text-xs font-bold tracking-widest text-gray-400 uppercase">
+            <p className="mb-2 font-bold text-gray-400 text-xs uppercase tracking-widest">
               Saldo a Transferir
             </p>
-            <p className="mb-6 text-4xl font-black text-gray-900">
+            <p className="mb-6 font-black text-4xl text-gray-900">
               {new Intl.NumberFormat('pt-BR', {
                 style: 'currency',
                 currency: 'BRL',
               }).format(billing.availableBalance)}
             </p>
-            <button className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 transition-colors hover:bg-gray-200 cursor-not-allowed opacity-50">
+            <button className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 opacity-50 transition-colors hover:bg-gray-200">
               Efetuar Saque (Indisponível)
             </button>
           </div>
         </div>
 
         {/* Transações Recentes */}
-        <h2 className="mb-4 text-xl font-extrabold text-gray-900">
+        <h2 className="mb-4 font-extrabold text-gray-900 text-xl">
           Transações Recentes
         </h2>
         <div className="overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
@@ -124,10 +124,10 @@ export default async function AdminBillingPage() {
                   className="flex items-center justify-between p-5 transition-colors hover:bg-gray-50"
                 >
                   <div>
-                    <p className="text-sm font-bold text-gray-900">
+                    <p className="font-bold text-gray-900 text-sm">
                       {tx.entity}
                     </p>
-                    <p className="mt-0.5 text-xs font-medium text-gray-500">
+                    <p className="mt-0.5 font-medium text-gray-500 text-xs">
                       {tx.type} •{' '}
                       {new Date(tx.date).toLocaleDateString('pt-BR')}{' '}
                       {new Date(tx.date).toLocaleTimeString('pt-BR', {
@@ -137,18 +137,18 @@ export default async function AdminBillingPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-4 text-right">
-                    <span className="font-mono text-sm font-bold text-gray-900">
+                    <span className="font-bold font-mono text-gray-900 text-sm">
                       {new Intl.NumberFormat('pt-BR', {
                         style: 'currency',
                         currency: 'BRL',
                       }).format(tx.amount)}
                     </span>
                     {tx.status === 'PAID' ? (
-                      <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-green-100 bg-green-50 px-2 py-1 text-[10px] font-bold tracking-wider text-green-600 uppercase">
+                      <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-green-100 bg-green-50 px-2 py-1 font-bold text-[10px] text-green-600 uppercase tracking-wider">
                         <CheckCircle2 className="h-3 w-3" /> Pago
                       </span>
                     ) : (
-                      <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-red-100 bg-red-50 px-2 py-1 text-[10px] font-bold tracking-wider text-red-600 uppercase">
+                      <span className="flex w-24 items-center justify-center gap-1 rounded-md border border-red-100 bg-red-50 px-2 py-1 font-bold text-[10px] text-red-600 uppercase tracking-wider">
                         <AlertCircle className="h-3 w-3" /> {tx.status}
                       </span>
                     )}
@@ -156,7 +156,7 @@ export default async function AdminBillingPage() {
                 </div>
               ))
             ) : (
-              <div className="p-12 text-center text-sm font-medium text-gray-400">
+              <div className="p-12 text-center font-medium text-gray-400 text-sm">
                 Nenhuma transação registrada.
               </div>
             )}

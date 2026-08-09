@@ -1,6 +1,5 @@
 'use client'
 
-import { SubscriptionIncentiveModal } from '@/components/subscription-incentive-modal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { joinClub } from '@/http/join-club'
 import { ArrowRight, CheckCircle2, Flame, Loader2 } from 'lucide-react'
@@ -26,22 +25,8 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
-  const [isSubscribed, setIsSubscribed] = useState(false)
-  const [isIncentiveOpen, setIsIncentiveOpen] = useState(false)
-
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setIsSubscribed(
-        localStorage.getItem('clubrun:athlete_subscribed') === 'true'
-      )
-    }
-  }, [])
 
   const handleJoin = async () => {
-    if (!isSubscribed) {
-      setIsIncentiveOpen(true)
-      return
-    }
     setIsLoading(true)
     try {
       await joinClub(club.slug, token)
@@ -62,19 +47,19 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
 
   if (isSuccess) {
     return (
-      <div className="animate-in zoom-in-95 w-full max-w-lg rounded-[2.5rem] border border-gray-100 bg-white p-12 text-center shadow-xl duration-500">
-        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 text-green-500 shadow-xl shadow-green-500/10">
+      <div className="zoom-in-95 w-full max-w-lg animate-in rounded-[2.5rem] border border-gray-100 bg-white p-12 text-center shadow-xl duration-500">
+        <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-green-50 text-green-500 shadow-green-500/10 shadow-xl">
           <CheckCircle2 className="h-12 w-12" />
         </div>
-        <h2 className="mb-4 text-3xl font-black tracking-tight text-gray-900">
+        <h2 className="mb-4 font-black text-3xl text-gray-900 tracking-tight">
           Tudo pronto, Atleta!
         </h2>
-        <p className="mb-10 text-lg font-medium text-gray-500">
+        <p className="mb-10 font-medium text-gray-500 text-lg">
           Sua solicitação para entrar no{' '}
           <span className="font-bold text-orange-500">{club.name}</span> foi
           enviada. Agora é só aguardar a aprovação dos administradores.
         </p>
-        <div className="flex items-center justify-center gap-2 text-xs font-black tracking-widest text-gray-400 uppercase">
+        <div className="flex items-center justify-center gap-2 font-black text-gray-400 text-xs uppercase tracking-widest">
           <Loader2 className="h-4 w-4 animate-spin" />
           Redirecionando...
         </div>
@@ -83,7 +68,7 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
   }
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-8 w-full max-w-lg overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-2xl duration-700">
+    <div className="fade-in slide-in-from-bottom-8 w-full max-w-lg animate-in overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-2xl duration-700">
       {/* Top Banner */}
       <div className="relative flex h-32 items-center justify-center overflow-hidden bg-gray-900">
         <div className="absolute inset-0 bg-orange-500/10 blur-3xl" />
@@ -93,23 +78,23 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
         />
       </div>
 
-      <div className="relative z-10 -mt-8 px-8 pt-0 pb-12 text-center">
+      <div className="-mt-8 relative z-10 px-8 pt-0 pb-12 text-center">
         <Avatar className="mx-auto mb-6 h-24 w-24 border-4 border-white shadow-xl">
           <AvatarImage src={club.avatarUrl || ''} />
-          <AvatarFallback className="bg-orange-500 text-2xl font-black text-white">
+          <AvatarFallback className="bg-orange-500 font-black text-2xl text-white">
             {club.name.charAt(0)}
           </AvatarFallback>
         </Avatar>
 
-        <h1 className="mb-2 text-3xl font-black tracking-tight text-gray-900">
+        <h1 className="mb-2 font-black text-3xl text-gray-900 tracking-tight">
           {club.name}
         </h1>
-        <p className="mb-6 text-sm font-bold tracking-widest text-gray-400 uppercase">
+        <p className="mb-6 font-bold text-gray-400 text-sm uppercase tracking-widest">
           Convite para Pelotão
         </p>
 
         <div className="mb-8 rounded-2xl border border-gray-100 bg-gray-50 p-6 text-left">
-          <p className="text-sm leading-relaxed font-medium text-gray-600 italic">
+          <p className="font-medium text-gray-600 text-sm italic leading-relaxed">
             "
             {club.description ||
               'Este clube ainda não definiu uma descrição, mas com certeza o ritmo é forte!'}
@@ -118,15 +103,15 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
         </div>
 
         <div className="mb-10 space-y-4">
-          <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-700">
+          <div className="flex items-center justify-center gap-3 font-bold text-gray-700 text-sm">
             <div className="h-2 w-2 rounded-full bg-orange-500" />
             Acesso aos treinos do clube
           </div>
-          <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-700">
+          <div className="flex items-center justify-center gap-3 font-bold text-gray-700 text-sm">
             <div className="h-2 w-2 rounded-full bg-orange-500" />
             Participação no ranking mensal
           </div>
-          <div className="flex items-center justify-center gap-3 text-sm font-bold text-gray-700">
+          <div className="flex items-center justify-center gap-3 font-bold text-gray-700 text-sm">
             <div className="h-2 w-2 rounded-full bg-orange-500" />
             Comunidade de corredores
           </div>
@@ -135,7 +120,7 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
         <button
           onClick={handleJoin}
           disabled={isLoading}
-          className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-orange-500 py-5 font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+          className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-orange-500 py-5 font-black text-white shadow-orange-500/20 shadow-xl transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
         >
           {isLoading ? (
             <Loader2 className="h-6 w-6 animate-spin" />
@@ -147,18 +132,11 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
           )}
         </button>
 
-        <p className="mt-8 text-xs font-medium text-gray-400">
+        <p className="mt-8 font-medium text-gray-400 text-xs">
           Logado como{' '}
           <span className="font-bold text-gray-900">{user.email}</span>
         </p>
       </div>
-
-      <SubscriptionIncentiveModal
-        isOpen={isIncentiveOpen}
-        onClose={() => setIsIncentiveOpen(false)}
-        clubName={club.name}
-        clubSlug={club.slug}
-      />
     </div>
   )
 }

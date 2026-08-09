@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface UpdateRacePaymentStatusRequest {
   slug: string
@@ -13,7 +13,7 @@ export async function updateRacePaymentStatus({
   athleteId,
   paymentStatus,
 }: UpdateRacePaymentStatusRequest) {
-  const result = await api
+  const result = await mutationApi
     .patch(`clubs/${slug}/races/${raceId}/participants/${athleteId}/payment`, {
       json: {
         paymentStatus,

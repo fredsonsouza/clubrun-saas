@@ -4,6 +4,9 @@
   "private": true,
   "main": "index.ts",
   "types": "index.ts",
+  "scripts": {
+    "check-types": "tsc --noEmit"
+  },
   "devDependencies": {
     "@saas/tsconfig": "workspace:*",
     "@types/node": "^24.10.1"

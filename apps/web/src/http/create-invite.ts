@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface CreateInviteRequest {
   slug: string
@@ -7,7 +7,7 @@ interface CreateInviteRequest {
 }
 
 export async function createInvite({ slug, email, role }: CreateInviteRequest) {
-  const result = await api
+  const result = await mutationApi
     .post(`clubs/${slug}/invites`, {
       json: {
         email,

@@ -1,12 +1,13 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
-import { roleSchema } from '@saas/auth'
+import { persistedRoleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
+import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function updateMember(app: FastifyInstance) {
   app
@@ -24,7 +25,7 @@ export async function updateMember(app: FastifyInstance) {
             memberId: z.uuid(),
           }),
           body: z.object({
-            role: roleSchema,
+            role: persistedRoleSchema,
             status: z.enum(['ACTIVE', 'INACTIVE']).optional(),
           }),
           response: {
@@ -41,47 +42,42 @@ export async function updateMember(app: FastifyInstance) {
         const { cannot } = getUserPermissions(
           userId,
           memberShip.role,
-          memberShip.isSystemAdmin
+          memberShip.isSystemAdmin,
+          memberShip.clubId,
+          club.ownerId
         )
 
-        if (cannot('update_roles', 'User')) {
-          throw new UnauthorizedError(
+        if (club.ownerId !== userId || cannot('update_roles', 'User')) {
+          throw new ForbiddenError(
             `You're not allowed to update roles in this club.`
           )
         }
 
         const { role, status } = request.body
 
-        if (role === 'VISITOR') {
-          throw new BadRequestError('Cannot update member role to VISITOR.')
+        if (role === 'OWNER') {
+          throw new BadRequestError(
+            'Club ownership can only be changed through the transfer flow.'
+          )
         }
 
-        // Fetch the member being updated to check their current role and userId
         const targetMember = await prisma.member.findUnique({
-          where: { id: memberId },
+          where: { id: memberId, clubId: club.id },
         })
 
         if (!targetMember) {
-          throw new BadRequestError('Member not found.')
+          throw new ResourceNotFoundError('Member not found.')
+        }
+
+        if (targetMember.userId === club.ownerId) {
+          throw new ForbiddenError(
+            'The club owner role can only be changed through the transfer flow.'
+          )
         }
 
         // 1. Prevent self-update of role
         if (targetMember.userId === userId) {
-          throw new UnauthorizedError('You cannot change your own role.')
-        }
-
-        // 2. MANAGER can only be changed by OWNER
-        if (targetMember.role === 'MANAGER' && memberShip.role !== 'OWNER') {
-          throw new UnauthorizedError(
-            "Only the club owner can change a manager's role."
-          )
-        }
-
-        // 3. To promote someone to MANAGER, requester must be OWNER
-        if (role === 'MANAGER' && memberShip.role !== 'OWNER') {
-          throw new UnauthorizedError(
-            'Only the club owner can appoint a manager.'
-          )
+          throw new ForbiddenError('You cannot change your own role.')
         }
 
         // If promoting to a unique role, demote existing one
@@ -101,6 +97,7 @@ export async function updateMember(app: FastifyInstance) {
         await prisma.member.update({
           where: {
             id: memberId,
+            clubId: club.id,
           },
           data: {
             ...(role && { role: role as any }),
@@ -108,7 +105,7 @@ export async function updateMember(app: FastifyInstance) {
           },
         })
 
-        return reply.status(204).send()
+        return reply.status(204).send(null)
       }
     )
 }

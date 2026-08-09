@@ -58,6 +58,7 @@ interface Member {
 }
 
 interface SettingsClientProps {
+  simulationEnabled: boolean
   user: {
     id: string
     name: string | null
@@ -143,6 +144,7 @@ const FALLBACK_UFS = [
 ]
 
 export function SettingsClient({
+  simulationEnabled,
   user,
   club,
   userRole,
@@ -174,6 +176,8 @@ export function SettingsClient({
   const [isActivating, setIsActivating] = useState(false)
 
   const handleActivateBilling = async () => {
+    if (!simulationEnabled) return
+
     setIsActivating(true)
     const result = await activateBillingAction(club.slug)
 
@@ -202,55 +206,67 @@ export function SettingsClient({
 
   // Busca Estados (UFs) ao montar
   useEffect(() => {
+    const controller = new AbortController()
+
     async function loadUfs() {
       try {
         setIsLoadingUfs(true)
         const response = await fetch(
-          'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome'
+          'https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome',
+          { signal: controller.signal }
         )
         const data = await response.json()
-        setUfs(data)
+        if (!controller.signal.aborted) setUfs(data)
       } catch (error) {
-        console.error('Erro ao carregar UFs da API, usando fallback:', error)
-        setUfs(FALLBACK_UFS)
+        if (!controller.signal.aborted) {
+          console.error('Erro ao carregar UFs da API, usando fallback:', error)
+          setUfs(FALLBACK_UFS)
+        }
       } finally {
-        setIsLoadingUfs(false)
+        if (!controller.signal.aborted) setIsLoadingUfs(false)
       }
     }
+
     loadUfs()
+    return () => controller.abort()
   }, [])
 
   // Busca Cidades ao mudar o Estado
   // Se o 'state' for uma sigla (ex: RR), buscamos cidades
   // Se for nome completo (ex: Roraima), precisamos achar a sigla
   useEffect(() => {
+    if (!state) {
+      setCities([])
+      setIsLoadingCities(false)
+      return
+    }
+
+    const uf = ufs.find((u) => u.sigla === state || u.nome === state)
+    if (!uf) return
+
+    const ufCode = uf.sigla
+    const controller = new AbortController()
+
     async function loadCities() {
-      if (!state) {
-        setCities([])
-        return
-      }
-
-      // Tenta achar a sigla se o state for o nome
-      const uf = ufs.find((u) => u.sigla === state || u.nome === state)
-      if (!uf) return
-
       try {
         setIsLoadingCities(true)
         const response = await fetch(
-          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf.sigla}/municipios?orderBy=nome`
+          `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${ufCode}/municipios?orderBy=nome`,
+          { signal: controller.signal }
         )
         const data = await response.json()
-        setCities(data)
+        if (!controller.signal.aborted) setCities(data)
       } catch (error) {
-        console.error('Erro ao carregar cidades:', error)
+        if (!controller.signal.aborted) {
+          console.error('Erro ao carregar cidades:', error)
+        }
       } finally {
-        setIsLoadingCities(false)
+        if (!controller.signal.aborted) setIsLoadingCities(false)
       }
     }
 
-    if (ufs.length > 0) {
-      loadCities()
-    }
+    loadCities()
+    return () => controller.abort()
   }, [state, ufs])
 
   const handleSaveChanges = async (e: React.FormEvent) => {
@@ -700,13 +716,17 @@ export function SettingsClient({
                     <div className="flex gap-3">
                       <button
                         onClick={
-                          isBillingPending ? handleActivateBilling : undefined
+                          isBillingPending && simulationEnabled
+                            ? handleActivateBilling
+                            : undefined
                         }
-                        disabled={isActivating}
+                        disabled={isActivating || !simulationEnabled}
                         className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-gray-900 px-6 py-4 font-black text-sm text-white shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
                       >
                         {isActivating ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : !simulationEnabled ? (
+                          'Faturamento indisponível'
                         ) : isBillingPending ? (
                           'Assinar Agora'
                         ) : (
@@ -785,16 +805,20 @@ export function SettingsClient({
                     </div>
                     <button
                       onClick={
-                        isBillingPending ? handleActivateBilling : undefined
+                        isBillingPending && simulationEnabled
+                          ? handleActivateBilling
+                          : undefined
                       }
-                      disabled={isActivating}
+                      disabled={isActivating || !simulationEnabled}
                       className="cursor-pointer font-bold text-orange-500 text-sm transition-colors hover:text-orange-600 disabled:opacity-50"
                     >
                       {isActivating
                         ? 'Processando...'
-                        : isBillingPending
-                          ? 'Cadastrar Cartão de Crédito'
-                          : 'Atualizar cartão de crédito'}
+                        : !simulationEnabled
+                          ? 'Pagamento indisponível'
+                          : isBillingPending
+                            ? 'Cadastrar Cartão de Crédito'
+                            : 'Atualizar cartão de crédito'}
                     </button>
                   </div>
 

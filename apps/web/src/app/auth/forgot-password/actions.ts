@@ -1,6 +1,6 @@
 'use server'
 
-import { api } from '@/http/api-client'
+import { mutationApi } from '@/http/api-client'
 import { HTTPError } from 'ky'
 import { z } from 'zod'
 
@@ -19,7 +19,7 @@ export async function forgotPasswordAction(formData: FormData) {
   const { email } = result.data
 
   try {
-    await api.post('password/recovery', {
+    await mutationApi.post('password/recovery', {
       json: { email },
     })
 

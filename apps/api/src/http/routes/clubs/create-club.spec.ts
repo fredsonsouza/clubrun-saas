@@ -1,6 +1,14 @@
 import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -29,6 +37,34 @@ describe('Create Club (Unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
+  it.each(['production', 'staging', 'preview'])(
+    'allows only system admins to create clubs when NODE_ENV=%s',
+    async (nodeEnv) => {
+      vi.stubEnv('NODE_ENV', nodeEnv)
+      const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
+      const token = app.jwt.sign({ sub: userId })
+
+      vi.mocked(prisma.user.findUnique).mockResolvedValue({
+        isSystemAdmin: false,
+      } as any)
+
+      const response = await app.inject({
+        method: 'POST',
+        url: '/clubs',
+        headers: { authorization: `Bearer ${token}` },
+        body: { name: 'Blocked Club' },
+      })
+
+      expect(response.statusCode).toBe(403)
+      expect(prisma.member.findMany).not.toHaveBeenCalled()
+      expect(prisma.club.create).not.toHaveBeenCalled()
+    }
+  )
 
   it('should be able to create a new club', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'

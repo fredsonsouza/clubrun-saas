@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface UpdateMemberRequest {
   slug: string
@@ -13,7 +13,7 @@ export async function updateMember({
   role,
   status,
 }: UpdateMemberRequest) {
-  await api.put(`clubs/${slug}/members/${memberId}`, {
+  await mutationApi.put(`clubs/${slug}/members/${memberId}`, {
     json: {
       role,
       status,
@@ -32,7 +32,7 @@ export async function removeMember({
   reasons: string[]
   description?: string
 }) {
-  await api.delete(`clubs/${slug}/members/${memberId}`, {
+  await mutationApi.delete(`clubs/${slug}/members/${memberId}`, {
     json: {
       reasons,
       description,

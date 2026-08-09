@@ -1,8 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { persistedRoleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function getPendingMembers(app: FastifyInstance) {
   app
@@ -23,12 +25,11 @@ export async function getPendingMembers(app: FastifyInstance) {
               members: z.array(
                 z.object({
                   id: z.uuid(),
-                  role: z.any(),
-                  status: z.any(),
+                  role: persistedRoleSchema,
+                  status: z.literal('PENDING'),
                   user: z.object({
                     id: z.uuid(),
                     name: z.string().nullable(),
-                    email: z.string().email(),
                     avatarUrl: z.string().nullable(),
                   }),
                 })
@@ -39,19 +40,28 @@ export async function getPendingMembers(app: FastifyInstance) {
       },
       async (request) => {
         const { slug } = request.params
-        const { club } = await request.getUserMemberShip(slug)
+        const userId = await request.getCurrentUserId()
+        const { club, memberShip } = await request.getUserMemberShip(slug)
+
+        if (club.ownerId !== userId && !memberShip.isSystemAdmin) {
+          throw new ForbiddenError(
+            'Only the club owner can view pending member requests.'
+          )
+        }
 
         const members = await prisma.member.findMany({
           where: {
             clubId: club.id,
             status: 'PENDING',
           },
-          include: {
+          select: {
+            id: true,
+            role: true,
+            status: true,
             user: {
               select: {
                 id: true,
                 name: true,
-                email: true,
                 avatarUrl: true,
               },
             },
@@ -59,7 +69,10 @@ export async function getPendingMembers(app: FastifyInstance) {
         })
 
         return {
-          members,
+          members: members.map((member) => ({
+            ...member,
+            status: 'PENDING' as const,
+          })),
         }
       }
     )

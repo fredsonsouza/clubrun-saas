@@ -1,5 +1,6 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { assertSimulatedFlowAllowed } from '@/utils/simulated-flow-policy'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -26,6 +27,7 @@ export async function subscribeAthlete(app: FastifyInstance) {
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
+        assertSimulatedFlowAllowed()
 
         await prisma.athleteProfile.update({
           where: {

@@ -1,7 +1,7 @@
 'use client'
 
-import { Image as ImageIcon, Loader2, Upload, X } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { Loader2, Upload, X } from 'lucide-react'
+import { useId, useRef, useState } from 'react'
 import { toast } from 'sonner'
 
 interface ImageUploadProps {
@@ -21,6 +21,7 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const inputId = useId()
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -36,7 +37,7 @@ export function ImageUpload({
 
       const headers: Record<string, string> = {}
       if (token) {
-        headers['Authorization'] = `Bearer ${token}`
+        headers.Authorization = `Bearer ${token}`
       }
 
       const response = await fetch(`${apiUrl}/uploads`, {
@@ -63,13 +64,16 @@ export function ImageUpload({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
+        <label
+          htmlFor={inputId}
+          className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+        >
           {label}
         </label>
       )}
 
       <div
-        className={`relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 transition-all hover:border-orange-500/50 hover:bg-orange-50/10 ${aspectRatio === 'square' ? 'aspect-square' : 'aspect-video w-full'}`}
+        className={`relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-gray-200 border-dashed bg-gray-50 transition-all hover:border-orange-500/50 hover:bg-orange-50/10 ${aspectRatio === 'square' ? 'aspect-square' : 'aspect-video w-full'}`}
       >
         {value ? (
           <>
@@ -79,6 +83,8 @@ export function ImageUpload({
               className="h-full w-full object-cover"
             />
             <button
+              type="button"
+              aria-label="Remover imagem"
               onClick={() => onChange('')}
               className="absolute top-2 right-2 rounded-full bg-red-500 p-1.5 text-white shadow-lg transition-transform hover:scale-110"
             >
@@ -97,13 +103,14 @@ export function ImageUpload({
             ) : (
               <>
                 <Upload className="h-8 w-8" />
-                <span className="text-xs font-bold">Clique para enviar</span>
+                <span className="font-bold text-xs">Clique para enviar</span>
               </>
             )}
           </button>
         )}
 
         <input
+          id={inputId}
           ref={fileInputRef}
           type="file"
           accept="image/*"

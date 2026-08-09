@@ -11,7 +11,9 @@
     "JWT_SECRET",
     "GOOGLE_OAUTH_CLIENT_ID",
     "GOOGLE_OAUTH_CLIENT_SECRET",
-    "GOOGLE_OAUTH_CLIENT_REDIRECT_URI"
+    "GOOGLE_OAUTH_CLIENT_REDIRECT_URI",
+    "UPLOAD_DIR",
+    "TRUSTED_PROXY"
   ],
   "tasks": {
     "build": {
@@ -24,6 +26,9 @@
     },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
     },
     "dev": {
       "cache": false,

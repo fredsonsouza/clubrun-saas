@@ -1,4 +1,4 @@
-import { api } from './api-client'
+import { mutationApi } from './api-client'
 
 interface SignUpRequest {
   name: string
@@ -15,7 +15,7 @@ export async function signUp({
   email,
   password,
 }: SignUpRequest): Promise<SignUpResponse> {
-  await api
+  await mutationApi
     .post('users', {
       json: {
         name,

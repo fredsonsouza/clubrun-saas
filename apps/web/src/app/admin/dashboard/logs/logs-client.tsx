@@ -102,6 +102,7 @@ export function AdminLogsClient({
       return
     }
 
+    const controller = new AbortController()
     const delayDebounceFn = setTimeout(() => {
       startTransition(async () => {
         try {
@@ -116,16 +117,24 @@ export function AdminLogsClient({
             search: search || undefined,
             startDate: parsedStartDate,
             endDate: parsedEndDate,
+            signal: controller.signal,
           })
-          setLogs(result.logs)
-          setTotalPages(result.totalPages)
+          if (!controller.signal.aborted) {
+            setLogs(result.logs)
+            setTotalPages(result.totalPages)
+          }
         } catch (error) {
-          console.error('Erro ao buscar logs:', error)
+          if (!controller.signal.aborted) {
+            console.error('Erro ao buscar logs:', error)
+          }
         }
       })
     }, 300) // Debounce de 300ms para busca fluida
 
-    return () => clearTimeout(delayDebounceFn)
+    return () => {
+      clearTimeout(delayDebounceFn)
+      controller.abort()
+    }
   }, [
     page,
     search,
