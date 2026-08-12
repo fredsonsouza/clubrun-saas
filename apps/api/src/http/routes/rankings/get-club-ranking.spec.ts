@@ -110,7 +110,8 @@ describe('Get Club Ranking (Unit)', () => {
     expect(prisma.ranking.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          week: 20,
+          periodType: 'WEEK',
+          periodStart: expect.any(Date),
         }),
       })
     )

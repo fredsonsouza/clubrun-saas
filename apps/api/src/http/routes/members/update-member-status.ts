@@ -61,16 +61,27 @@ export async function updateMemberStatus(app: FastifyInstance) {
           throw new BadRequestError('Member not found.')
         }
 
+        if (memberToUpdate.role === 'OWNER') {
+          throw new ForbiddenError(
+            'The club owner can only become inactive through the transfer flow.'
+          )
+        }
+
         if (status === 'INACTIVE') {
-          await prisma.member.delete({
-            where: { id: memberId, clubId: club.id },
+          await prisma.member.updateMany({
+            where: {
+              id: memberId,
+              clubId: club.id,
+              status: { not: 'INACTIVE' },
+            },
+            data: { status: 'INACTIVE' },
           })
           return reply.status(204).send(null)
         }
 
-        await prisma.member.update({
-          where: { id: memberId, clubId: club.id },
-          data: { status },
+        await prisma.member.updateMany({
+          where: { id: memberId, clubId: club.id, status: 'PENDING' },
+          data: { status: 'ACTIVE' },
         })
 
         return reply.status(204).send(null)

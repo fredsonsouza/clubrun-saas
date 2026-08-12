@@ -65,7 +65,7 @@ export async function getInvite(app: FastifyInstance) {
       })
 
       if (!invite) {
-        throw new BadRequestError(`Invite not found`)
+        throw new BadRequestError('Invite not found')
       }
 
       return { invite }

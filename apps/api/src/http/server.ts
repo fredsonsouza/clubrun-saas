@@ -19,8 +19,8 @@ import { subscribeAthlete } from './routes/athlete/subscribe-athlete'
 import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
-import { createOAuthAttempt } from './routes/auth/create-oauth-attempt'
 import { createAccount } from './routes/auth/create-account'
+import { createOAuthAttempt } from './routes/auth/create-oauth-attempt'
 import { getProfile } from './routes/auth/get-profile'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
 import { resendVerification } from './routes/auth/resend-verification'
@@ -38,7 +38,7 @@ import { shutdownClub } from './routes/clubs/shutdown-club'
 import { transferClub } from './routes/clubs/transfer-club'
 import { updateClub } from './routes/clubs/update-club'
 import { acceptInvite } from './routes/invites/accept-invite'
-import { approveInvite } from './routes/invites/approve-invite'
+
 import { createInvite } from './routes/invites/create-invite'
 import { getInvite } from './routes/invites/get-invite'
 import { getInvites } from './routes/invites/get-invites'
@@ -229,7 +229,7 @@ app.register(getInvites)
 app.register(getClubInviteLink)
 app.register(joinClubViaLink)
 app.register(acceptInvite)
-app.register(approveInvite)
+
 app.register(rejectInvite)
 app.register(revokeInvite)
 app.register(getPendingInvites)

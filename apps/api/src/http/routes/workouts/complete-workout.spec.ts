@@ -2,17 +2,21 @@ import { vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     member: {
       findFirst: vi.fn(),
     },
     workout: {
       findFirst: vi.fn(),
+      findUnique: vi.fn(),
       updateMany: vi.fn(),
       aggregate: vi.fn(),
+      findMany: vi.fn().mockResolvedValue([]),
     },
     athleteProfile: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       upsert: vi.fn(),
     },
   },
@@ -20,6 +24,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/services/update-athlete-ranking', () => ({
   updateAthleteRanking: vi.fn(),
+  updateAthletePaceAverage: vi.fn(),
 }))
 
 import { app } from '@/http/server'

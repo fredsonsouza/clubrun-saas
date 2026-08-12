@@ -1,4 +1,5 @@
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
+import { ConflictError } from '@/http/routes/_errors/conflict-error'
 import type { FastifyError, FastifyInstance } from 'fastify'
 import { ZodError, z } from 'zod'
 import { ForbiddenError } from './routes/_errors/forbidden-error'
@@ -7,7 +8,7 @@ import { UnauthorizedError } from './routes/_errors/unauthorized-error'
 
 type FastifyErrorHandler = FastifyInstance['errorHandler']
 
-export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
+export const errorHandler: FastifyErrorHandler = (error, _request, reply) => {
   const fastifyError = error as FastifyError
 
   if (error instanceof ZodError) {
@@ -21,6 +22,12 @@ export const errorHandler: FastifyErrorHandler = (error, request, reply) => {
     return reply.status(400).send({
       message: 'Validation error',
       errors: (error as any).validation,
+    })
+  }
+
+  if (error instanceof ConflictError) {
+    return reply.status(409).send({
+      message: error.message,
     })
   }
 

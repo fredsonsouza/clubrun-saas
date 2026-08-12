@@ -12,6 +12,7 @@ import {
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     member: {
       findFirst: vi.fn(),
       findMany: vi.fn(),

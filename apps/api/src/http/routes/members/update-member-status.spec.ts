@@ -6,6 +6,7 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       delete: vi.fn(),
     },
   },
@@ -61,8 +62,8 @@ describe('Update Member Status (Unit)', () => {
     expect(prisma.member.findUnique).toHaveBeenCalledWith({
       where: { id: memberId, clubId },
     })
-    expect(prisma.member.update).toHaveBeenCalledWith({
-      where: { id: memberId, clubId },
+    expect(prisma.member.updateMany).toHaveBeenCalledWith({
+      where: { id: memberId, clubId, status: 'PENDING' },
       data: { status: 'ACTIVE' },
     })
   })

@@ -46,6 +46,7 @@ export async function createWorkout({
 
   const result = await mutationApi
     .post(`clubs/${slug}/workouts`, {
+      headers: { 'Idempotency-Key': crypto.randomUUID() },
       json: {
         title,
         distance,

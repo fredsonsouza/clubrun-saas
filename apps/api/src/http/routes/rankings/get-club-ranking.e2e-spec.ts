@@ -2,7 +2,14 @@ import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
 import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
 import { faker } from '@faker-js/faker'
-import { getISOWeek, getMonth, getYear } from 'date-fns'
+import {
+  getISOWeek,
+  getMonth,
+  getYear,
+  startOfISOWeek,
+  startOfMonth,
+  startOfYear,
+} from 'date-fns'
 import request from 'supertest'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
@@ -21,6 +28,8 @@ describe('Get Club Ranking (E2E)', () => {
       'ATHLETE'
     )
 
+    if (!club) throw new Error('Test club was not created')
+
     const year = getYear(new Date())
     const month = getMonth(new Date()) + 1
 
@@ -28,21 +37,21 @@ describe('Get Club Ranking (E2E)', () => {
     await prisma.ranking.createMany({
       data: [
         {
-          clubId: club?.id!,
+          clubId: club.id,
           athleteId: user.id,
-          year,
-          month,
+          periodType: 'MONTH',
+          periodStart: startOfMonth(new Date(year, month - 1, 1)),
           points: 100,
         },
         {
-          clubId: club?.id!,
+          clubId: club.id,
           athleteId: (
             await prisma.user.create({
               data: { name: 'Other Athlete', email: faker.internet.email() },
             })
           ).id,
-          year,
-          month,
+          periodType: 'MONTH',
+          periodStart: startOfMonth(new Date(year, month - 1, 1)),
           points: 200,
         },
       ],
@@ -66,15 +75,17 @@ describe('Get Club Ranking (E2E)', () => {
       'ATHLETE'
     )
 
+    if (!club) throw new Error('Test club was not created')
+
     const year = getYear(new Date())
     const week = getISOWeek(new Date())
 
     await prisma.ranking.create({
       data: {
-        clubId: club?.id!,
+        clubId: club.id,
         athleteId: user.id,
-        year,
-        week,
+        periodType: 'WEEK',
+        periodStart: startOfISOWeek(new Date()),
         points: 50,
       },
     })
@@ -95,15 +106,16 @@ describe('Get Club Ranking (E2E)', () => {
       'ATHLETE'
     )
 
+    if (!club) throw new Error('Test club was not created')
+
     const year = 2024
 
     await prisma.ranking.create({
       data: {
-        clubId: club?.id!,
+        clubId: club.id,
         athleteId: user.id,
-        year,
-        month: null,
-        week: null,
+        periodType: 'YEAR',
+        periodStart: startOfYear(new Date(year, 0, 1)),
         points: 500,
       },
     })

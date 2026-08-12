@@ -1,107 +1,101 @@
-import { prisma } from '@/lib/prisma'
 import {
   endOfISOWeek,
   endOfMonth,
   endOfYear,
-  getISOWeek,
-  getMonth,
-  getYear,
   startOfISOWeek,
   startOfMonth,
   startOfYear,
 } from 'date-fns'
 
+import type { PrismaClient } from '../../generated/prisma/client'
+
 interface RankingPeriod {
-  year: number
-  month: number | null
-  week: number | null
+  type: 'WEEK' | 'MONTH' | 'YEAR'
   startDate: Date
   endDate: Date
 }
 
+type DbClient = Pick<PrismaClient, 'workout' | 'ranking'>
+
 export async function updateAthleteRanking(
+  db: DbClient,
   athleteId: string,
   clubId: string,
   referenceDate: Date
 ) {
-  const year = getYear(referenceDate)
-  const month = getMonth(referenceDate) + 1
-  const week = getISOWeek(referenceDate)
-
   const periods: RankingPeriod[] = [
     {
-      year,
-      month,
-      week,
+      type: 'WEEK',
       startDate: startOfISOWeek(referenceDate),
       endDate: endOfISOWeek(referenceDate),
     },
     {
-      year,
-      month,
-      week: null,
+      type: 'MONTH',
       startDate: startOfMonth(referenceDate),
       endDate: endOfMonth(referenceDate),
     },
     {
-      year,
-      month: null,
-      week: null,
+      type: 'YEAR',
       startDate: startOfYear(referenceDate),
       endDate: endOfYear(referenceDate),
     },
   ]
 
   for (const period of periods) {
-    const workouts = await prisma.workout.findMany({
+    const workouts = await db.workout.findMany({
       where: {
         athleteId,
         clubId,
         status: 'COMPLETED',
-        date: {
-          gte: period.startDate,
-          lte: period.endDate,
-        },
+        date: { gte: period.startDate, lte: period.endDate },
       },
+      select: { distance: true, pace: true },
     })
 
-    let totalPoints = 0
-
-    workouts.forEach((workout) => {
+    const totalPoints = workouts.reduce((points, workout) => {
       const distancePoints = workout.distance * 10
-
       const speedKmH = workout.pace && workout.pace > 0 ? 60 / workout.pace : 0
-      const pacePoints = speedKmH * 5
+      return points + Math.round(distancePoints + speedKmH * 5)
+    }, 0)
 
-      totalPoints += Math.round(distancePoints + pacePoints)
-    })
-
-    const existingRanking = await prisma.ranking.findFirst({
+    await db.ranking.upsert({
       where: {
-        clubId,
-        athleteId,
-        year: period.year,
-        month: period.month,
-        week: period.week,
-      },
-    })
-
-    if (existingRanking) {
-      await prisma.ranking.update({
-        where: { id: existingRanking.id },
-        data: { points: totalPoints },
-      })
-    } else {
-      await prisma.ranking.create({
-        data: {
+        clubId_athleteId_periodType_periodStart: {
           clubId,
           athleteId,
-          year: period.year,
-          month: period.month,
-          week: period.week,
-          points: totalPoints,
+          periodType: period.type,
+          periodStart: period.startDate,
         },
-      })
-    }
+      },
+      create: {
+        clubId,
+        athleteId,
+        periodType: period.type,
+        periodStart: period.startDate,
+        points: totalPoints,
+      },
+      update: { points: totalPoints },
+    })
   }
+}
+
+export async function updateAthletePaceAverage(
+  db: Pick<PrismaClient, 'workout' | 'athleteProfile'>,
+  athleteId: string,
+  clubId: string
+) {
+  const athleteStats = await db.workout.aggregate({
+    where: { athleteId, clubId, status: 'COMPLETED' },
+    _sum: { distance: true, duration: true },
+  })
+
+  const totalDistance = athleteStats._sum.distance ?? 0
+  const totalSeconds = athleteStats._sum.duration ?? 0
+  const paceAvg = totalDistance > 0 ? totalSeconds / 60 / totalDistance : null
+
+  await db.athleteProfile.upsert({
+    where: { userId: athleteId },
+    create: { userId: athleteId, paceAvg },
+    update: { paceAvg },
+  })
 }

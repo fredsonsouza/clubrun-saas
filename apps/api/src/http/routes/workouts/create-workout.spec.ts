@@ -4,11 +4,14 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     user: {
       findUnique: vi.fn(),
     },
     athleteProfile: {
       findUnique: vi.fn().mockResolvedValue(null),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      upsert: vi.fn(),
     },
     member: {
       findFirst: vi.fn(),
@@ -19,6 +22,9 @@ vi.mock('@/lib/prisma', () => ({
     workout: {
       create: vi.fn(),
       findMany: vi.fn().mockResolvedValue([]),
+      aggregate: vi
+        .fn()
+        .mockResolvedValue({ _sum: { distance: null, duration: null } }),
     },
     ranking: {
       findFirst: vi.fn().mockResolvedValue(null),
@@ -28,11 +34,21 @@ vi.mock('@/lib/prisma', () => ({
     auditLog: {
       create: vi.fn(),
     },
+    idempotencyRecord: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+      updateMany: vi.fn(),
+    },
+    shoesMileageEntry: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+    },
   },
 }))
 
 vi.mock('@/services/update-athlete-ranking', () => ({
   updateAthleteRanking: vi.fn(),
+  updateAthletePaceAverage: vi.fn(),
 }))
 
 describe('Create Workout (Unit)', () => {
@@ -65,6 +81,7 @@ describe('Create Workout (Unit)', () => {
       url: '/clubs/acme-club/workouts',
       headers: {
         authorization: `Bearer ${token}`,
+        'idempotency-key': 'unit-workout-create-1',
       },
       body: {
         title: 'Morning Run',
@@ -115,6 +132,7 @@ describe('Create Workout (Unit)', () => {
       url: '/clubs/acme-club/workouts',
       headers: {
         authorization: `Bearer ${token}`,
+        'idempotency-key': 'unit-workout-create-2',
       },
       body: {
         title: 'Training Plan',
@@ -155,6 +173,7 @@ describe('Create Workout (Unit)', () => {
       url: '/clubs/not-member-club/workouts',
       headers: {
         authorization: `Bearer ${token}`,
+        'idempotency-key': 'unit-workout-create-3',
       },
       body: {
         title: 'Morning Run',

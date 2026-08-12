@@ -2,18 +2,31 @@ import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
+vi.mock('@/services/update-athlete-ranking', () => ({
+  updateAthleteRanking: vi.fn(),
+  updateAthletePaceAverage: vi.fn(),
+}))
+
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     member: {
       findFirst: vi.fn(),
     },
     workout: {
       findUnique: vi.fn(),
+      findFirst: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findMany: vi.fn().mockResolvedValue([]),
       update: vi.fn(),
-      aggregate: vi.fn(),
+      aggregate: vi
+        .fn()
+        .mockResolvedValue({ _sum: { distance: null, duration: null } }),
     },
     athleteProfile: {
       upsert: vi.fn(),
+      findUnique: vi.fn().mockResolvedValue(null),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
   },
 }))
@@ -73,10 +86,12 @@ describe('Update Workout (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.workout.update).toHaveBeenCalledWith({
-      where: { id: workoutId },
-      data: expect.objectContaining({ title: 'New Title' }),
-    })
+    expect(prisma.workout.updateMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: workoutId, clubId }),
+        data: expect.objectContaining({ title: 'New Title' }),
+      })
+    )
   })
 
   it('should not be able to update another user workout if not admin', async () => {

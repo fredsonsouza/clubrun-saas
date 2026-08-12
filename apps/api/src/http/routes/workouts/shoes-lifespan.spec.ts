@@ -4,6 +4,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     user: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -11,7 +12,12 @@ vi.mock('@/lib/prisma', () => ({
     athleteProfile: {
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       upsert: vi.fn(),
+    },
+    shoesMileageEntry: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
     },
     member: {
       findFirst: vi.fn(),
@@ -32,6 +38,11 @@ vi.mock('@/lib/prisma', () => ({
     auditLog: {
       create: vi.fn(),
     },
+    idempotencyRecord: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+      updateMany: vi.fn(),
+    },
     race: {
       findFirst: vi.fn(),
     },
@@ -47,6 +58,7 @@ vi.mock('@/lib/prisma', () => ({
 
 vi.mock('@/services/update-athlete-ranking', () => ({
   updateAthleteRanking: vi.fn(),
+  updateAthletePaceAverage: vi.fn(),
 }))
 
 describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
@@ -202,7 +214,10 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/clubs/acme-club/workouts',
-        headers: { authorization: `Bearer ${token}` },
+        headers: {
+          authorization: `Bearer ${token}`,
+          'idempotency-key': 'unit-shoes-create-1',
+        },
         body: {
           title: 'Long Run',
           distance: 15, // 15 > 10
@@ -248,7 +263,10 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       const response = await app.inject({
         method: 'POST',
         url: '/clubs/acme-club/workouts',
-        headers: { authorization: `Bearer ${token}` },
+        headers: {
+          authorization: `Bearer ${token}`,
+          'idempotency-key': 'unit-shoes-create-2',
+        },
         body: {
           title: 'Run',
           distance: 10,
@@ -259,9 +277,9 @@ describe('Shoes Lifespan & Mileage Tracking (Unit)', () => {
       })
 
       expect(response.statusCode).toBe(201)
-      expect(prisma.athleteProfile.update).toHaveBeenCalledWith(
+      expect(prisma.athleteProfile.updateMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { userId },
+          where: { userId, shoesRemainingDistance: { gte: 10 } },
           data: {
             shoesRemainingDistance: {
               decrement: 10,

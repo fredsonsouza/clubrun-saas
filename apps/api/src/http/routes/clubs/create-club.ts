@@ -92,29 +92,29 @@ export async function createClub(app: FastifyInstance) {
             )
           }
         }
-        const club = await prisma.club.create({
-          data: {
-            name,
-            slug,
-            domain,
-            cnpj,
-            shouldAttachUsersByDomain,
-            ownerId: userId,
-            members: {
-              create: {
-                userId,
-                role: 'OWNER',
-              },
+        const club = await prisma.$transaction(async (tx) => {
+          const createdClub = await tx.club.create({
+            data: {
+              name,
+              slug,
+              domain,
+              cnpj,
+              shouldAttachUsersByDomain,
+              ownerId: userId,
+              members: { create: { userId, role: 'OWNER' } },
             },
-          },
-        })
+          })
 
-        await createAuditLog({
-          action: 'CLUB_CREATED',
-          entity: 'CLUB',
-          entityId: club.id,
-          userId,
-          payload: { name: club.name, slug: club.slug },
+          await tx.auditLog.create({
+            data: {
+              action: 'CLUB_CREATED',
+              entity: 'CLUB',
+              entityId: createdClub.id,
+              userId,
+              payload: { name: createdClub.name, slug: createdClub.slug },
+            },
+          })
+          return createdClub
         })
 
         return reply.status(201).send({

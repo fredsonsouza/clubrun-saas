@@ -11,6 +11,7 @@
     "db:seed": "pnpm env:load tsx prisma/seed.ts",
     "env:load": "dotenv -e ../../.env --",
     "test": "vitest run --project unit",
+    "test:unit:idempotency": "vitest run src/utils/idempotency.spec.ts",
     "test:e2e": "pnpm env:load vitest run --project e2e",
     "test:watch": "vitest --project unit",
     "test:e2e:watch": "pnpm env:load vitest --project e2e",

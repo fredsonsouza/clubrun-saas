@@ -4,6 +4,7 @@ import { z } from 'zod'
 
 import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
+
 import { ForbiddenError } from '@/http/routes/_errors/forbidden-error'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
@@ -56,14 +57,17 @@ export async function removeMember(app: FastifyInstance) {
 
         const targetMember = await prisma.member.findUnique({
           where: { id: memberId, clubId: club.id },
-          select: { userId: true },
+          select: { userId: true, role: true, status: true },
         })
 
         if (!targetMember) {
           throw new BadRequestError('Member not found.')
         }
 
-        if (targetMember.userId === club.ownerId) {
+        if (
+          targetMember.userId === club.ownerId ||
+          targetMember.role === 'OWNER'
+        ) {
           throw new ForbiddenError(
             'The club owner can only leave through the transfer flow.'
           )

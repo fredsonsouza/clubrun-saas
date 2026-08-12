@@ -4,14 +4,34 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
+    $transaction: vi.fn(async (callback) => callback(prisma)),
     member: {
       findFirst: vi.fn(),
     },
     workout: {
       findUnique: vi.fn(),
       delete: vi.fn(),
+      deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
+      findMany: vi.fn().mockResolvedValue([]),
+      aggregate: vi
+        .fn()
+        .mockResolvedValue({ _sum: { distance: null, duration: null } }),
+    },
+    athleteProfile: {
+      findUnique: vi.fn().mockResolvedValue(null),
+      update: vi.fn(),
+    },
+    ranking: {
+      findFirst: vi.fn().mockResolvedValue(null),
+      create: vi.fn(),
+      update: vi.fn(),
     },
   },
+}))
+
+vi.mock('@/services/update-athlete-ranking', () => ({
+  updateAthleteRanking: vi.fn(),
+  updateAthletePaceAverage: vi.fn(),
 }))
 
 describe('Delete Workout (Unit)', () => {
@@ -52,9 +72,11 @@ describe('Delete Workout (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.workout.delete).toHaveBeenCalledWith({
-      where: { id: workoutId },
-    })
+    expect(prisma.workout.deleteMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ id: workoutId, clubId }),
+      })
+    )
   })
 
   it('should not be able to delete another user workout', async () => {

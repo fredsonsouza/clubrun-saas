@@ -4,6 +4,11 @@ import {
 } from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import {
+  completeIdempotentCommand,
+  getIdempotencyKey,
+  startIdempotentCommand,
+} from '@/utils/idempotency'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
@@ -22,11 +27,14 @@ export async function createRace(app: FastifyInstance) {
           security: [{ bearerAuth: [] }],
           body: z.object({
             name: z.string(),
-            distance: z.number(),
+            distance: z.number().finite().positive().max(500),
             city: z.string(),
             date: z.coerce.date(),
             imageUrl: z.string().url().nullish(),
             routeData: z.json().nullish(),
+          }),
+          headers: z.object({
+            'idempotency-key': z.string().min(8).max(255),
           }),
           params: z.object({
             slug: z.string(),
@@ -45,7 +53,7 @@ export async function createRace(app: FastifyInstance) {
 
         if (club.status === 'DEACTIVATED') {
           throw new ForbiddenError(
-            `This club is deactivated and does not allow new races.`
+            'This club is deactivated and does not allow new races.'
           )
         }
 
@@ -53,16 +61,43 @@ export async function createRace(app: FastifyInstance) {
 
         const { name, distance, city, date, imageUrl, routeData } = request.body
 
-        const race = await prisma.race.create({
-          data: {
-            name,
-            distance,
-            city,
-            date,
-            imageUrl,
-            routeData: routeData ?? undefined,
-            clubId: club.id,
-          },
+        const idempotencyKey = getIdempotencyKey(
+          request.headers['idempotency-key']
+        )
+        const race = await prisma.$transaction(async (tx) => {
+          const command = await startIdempotentCommand(tx, {
+            principalKey: context.userId,
+            scope: `club:${club.id}:race:create`,
+            key: idempotencyKey,
+            payload: request.body,
+          })
+          if (command?.replayResourceId) {
+            const replay = await tx.race.findFirst({
+              where: { id: command.replayResourceId, clubId: club.id },
+            })
+            if (replay) return replay
+          }
+
+          const createdRace = await tx.race.create({
+            data: {
+              name,
+              distance,
+              city,
+              date,
+              imageUrl,
+              routeData: routeData ?? undefined,
+              clubId: club.id,
+            },
+          })
+          if (idempotencyKey) {
+            await completeIdempotentCommand(tx, {
+              principalKey: context.userId,
+              scope: `club:${club.id}:race:create`,
+              key: idempotencyKey,
+              resourceId: createdRace.id,
+            })
+          }
+          return createdRace
         })
 
         return reply.status(201).send({

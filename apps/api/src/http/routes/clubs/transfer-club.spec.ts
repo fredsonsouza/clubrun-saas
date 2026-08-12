@@ -8,10 +8,13 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: vi.fn(),
       findUnique: vi.fn(),
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       delete: vi.fn(),
+      deleteMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
     club: {
       update: vi.fn(),
+      updateMany: vi.fn().mockResolvedValue({ count: 1 }),
     },
     auditLog: {
       create: vi.fn(),
@@ -69,8 +72,8 @@ describe('Transfer Club Ownership (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(204)
-    expect(prisma.club.update).toHaveBeenCalledWith({
-      where: { id: 'club-id' },
+    expect(prisma.club.updateMany).toHaveBeenCalledWith({
+      where: { id: 'club-id', ownerId, status: 'ACTIVE' },
       data: {
         ownerId: targetUserId,
         stripeCustomerId: null,

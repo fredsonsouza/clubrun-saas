@@ -3,8 +3,8 @@ import {
   requireClubAbility,
 } from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
+import { ConflictError } from '@/http/routes/_errors/conflict-error'
 import { prisma } from '@/lib/prisma'
-import { createAuditLog } from '@/utils/audit-log'
 
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -46,29 +46,47 @@ export async function payInvoice(app: FastifyInstance) {
           throw new ResourceNotFoundError('Invoice not found')
         }
 
-        const paid = await prisma.invoice.updateMany({
-          where: {
-            id: invoiceId,
-            clubId: club.id,
-            status: { not: 'PAID' },
-          },
-          data: {
-            status: 'PAID',
-            paidAt: new Date(),
-          },
+        if (invoice.status === 'PAID') {
+          return reply.status(204).send(null)
+        }
+        if (!['PENDING', 'OVERDUE'].includes(invoice.status)) {
+          throw new ConflictError(
+            `Invoice cannot transition from ${invoice.status} to PAID.`
+          )
+        }
+
+        const paid = await prisma.$transaction(async (tx) => {
+          const transitioned = await tx.invoice.updateMany({
+            where: {
+              id: invoiceId,
+              clubId: club.id,
+              status: { in: ['PENDING', 'OVERDUE'] },
+            },
+            data: {
+              status: 'PAID',
+              paidAt: new Date(),
+            },
+          })
+          if (transitioned.count === 1) {
+            await tx.auditLog.create({
+              data: {
+                action: 'INVOICE_PAID',
+                entity: 'INVOICE',
+                entityId: invoiceId,
+                userId,
+                payload: {
+                  amount: String(invoice.amount ?? 0),
+                  status: 'PAID',
+                },
+              },
+            })
+          }
+          return transitioned
         })
 
         if (paid.count === 0) {
-          return reply.status(204).send(null)
+          throw new ConflictError('Invoice was changed by another request.')
         }
-
-        createAuditLog({
-          action: 'INVOICE_PAID',
-          entity: 'INVOICE',
-          entityId: invoiceId,
-          userId,
-          payload: { amount: invoice.amount, status: 'PAID' },
-        })
 
         return reply.status(204).send(null)
       }

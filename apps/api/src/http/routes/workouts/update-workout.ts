@@ -1,5 +1,13 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import {
+  creditShoesOnce,
+  debitShoesOnce,
+} from '@/services/shoes-mileage-ledger'
+import {
+  updateAthletePaceAverage,
+  updateAthleteRanking,
+} from '@/services/update-athlete-ranking'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { workoutSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -22,39 +30,26 @@ export async function updateWorkout(app: FastifyInstance) {
           security: [{ bearerAuth: [] }],
           body: z.object({
             title: z.string().nullable(),
-            distance: z.number(),
-            duration: z.number().nullable(),
-            pace: z.number().nullable(),
+            distance: z.number().finite().positive().max(500),
+            duration: z.number().finite().positive().nullable(),
+            pace: z.number().finite().positive().nullable().optional(),
             type: z.enum(WorkoutType),
             date: z.coerce.date().optional(),
-            routeData: z.any().optional(),
+            routeData: z.json().optional(),
+            version: z.number().int().nonnegative().optional(),
           }),
-          params: z.object({
-            slug: z.string(),
-            workoutId: z.string(),
-          }),
-          response: {
-            204: z.null(),
-          },
+          params: z.object({ slug: z.string(), workoutId: z.string() }),
+          response: { 204: z.null() },
         },
       },
       async (request, reply) => {
         const { slug, workoutId } = request.params
         const userId = await request.getCurrentUserId()
         const { memberShip, club } = await request.getUserMemberShip(slug)
-
         const workout = await prisma.workout.findUnique({
-          where: {
-            id: workoutId,
-            clubId: club.id,
-          },
+          where: { id: workoutId, clubId: club.id },
         })
-
-        if (!workout) {
-          throw new BadRequestError('Workout not found!')
-        }
-
-        const authWorkout = workoutSchema.parse(workout)
+        if (!workout) throw new BadRequestError('Workout not found!')
 
         const { cannot } = getUserPermissions(
           userId,
@@ -63,128 +58,93 @@ export async function updateWorkout(app: FastifyInstance) {
           memberShip.clubId ?? club.id,
           club.ownerId
         )
-
-        if (cannot('update', authWorkout)) {
+        if (cannot('update', workoutSchema.parse(workout))) {
           throw new ForbiddenError(`You're not allowed to update this workout`)
         }
 
-        const { title, distance, duration, pace, type, date, routeData } =
+        const { title, distance, duration, type, date, routeData, version } =
           request.body
+        const updatedDate = date ?? workout.date
+        const updatedPace =
+          workout.status === 'COMPLETED' && duration
+            ? duration / 60 / distance
+            : null
+        const rescheduleCount =
+          date && date.getTime() !== workout.date.getTime()
+            ? workout.rescheduleCount + 1
+            : workout.rescheduleCount
+        if (rescheduleCount > 3) {
+          throw new BadRequestError('Limite máximo de reagendamentos atingido.')
+        }
 
-        // Logic for Rescheduling and Lead Time
-        let updatedRescheduleCount = workout.rescheduleCount
-        if (
-          date &&
-          new Date(date).getTime() !== new Date(workout.date).getTime()
-        ) {
-          // Check limit: 3 reschedules
-          if (workout.rescheduleCount >= 3) {
+        await prisma.$transaction(async (tx) => {
+          const updated = await tx.workout.updateMany({
+            where: {
+              id: workoutId,
+              clubId: club.id,
+              version: version ?? workout.version,
+            },
+            data: {
+              title,
+              distance,
+              duration,
+              pace: updatedPace,
+              type,
+              date: updatedDate,
+              routeData: routeData ?? undefined,
+              rescheduleCount,
+              version: { increment: 1 },
+            },
+          })
+          if (updated.count !== 1) {
             throw new BadRequestError(
-              'Você já atingiu o limite máximo de 3 reagendamentos para este treino. Por favor, entre em contato com seu treinador.'
+              'Treino foi alterado por outra requisição.'
             )
           }
 
-          // Rule: 2h Lead Time if moving to today or if today is the day
-          const now = new Date()
-          const newDate = new Date(date)
+          if (workout.status === 'COMPLETED' && workout.shoesUsed) {
+            const difference = distance - workout.distance
+            const profile = await tx.athleteProfile.findUnique({
+              where: { userId: workout.athleteId },
+              select: { shoes: true, shoesRemainingDistance: true },
+            })
+            if (profile?.shoes === workout.shoesUsed && difference !== 0) {
+              if (difference > 0) {
+                await debitShoesOnce(tx, {
+                  athleteId: workout.athleteId,
+                  sourceType: 'WORKOUT_ADJUSTMENT',
+                  sourceId: `${workout.id}:${version ?? workout.version}:debit`,
+                  distanceKm: difference,
+                })
+              } else {
+                await creditShoesOnce(tx, {
+                  athleteId: workout.athleteId,
+                  sourceType: 'WORKOUT_ADJUSTMENT',
+                  sourceId: `${workout.id}:${version ?? workout.version}:debit`,
+                  distanceKm: -difference,
+                })
+              }
+            }
+          }
 
-          const isTodayTarget =
-            now.getFullYear() === newDate.getFullYear() &&
-            now.getMonth() === newDate.getMonth() &&
-            now.getDate() === newDate.getDate()
-
-          if (isTodayTarget) {
-            const twoHoursInMs = 2 * 60 * 60 * 1000
-            if (newDate.getTime() - now.getTime() < twoHoursInMs) {
-              throw new BadRequestError(
-                'Reagendamentos para o mesmo dia devem ser feitos com no mínimo 2h de antecedência do novo horário.'
+          if (workout.status === 'COMPLETED') {
+            await updateAthletePaceAverage(tx, workout.athleteId, club.id)
+            await updateAthleteRanking(
+              tx,
+              workout.athleteId,
+              club.id,
+              workout.date
+            )
+            if (updatedDate.getTime() !== workout.date.getTime()) {
+              await updateAthleteRanking(
+                tx,
+                workout.athleteId,
+                club.id,
+                updatedDate
               )
             }
           }
-
-          updatedRescheduleCount += 1
-        }
-
-        const oldDistance = workout.distance
-        const distanceDifference = distance - oldDistance
-
-        if (workout.status === 'COMPLETED' && workout.shoesUsed) {
-          const athleteProfile = await prisma.athleteProfile.findUnique({
-            where: { userId: workout.athleteId },
-            select: {
-              shoes: true,
-              shoesRemainingDistance: true,
-            },
-          })
-
-          if (athleteProfile && athleteProfile.shoes === workout.shoesUsed) {
-            if (
-              athleteProfile.shoesRemainingDistance !== null &&
-              athleteProfile.shoesRemainingDistance !== undefined
-            ) {
-              if (distanceDifference > athleteProfile.shoesRemainingDistance) {
-                throw new BadRequestError(
-                  `A alteração excede a vida útil restante do seu tênis (${athleteProfile.shoesRemainingDistance.toFixed(1)} km). O máximo permitido para este ajuste é +${athleteProfile.shoesRemainingDistance.toFixed(1)} km.`
-                )
-              }
-            }
-
-            // Ajusta o restante do calçado
-            await prisma.athleteProfile.update({
-              where: { userId: workout.athleteId },
-              data: {
-                shoesRemainingDistance: {
-                  decrement: distanceDifference,
-                },
-              },
-            })
-          }
-        }
-
-        await prisma.workout.update({
-          where: {
-            id: workoutId,
-          },
-          data: {
-            title,
-            distance,
-            duration,
-            pace,
-            type,
-            date,
-            routeData,
-            rescheduleCount: updatedRescheduleCount,
-          },
         })
-
-        // Update AthleteProfile paceAvg
-        const athleteStats = await prisma.workout.aggregate({
-          where: {
-            athleteId: workout.athleteId,
-            clubId: club.id,
-          },
-          _sum: {
-            distance: true,
-            duration: true,
-          },
-        })
-
-        if (athleteStats._sum.distance && athleteStats._sum.duration) {
-          const totalDistance = athleteStats._sum.distance
-          const totalSeconds = athleteStats._sum.duration
-          const newPaceAvg = totalSeconds / 60 / totalDistance
-
-          await prisma.athleteProfile.upsert({
-            where: { userId: workout.athleteId },
-            create: {
-              userId: workout.athleteId,
-              paceAvg: newPaceAvg,
-            },
-            update: {
-              paceAvg: newPaceAvg,
-            },
-          })
-        }
 
         return reply.status(204).send(null)
       }

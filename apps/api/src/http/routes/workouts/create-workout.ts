@@ -4,9 +4,18 @@ import {
 } from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { updateAthleteRanking } from '@/services/update-athlete-ranking'
+import { debitShoesOnce } from '@/services/shoes-mileage-ledger'
+import {
+  updateAthletePaceAverage,
+  updateAthleteRanking,
+} from '@/services/update-athlete-ranking'
 import { createAuditLog } from '@/utils/audit-log'
 import { createSlug } from '@/utils/create-slug'
+import {
+  completeIdempotentCommand,
+  getIdempotencyKey,
+  startIdempotentCommand,
+} from '@/utils/idempotency'
 
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -27,9 +36,9 @@ export async function createWorkout(app: FastifyInstance) {
           security: [{ bearerAuth: [] }],
           body: z.object({
             title: z.string(),
-            distance: z.number(),
-            duration: z.number().nullable().optional(),
-            pace: z.number().optional(),
+            distance: z.number().finite().positive().max(500),
+            duration: z.number().finite().positive().nullable().optional(),
+            pace: z.number().finite().positive().optional(),
             athleteId: z.string().uuid().nullable().optional(),
             status: z.enum(['PLANNED', 'COMPLETED']).default('COMPLETED'),
             assignmentMode: z.enum(['GOAL', 'FREE']).nullable().optional(),
@@ -49,6 +58,9 @@ export async function createWorkout(app: FastifyInstance) {
             visibility: z
               .enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE'])
               .default('PUBLIC'),
+          }),
+          headers: z.object({
+            'idempotency-key': z.string().min(8).max(255),
           }),
           params: z.object({
             slug: z.string(),
@@ -76,7 +88,6 @@ export async function createWorkout(app: FastifyInstance) {
           distance,
           duration,
           date,
-          pace,
           type,
           notes,
           athleteId,
@@ -138,6 +149,11 @@ export async function createWorkout(app: FastifyInstance) {
 
         const resolvedStatus = isPrescribing ? 'PLANNED' : status
 
+        const derivedPace =
+          resolvedStatus === 'COMPLETED' && duration
+            ? duration / 60 / distance
+            : null
+
         let shoesUsed: string | null = null
 
         if (resolvedStatus === 'COMPLETED') {
@@ -164,73 +180,75 @@ export async function createWorkout(app: FastifyInstance) {
           }
         }
 
-        const workout = await prisma.workout.create({
-          data: {
-            title,
-            distance,
-            duration,
-            date,
-            pace,
-            type,
-            notes,
-            routeData: routeData ?? undefined,
-            originalDate: isPrescribing ? date : null,
-            status: resolvedStatus,
-            assignmentMode: isPrescribing ? assignmentMode || 'FREE' : null,
-            targetDistance: resolvedStatus === 'PLANNED' ? distance : null,
-            targetDuration: resolvedStatus === 'PLANNED' ? duration : null,
-            slug: `${createSlug(title)}-${Date.now()}`,
-            clubId: club.id,
-            athleteId: targetAthleteId,
-            visibility,
-            shoesUsed,
-          },
-        })
-
-        // Update AthleteProfile and Ranking ONLY if workout is COMPLETED
-        if (workout.status === 'COMPLETED') {
-          await updateAthleteRanking(targetAthleteId, club.id, date)
-
-          if (shoesUsed) {
-            await prisma.athleteProfile.update({
-              where: { userId: targetAthleteId },
-              data: {
-                shoesRemainingDistance: {
-                  decrement: distance,
-                },
-              },
+        const idempotencyKey = getIdempotencyKey(
+          request.headers['idempotency-key']
+        )
+        const workout = await prisma.$transaction(async (tx) => {
+          const command = await startIdempotentCommand(tx, {
+            principalKey: userId,
+            scope: `club:${club.id}:workout:create`,
+            key: idempotencyKey,
+            payload: request.body,
+          })
+          if (command?.replayResourceId) {
+            const replay = await tx.workout.findFirst({
+              where: { id: command.replayResourceId, clubId: club.id },
             })
+            if (replay) return replay
           }
 
-          const athleteStats = await prisma.workout.aggregate({
-            where: {
-              athleteId: targetAthleteId,
+          const createdWorkout = await tx.workout.create({
+            data: {
+              title,
+              distance,
+              duration,
+              date,
+              pace: derivedPace,
+              type,
+              notes,
+              routeData: routeData ?? undefined,
+              originalDate: isPrescribing ? date : null,
+              status: resolvedStatus,
+              assignmentMode: isPrescribing ? assignmentMode || 'FREE' : null,
+              targetDistance: resolvedStatus === 'PLANNED' ? distance : null,
+              targetDuration: resolvedStatus === 'PLANNED' ? duration : null,
+              slug: `${createSlug(title)}-${Date.now()}`,
               clubId: club.id,
-              status: 'COMPLETED',
-            },
-            _sum: {
-              distance: true,
-              duration: true,
+              athleteId: targetAthleteId,
+              visibility,
+              shoesUsed,
             },
           })
 
-          if (athleteStats._sum.distance && athleteStats._sum.duration) {
-            const totalDistance = athleteStats._sum.distance
-            const totalSeconds = athleteStats._sum.duration
-            const newPaceAvg = totalSeconds / 60 / totalDistance
+          if (resolvedStatus === 'COMPLETED') {
+            if (shoesUsed) {
+              try {
+                await debitShoesOnce(tx, {
+                  athleteId: targetAthleteId,
+                  sourceType: 'WORKOUT',
+                  sourceId: createdWorkout.id,
+                  distanceKm: distance,
+                })
+              } catch {
+                throw new BadRequestError(
+                  'Quilometragem de tênis insuficiente.'
+                )
+              }
+            }
+            await updateAthleteRanking(tx, targetAthleteId, club.id, date)
+            await updateAthletePaceAverage(tx, targetAthleteId, club.id)
+          }
 
-            await prisma.athleteProfile.upsert({
-              where: { userId: targetAthleteId },
-              create: {
-                userId: targetAthleteId,
-                paceAvg: newPaceAvg,
-              },
-              update: {
-                paceAvg: newPaceAvg,
-              },
+          if (idempotencyKey) {
+            await completeIdempotentCommand(tx, {
+              principalKey: userId,
+              scope: `club:${club.id}:workout:create`,
+              key: idempotencyKey,
+              resourceId: createdWorkout.id,
             })
           }
-        }
+          return createdWorkout
+        })
 
         await createAuditLog({
           action: 'WORKOUT_CREATED',

@@ -1,5 +1,10 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { creditShoesOnce } from '@/services/shoes-mileage-ledger'
+import {
+  updateAthletePaceAverage,
+  updateAthleteRanking,
+} from '@/services/update-athlete-ranking'
 import { getUserPermissions } from '@/utils/get-user-permissions'
 import { workoutSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -19,32 +24,18 @@ export async function deleteWorkout(app: FastifyInstance) {
           tags: ['workouts'],
           summary: 'Delete a workout',
           security: [{ bearerAuth: [] }],
-          params: z.object({
-            workoutId: z.string(),
-            slug: z.string(),
-          }),
-          response: {
-            204: z.null(),
-          },
+          params: z.object({ workoutId: z.string(), slug: z.string() }),
+          response: { 204: z.null() },
         },
       },
       async (request, reply) => {
         const { slug, workoutId } = request.params
         const userId = await request.getCurrentUserId()
         const { memberShip, club } = await request.getUserMemberShip(slug)
-
         const workout = await prisma.workout.findUnique({
-          where: {
-            id: workoutId,
-            clubId: club.id,
-          },
+          where: { id: workoutId, clubId: club.id },
         })
-
-        if (!workout) {
-          throw new BadRequestError('Workout not found!')
-        }
-
-        const authWorkout = workoutSchema.parse(workout)
+        if (!workout) throw new BadRequestError('Workout not found!')
 
         const { cannot } = getUserPermissions(
           userId,
@@ -53,40 +44,38 @@ export async function deleteWorkout(app: FastifyInstance) {
           memberShip.clubId ?? club.id,
           club.ownerId
         )
-
-        if (cannot('delete', authWorkout)) {
+        if (cannot('delete', workoutSchema.parse(workout))) {
           throw new ForbiddenError(`You're not allowed to delete this workout`)
         }
 
-        if (workout.status === 'COMPLETED' && workout.shoesUsed) {
-          const athleteProfile = await prisma.athleteProfile.findUnique({
-            where: { userId: workout.athleteId },
-            select: {
-              shoes: true,
-              shoesRemainingDistance: true,
-            },
-          })
-
-          if (
-            athleteProfile &&
-            athleteProfile.shoes === workout.shoesUsed &&
-            athleteProfile.shoesRemainingDistance !== null
-          ) {
-            await prisma.athleteProfile.update({
-              where: { userId: workout.athleteId },
-              data: {
-                shoesRemainingDistance: {
-                  increment: workout.distance,
-                },
-              },
+        await prisma.$transaction(async (tx) => {
+          if (workout.status === 'COMPLETED' && workout.shoesUsed) {
+            await creditShoesOnce(tx, {
+              athleteId: workout.athleteId,
+              sourceType: 'WORKOUT',
+              sourceId: workout.id,
+              distanceKm: workout.distance,
             })
           }
-        }
 
-        await prisma.workout.delete({
-          where: {
-            id: workoutId,
-          },
+          const deleted = await tx.workout.deleteMany({
+            where: { id: workoutId, clubId: club.id, version: workout.version },
+          })
+          if (deleted.count !== 1) {
+            throw new BadRequestError(
+              'Treino foi alterado por outra requisição.'
+            )
+          }
+
+          if (workout.status === 'COMPLETED') {
+            await updateAthletePaceAverage(tx, workout.athleteId, club.id)
+            await updateAthleteRanking(
+              tx,
+              workout.athleteId,
+              club.id,
+              workout.date
+            )
+          }
         })
 
         return reply.status(204).send(null)

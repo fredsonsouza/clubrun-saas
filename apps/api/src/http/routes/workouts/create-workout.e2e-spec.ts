@@ -31,6 +31,7 @@ describe('Create Workout (E2E)', () => {
     const response = await request(app.server)
       .post(`/clubs/${club?.slug}/workouts`)
       .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', `e2e-workout-${faker.string.uuid()}`)
       .send({
         title,
         notes,
@@ -56,7 +57,7 @@ describe('Create Workout (E2E)', () => {
       notes,
       distance,
       duration,
-      pace,
+      pace: duration / 60 / distance,
       type,
       clubId: club?.id,
       athleteId: user.id,
@@ -70,6 +71,7 @@ describe('Create Workout (E2E)', () => {
     const response = await request(app.server)
       .post('/clubs/clube-inexistente/workouts')
       .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', `e2e-workout-invalid-${faker.string.uuid()}`)
       .send({
         title: faker.lorem.words(2),
         distance: 3000,
@@ -88,6 +90,7 @@ describe('Create Workout (E2E)', () => {
     const response = await request(app.server)
       .post(`/clubs/${club?.slug}/workouts`)
       .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', `e2e-workout-invalid-${faker.string.uuid()}`)
       .send({
         title: faker.lorem.words(1),
         distance: 'invalid', // Deveria ser número
@@ -99,12 +102,52 @@ describe('Create Workout (E2E)', () => {
     expect(response.body.message).toBe('Validation error')
   })
 
+  it('does not double-create a workout when the same key is retried', async () => {
+    const { token, user, club } = await createAndAuthenticateUser(
+      app,
+      'ATHLETE'
+    )
+    const key = `e2e-workout-retry-${faker.string.uuid()}`
+    const payload = {
+      title: 'Concurrent retry workout',
+      distance: 5,
+      duration: 1800,
+      type: 'EASY',
+      date: new Date().toISOString(),
+    }
+
+    const responses = await Promise.all([
+      request(app.server)
+        .post(`/clubs/${club?.slug}/workouts`)
+        .set('Authorization', `Bearer ${token}`)
+        .set('Idempotency-Key', key)
+        .send(payload),
+      request(app.server)
+        .post(`/clubs/${club?.slug}/workouts`)
+        .set('Authorization', `Bearer ${token}`)
+        .set('Idempotency-Key', key)
+        .send(payload),
+    ])
+
+    expect(responses.map((response) => response.statusCode).sort()).toEqual([
+      201, 409,
+    ])
+    expect(
+      responses.find((response) => response.statusCode === 201)?.body.workoutId
+    ).toBeDefined()
+    const workouts = await prisma.workout.findMany({
+      where: { athleteId: user.id, title: payload.title },
+    })
+    expect(workouts).toHaveLength(1)
+  })
+
   it('should not be able to register a workout with unauthorized role (BILLING)', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'BILLING')
 
     const response = await request(app.server)
       .post(`/clubs/${club?.slug}/workouts`)
       .set('Authorization', `Bearer ${token}`)
+      .set('Idempotency-Key', `e2e-workout-role-${faker.string.uuid()}`)
       .send({
         title: faker.lorem.words(3),
         distance: 5,

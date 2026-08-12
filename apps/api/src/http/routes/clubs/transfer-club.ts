@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
+import { ConflictError } from '../_errors/conflict-error'
 import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function transferClub(app: FastifyInstance) {
@@ -36,7 +37,7 @@ export async function transferClub(app: FastifyInstance) {
         const userId = await request.getCurrentUserId()
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
-        if (club.ownerId !== userId) {
+        if (club.ownerId !== userId || memberShip.role !== 'OWNER') {
           throw new ForbiddenError(
             'Only the current club owner can transfer ownership.'
           )
@@ -88,49 +89,45 @@ export async function transferClub(app: FastifyInstance) {
         }
 
         await prisma.$transaction(async (tx) => {
-          // 1. Promover o novo dono
-          await tx.member.update({
+          const currentOwner = await tx.member.updateMany({
             where: {
-              clubId_userId: {
-                clubId: club.id,
-                userId: transferToUserId,
-              },
-            },
-            data: {
+              clubId: club.id,
+              userId,
               role: 'OWNER',
+              status: 'ACTIVE',
             },
+            data: { role: 'ATHLETE' },
           })
-
-          // 2. Lidar com o antigo dono
-          if (leaveAfterTransfer) {
-            await tx.member.delete({
-              where: {
-                clubId_userId: {
-                  clubId: club.id,
-                  userId,
-                },
-              },
-            })
-          } else {
-            // Rebaixar para ATHLETE
-            await tx.member.update({
-              where: {
-                clubId_userId: {
-                  clubId: club.id,
-                  userId,
-                },
-              },
-              data: {
-                role: 'ATHLETE',
-              },
-            })
+          if (currentOwner.count !== 1) {
+            throw new ConflictError('Ownership was changed by another request.')
           }
 
-          // 3. Atualizar o dono no registro do clube e limpar dados de faturamento
-          await tx.club.update({
+          const targetOwner = await tx.member.updateMany({
             where: {
-              id: club.id,
+              clubId: club.id,
+              userId: transferToUserId,
+              role: { not: 'OWNER' },
+              status: 'ACTIVE',
             },
+            data: { role: 'OWNER' },
+          })
+          if (targetOwner.count !== 1) {
+            throw new ConflictError('Target membership is no longer active.')
+          }
+
+          if (leaveAfterTransfer) {
+            const removed = await tx.member.deleteMany({
+              where: { clubId: club.id, userId, role: 'ATHLETE' },
+            })
+            if (removed.count !== 1) {
+              throw new ConflictError(
+                'Previous owner could not leave the club.'
+              )
+            }
+          }
+
+          const clubUpdate = await tx.club.updateMany({
+            where: { id: club.id, ownerId: userId, status: 'ACTIVE' },
             data: {
               ownerId: transferToUserId,
               stripeCustomerId: null,
@@ -138,8 +135,11 @@ export async function transferClub(app: FastifyInstance) {
               subscriptionStatus: 'PENDING_UPDATE',
             },
           })
+          if (clubUpdate.count !== 1) {
+            throw new ConflictError('Ownership was changed by another request.')
+          }
 
-          // 4. Registrar no AuditLog
+          // Registrar no AuditLog
           await tx.auditLog.create({
             data: {
               action: 'TRANSFER_OWNERSHIP',
