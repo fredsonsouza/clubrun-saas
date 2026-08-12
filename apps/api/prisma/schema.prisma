@@ -140,6 +140,7 @@ model Member {
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, userId])
+  @@index([userId, status], map: "members_user_status_idx")
   @@map("members")
 }
 
@@ -218,6 +219,7 @@ model Workout {
 
   @@index([clubId])
   @@index([athleteId])
+  @@index([clubId, status, createdAt], map: "workouts_club_status_created_idx")
   @@map("workouts")
 }
 
@@ -256,6 +258,7 @@ model Race {
   participants RaceParticipant[]
   club         Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
+  @@index([clubId, date], map: "races_club_date_idx")
   @@map("races")
 }
 
@@ -269,6 +272,7 @@ model RaceParticipant {
   race          Race              @relation(fields: [raceId], references: [id], onDelete: Cascade)
 
   @@unique([raceId, athleteId])
+  @@index([athleteId], map: "race_participants_athlete_idx")
   @@map("race_participants")
 }
 
@@ -374,6 +378,7 @@ model Invoice {
   club        Club          @relation(fields: [clubId], references: [id], onDelete: Cascade)
   member      Member        @relation(fields: [memberId], references: [id])
 
+  @@index([memberId, status], map: "invoices_member_status_idx")
   @@map("invoices")
 }
 

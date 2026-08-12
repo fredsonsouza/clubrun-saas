@@ -1,5 +1,7 @@
 # Fase 3 — Performance, Queries e Índices PostgreSQL
 
+> Procedimento de coleta e tabela comparável: [Baseline PostgreSQL](./FASE-3-BASELINE-POSTGRES.md).
+
 ## Resposta objetiva sobre a necessidade de índices
 
 **Sim, existem índices necessários ou fortemente recomendados com base nas consultas do código.** A auditoria encontrou filtros e ordenações frequentes que não são atendidos pela ordem dos índices atuais.

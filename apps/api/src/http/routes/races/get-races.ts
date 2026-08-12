@@ -81,23 +81,23 @@ export async function getRaces(app: FastifyInstance) {
         })
 
         // Check if user is registered for each race
-        const racesWithRegistration = await Promise.all(
-          races.map(async (race) => {
-            const isRegistered = await prisma.raceParticipant.findUnique({
-              where: {
-                raceId_athleteId: {
-                  raceId: race.id,
+        const registeredRaceIds = new Set(
+          (races.length > 0
+            ? await prisma.raceParticipant.findMany({
+                where: {
                   athleteId: userId,
+                  raceId: { in: races.map((race) => race.id) },
                 },
-              },
-            })
-
-            return {
-              ...race,
-              isRegistered: !!isRegistered,
-            }
-          })
+                select: { raceId: true },
+              })
+            : []
+          ).map((participant) => participant.raceId)
         )
+
+        const racesWithRegistration = races.map((race) => ({
+          ...race,
+          isRegistered: registeredRaceIds.has(race.id),
+        }))
 
         return reply.status(200).send({ races: racesWithRegistration })
       }

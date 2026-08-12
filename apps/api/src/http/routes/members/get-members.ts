@@ -81,7 +81,9 @@ export async function getMembers(app: FastifyInstance) {
               },
             },
             invoices: {
-              select: { status: true },
+              where: { status: 'OVERDUE' },
+              select: { id: true },
+              take: 1,
             },
           },
           orderBy: { role: 'asc' },
@@ -100,9 +102,7 @@ export async function getMembers(app: FastifyInstance) {
             name: m.user.name || 'Atleta',
             avatarUrl: m.user.avatarUrl || null,
             paceAvg: m.user.athleteProfile?.paceAvg || null,
-            overdue: isPrivileged
-              ? m.invoices.some((i) => i.status === 'OVERDUE')
-              : false,
+            overdue: isPrivileged ? m.invoices.length > 0 : false,
             shoes: m.user.athleteProfile?.shoes || null,
             watch: m.user.athleteProfile?.watch || null,
             joinedAt: m.createdAt.toISOString(),

@@ -41,18 +41,22 @@ export async function updateAthleteRanking(
     },
   ]
 
-  for (const period of periods) {
-    const workouts = await db.workout.findMany({
-      where: {
-        athleteId,
-        clubId,
-        status: 'COMPLETED',
-        date: { gte: period.startDate, lte: period.endDate },
-      },
-      select: { distance: true, pace: true },
-    })
+  const workouts = await db.workout.findMany({
+    where: {
+      athleteId,
+      clubId,
+      status: 'COMPLETED',
+      date: { gte: periods[2].startDate, lte: periods[2].endDate },
+    },
+    select: { distance: true, pace: true, date: true },
+  })
 
+  for (const period of periods) {
     const totalPoints = workouts.reduce((points, workout) => {
+      if (workout.date < period.startDate || workout.date > period.endDate) {
+        return points
+      }
+
       const distancePoints = workout.distance * 10
       const speedKmH = workout.pace && workout.pace > 0 ? 60 / workout.pace : 0
       return points + Math.round(distancePoints + speedKmH * 5)
