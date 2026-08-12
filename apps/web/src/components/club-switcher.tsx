@@ -1,6 +1,6 @@
 'use client'
 
-import { getClubs } from '@/http/get-clubs'
+import { getClubsAction } from '@/app/private-actions'
 import { getCookie, setCookie } from 'cookies-next'
 import { Building2, Check, ChevronDown, PlusCircle } from 'lucide-react'
 import Link from 'next/link'
@@ -25,7 +25,7 @@ export function ClubSwitcher() {
   useEffect(() => {
     async function loadClubs() {
       try {
-        const { clubs } = await getClubs()
+        const { clubs } = await getClubsAction()
         setClubs(clubs)
 
         const currentClubSlug = getCookie('club')
@@ -82,7 +82,7 @@ export function ClubSwitcher() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hidden items-center gap-2 rounded-xl border border-transparent px-3 py-1.5 text-sm font-bold text-gray-700 transition-all hover:border-gray-200 hover:bg-gray-50 focus:outline-none md:flex"
+        className="hidden items-center gap-2 rounded-xl border border-transparent px-3 py-1.5 font-bold text-gray-700 text-sm transition-all hover:border-gray-200 hover:bg-gray-50 focus:outline-none md:flex"
       >
         {currentClub ? (
           <>
@@ -105,9 +105,9 @@ export function ClubSwitcher() {
       </button>
 
       {isOpen && (
-        <div className="animate-in fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-64 rounded-2xl border border-gray-100 bg-white/95 py-2 shadow-2xl backdrop-blur-md duration-100">
+        <div className="fade-in zoom-in-95 absolute left-0 z-50 mt-2 w-64 animate-in rounded-2xl border border-gray-100 bg-white/95 py-2 shadow-2xl backdrop-blur-md duration-100">
           <div className="px-3 py-1.5">
-            <span className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+            <span className="font-bold text-[10px] text-gray-400 uppercase tracking-wider">
               Seus Clubes
             </span>
           </div>
@@ -117,7 +117,7 @@ export function ClubSwitcher() {
               <button
                 key={club.id}
                 onClick={() => handleSelectClub(club)}
-                className={`group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold transition-colors hover:bg-gray-50 ${
+                className={`group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left font-bold text-sm transition-colors hover:bg-gray-50 ${
                   currentClub?.id === club.id
                     ? 'bg-orange-50/50 text-orange-600'
                     : 'text-gray-700'
@@ -145,7 +145,7 @@ export function ClubSwitcher() {
             <Link
               href="/create-club"
               onClick={() => setIsOpen(false)}
-              className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm font-bold text-gray-700 transition-colors hover:bg-gray-50"
+              className="group flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left font-bold text-gray-700 text-sm transition-colors hover:bg-gray-50"
             >
               <PlusCircle className="h-4 w-4 text-gray-400 transition-colors group-hover:text-orange-500" />
               <span>Criar novo clube</span>

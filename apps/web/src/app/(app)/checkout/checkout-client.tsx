@@ -1,8 +1,11 @@
 'use client'
 
+import {
+  joinWaitlistAction,
+  requestJoinClubAction,
+  subscribeAthleteAction,
+} from '@/app/private-actions'
 import { Header } from '@/components/header'
-import { subscribeAthlete } from '@/http/subscribe-athlete'
-import { joinWaitlist } from '@/http/waitlist-actions'
 import {
   ArrowLeft,
   ArrowRight,
@@ -57,7 +60,7 @@ export function CheckoutClient({
     setWaitlistLoading(true)
     setWaitlistError('')
     try {
-      await joinWaitlist({ email: waitlistEmail, name: waitlistName })
+      await joinWaitlistAction({ email: waitlistEmail, name: waitlistName })
       setWaitlistSuccess(true)
     } catch (err) {
       console.error(err)
@@ -133,12 +136,11 @@ export function CheckoutClient({
     try {
       const role = searchParams.get('role')
       if (role === 'athlete' || plan === 'athlete') {
-        await subscribeAthlete()
+        await subscribeAthleteAction()
 
         const clubSlug = searchParams.get('clubSlug')
         if (clubSlug) {
-          const { requestJoinClub } = await import('@/http/request-join-club')
-          await requestJoinClub(clubSlug)
+          await requestJoinClubAction(clubSlug)
         }
 
         router.push('/explore')

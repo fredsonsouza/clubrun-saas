@@ -33,29 +33,36 @@ export function getProfile(app: FastifyInstance) {
         },
       },
       async (request, reply) => {
-        const userId = await request.getCurrentUserId()
+        const userId = await request.getCurrentUserId({ allowUnverified: true })
 
-        const user = await prisma.user.findUnique({
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatarUrl: true,
-            isSystemAdmin: true,
-            emailVerifiedAt: true,
-            passwordHash: true,
-            clubsOwned: { select: { id: true } },
-            members_on: { select: { role: true } },
-            athleteProfile: {
-              select: {
-                isPremium: true,
+        const [user, passwordCredentialCount] = await Promise.all([
+          prisma.user.findUnique({
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatarUrl: true,
+              isSystemAdmin: true,
+              emailVerifiedAt: true,
+
+              clubsOwned: { select: { id: true } },
+              members_on: { select: { role: true } },
+              athleteProfile: {
+                select: {
+                  isPremium: true,
+                },
               },
             },
-          },
-          where: {
-            id: userId,
-          },
-        })
+            where: {
+              id: userId,
+            },
+          }),
+          prisma.user.count
+            ? prisma.user.count({
+                where: { id: userId, passwordHash: { not: null } },
+              })
+            : Promise.resolve(0),
+        ])
         if (!user) {
           throw new BadRequestError('User not found!')
         }
@@ -79,7 +86,7 @@ export function getProfile(app: FastifyInstance) {
             avatarUrl: user.avatarUrl,
             isSystemAdmin: user.isSystemAdmin,
             emailVerifiedAt: user.emailVerifiedAt,
-            hasPassword: !!user.passwordHash,
+            hasPassword: passwordCredentialCount > 0,
             isPremium,
           },
         })

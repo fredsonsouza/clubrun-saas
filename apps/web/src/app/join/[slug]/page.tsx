@@ -1,6 +1,8 @@
+import { getInviteContinuation } from '@/auth/cookies'
 import { auth, isAuthenticated } from '@/auth/auth'
 import { Header } from '@/components/header'
 import { getClubPublicInfo } from '@/http/get-club-public-info'
+import { getClubs } from '@/http/get-clubs'
 import { getInvite } from '@/http/get-invite'
 import { redirect } from 'next/navigation'
 import { AcceptInviteForm } from './accept-invite-form'
@@ -16,25 +18,24 @@ interface JoinPageProps {
   }>
 }
 
-export default async function JoinPage({
-  params,
-  searchParams,
-}: JoinPageProps) {
+export default async function JoinPage({ params, searchParams }: JoinPageProps) {
   const { slug } = await params
-  const { token, inviteId } = await searchParams
+  const query = await searchParams
 
-  if (!token && !inviteId) {
+  if (query.token || query.inviteId) {
+    const captureParams = new URLSearchParams({ continueTo: `/join/${slug}` })
+    if (query.token) captureParams.set('token', query.token)
+    if (query.inviteId) captureParams.set('inviteId', query.inviteId)
+    redirect(`/api/auth/invite-continuation?${captureParams.toString()}`)
+  }
+
+  const continuation = await getInviteContinuation()
+  if (!continuation) {
     redirect('/explore')
   }
 
-  const isAuth = await isAuthenticated()
-
-  if (!isAuth) {
-    const searchParams = new URLSearchParams()
-    searchParams.set('redirectTo', `/join/${slug}`)
-    if (token) searchParams.set('token', token)
-    if (inviteId) searchParams.set('inviteId', inviteId)
-    redirect(`/auth/sign-in?${searchParams.toString()}`)
+  if (!(await isAuthenticated())) {
+    redirect(`/auth/sign-in?redirectTo=${encodeURIComponent(`/join/${slug}`)}`)
   }
 
   const { user } = await auth()
@@ -43,7 +44,6 @@ export default async function JoinPage({
     redirect('/auth/sign-in')
   }
 
-  // Sanitized user for client components
   const sanitizedUser = {
     id: user.id,
     name: user.name,
@@ -51,19 +51,16 @@ export default async function JoinPage({
     avatarUrl: user.avatarUrl,
   }
 
-  // Verifica se o usuário já é membro do clube
-  const { getClubs } = await import('@/http/get-clubs')
   const { clubs: userClubs } = await getClubs()
-  const isAlreadyMember = userClubs.some((c) => c.slug === slug)
+  const isAlreadyMember = userClubs.some((club) => club.slug === slug)
 
   if (isAlreadyMember) {
     redirect(`/${slug}/dashboard`)
   }
 
   try {
-    // Caso seja um convite privado via e-mail
-    if (inviteId) {
-      const { invite } = await getInvite(inviteId)
+    if (continuation.inviteId) {
+      const { invite } = await getInvite(continuation.inviteId)
 
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
@@ -75,36 +72,32 @@ export default async function JoinPage({
       )
     }
 
-    // Caso seja um link público com token
-    if (token) {
+    if (continuation.token) {
       const { club } = await getClubPublicInfo(slug)
 
       return (
         <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
           <Header user={sanitizedUser} />
           <main className="mx-auto flex max-w-7xl flex-col items-center px-4 pt-20 sm:px-6 lg:px-8">
-            <JoinClubForm club={club} token={token} user={sanitizedUser} />
+            <JoinClubForm club={club} user={sanitizedUser} />
           </main>
         </div>
       )
     }
 
-    return redirect('/explore')
+    redirect('/explore')
   } catch (error) {
     console.error('Erro ao carregar página de convite:', error)
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="max-w-md rounded-2xl bg-white p-8 shadow-xl text-center">
-          <h1 className="text-xl font-bold text-red-600 mb-2">
+        <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+          <h1 className="mb-2 text-xl font-bold text-red-600">
             Ops! Algo deu errado.
           </h1>
-          <p className="text-gray-600 mb-4">
+          <p className="mb-4 text-gray-600">
             Não conseguimos carregar as informações do convite. Verifique se o
             link está correto.
           </p>
-          <pre className="text-[10px] bg-gray-100 p-2 rounded text-left overflow-auto max-h-40">
-            {JSON.stringify(error, null, 2)}
-          </pre>
         </div>
       </div>
     )

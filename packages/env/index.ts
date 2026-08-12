@@ -6,7 +6,15 @@ export const env = createEnv({
     SERVER_PORT: z.coerce.number().default(3333),
     DATABASE_URL: z.url(),
 
-    JWT_SECRET: z.string(),
+    JWT_SECRET: z.string().refine((value) => Buffer.byteLength(value, 'utf8') >= 32, {
+      message: 'JWT_SECRET must be at least 32 bytes',
+    }),
+    JWT_ISSUER: z.string().default('club-run-api'),
+    JWT_AUDIENCE: z.string().default('club-run-clients'),
+    TOKEN_PEPPER: z.string().refine(
+      (value) => Buffer.byteLength(value, 'utf8') >= 32,
+      { message: 'TOKEN_PEPPER must be at least 32 bytes' }
+    ),
 
     GOOGLE_OAUTH_CLIENT_ID: z.string(),
     GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
@@ -24,6 +32,9 @@ export const env = createEnv({
     DATABASE_URL: process.env.DATABASE_URL,
     SERVER_PORT: process.env.SERVER_PORT,
     JWT_SECRET: process.env.JWT_SECRET,
+    JWT_ISSUER: process.env.JWT_ISSUER,
+    JWT_AUDIENCE: process.env.JWT_AUDIENCE,
+    TOKEN_PEPPER: process.env.TOKEN_PEPPER,
     GOOGLE_OAUTH_CLIENT_ID: process.env.GOOGLE_OAUTH_CLIENT_ID,
     GOOGLE_OAUTH_CLIENT_SECRET: process.env.GOOGLE_OAUTH_CLIENT_SECRET,
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI:

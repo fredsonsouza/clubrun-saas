@@ -1,8 +1,9 @@
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
+import { verifyPassword } from '@/utils/identity'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
-import z from 'zod'
+import { z } from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 
 export async function anonymizeUser(app: FastifyInstance) {
@@ -16,57 +17,50 @@ export async function anonymizeUser(app: FastifyInstance) {
           tags: ['users'],
           summary: 'Anonymize user account (GDPR deletion)',
           security: [{ bearerAuth: [] }],
-          body: z.object({
-            password: z.string(), // Confirm identity
-          }),
-          response: {
-            204: z.null(),
-          },
+          body: z.object({ password: z.string().max(128).optional() }),
+          response: { 204: z.null() },
         },
       },
       async (request, reply) => {
         const userId = await request.getCurrentUserId()
-
         const user = await prisma.user.findUnique({
           where: { id: userId },
+          select: { passwordHash: true },
         })
+        if (!user) throw new BadRequestError('User not found.')
 
-        if (!user) {
-          throw new BadRequestError('User not found.')
+        if (user.passwordHash) {
+          if (!request.body.password) {
+            throw new BadRequestError('Password confirmation is required.')
+          }
+          const verification = await verifyPassword(
+            request.body.password,
+            user.passwordHash
+          )
+          if (!verification.valid) {
+            throw new BadRequestError('Invalid password.')
+          }
         }
 
-        // TODO: Verify password here if needed.
-        // For now, since it's a simulation/onboarding flow, we check if password was provided.
-        // In a real app, use bcrypt.compare(password, user.passwordHash)
-
-        // 1. Clear personal data
-        const anonymizedEmail = `deleted-${userId}@clubrun.com`
-        const anonymizedName = 'Atleta Excluído'
-
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            name: anonymizedName,
-            email: anonymizedEmail,
-            username: null,
-            passwordHash: null,
-            avatarUrl: null,
-          },
-        })
-
-        // 2. Delete sensitive secondary records
-        await Promise.all([
-          prisma.athleteProfile.deleteMany({ where: { userId } }),
-          prisma.account.deleteMany({ where: { userId } }),
-          prisma.token.deleteMany({ where: { userId } }),
-        ])
-
-        // 3. Set all memberships to INACTIVE
-        await prisma.member.updateMany({
-          where: { userId },
-          data: {
-            status: 'INACTIVE',
-          },
+        await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: userId },
+            data: {
+              name: 'Atleta Excluído',
+              email: `deleted-${userId}@clubrun.com`,
+              username: null,
+              passwordHash: null,
+              avatarUrl: null,
+              sessionVersion: { increment: 1 },
+            },
+          })
+          await tx.athleteProfile.deleteMany({ where: { userId } })
+          await tx.account.deleteMany({ where: { userId } })
+          await tx.token.deleteMany({ where: { userId } })
+          await tx.member.updateMany({
+            where: { userId },
+            data: { status: 'INACTIVE' },
+          })
         })
 
         return reply.status(204).send(null)

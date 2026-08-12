@@ -1,3 +1,8 @@
+import {
+  PublicClubDto,
+  publicClubSelect,
+  toPublicClubDto,
+} from '@/http/dtos'
 import { prisma } from '@/lib/prisma'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
@@ -16,13 +21,7 @@ export async function getClubPublicInfo(app: FastifyInstance) {
         }),
         response: {
           200: z.object({
-            club: z.object({
-              id: z.uuid(),
-              name: z.string(),
-              slug: z.string(),
-              avatarUrl: z.string().nullable(),
-              description: z.string().nullable(),
-            }),
+            club: PublicClubDto,
           }),
         },
       },
@@ -32,13 +31,7 @@ export async function getClubPublicInfo(app: FastifyInstance) {
 
       const club = await prisma.club.findUnique({
         where: { slug },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          avatarUrl: true,
-          description: true,
-        },
+        select: publicClubSelect,
       })
 
       if (!club) {
@@ -46,7 +39,7 @@ export async function getClubPublicInfo(app: FastifyInstance) {
       }
 
       return {
-        club,
+        club: toPublicClubDto(club),
       }
     }
   )

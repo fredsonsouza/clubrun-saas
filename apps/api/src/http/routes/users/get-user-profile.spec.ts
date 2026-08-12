@@ -77,13 +77,17 @@ describe('Get User Profile (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(200)
-    expect(response.json().user.email).toBeNull()
-    expect(response.json().user.isSystemAdmin).toBe(false)
-    expect(response.json().athleteProfile.gender).toBeNull()
-    expect(response.json().athleteProfile.birthDate).toBeNull()
-    expect(response.json().athleteProfile.weight).toBeNull()
-    expect(response.json().athleteProfile.medicalConditions).toBeNull()
-    expect(response.json().athleteProfile.hasMedicalConditions).toBe(false)
+    expect(response.json().user).not.toHaveProperty('email')
+    expect(response.json().user.isSystemAdmin).toBeUndefined()
+    expect(response.json().athleteProfile).not.toHaveProperty('gender')
+    expect(response.json().athleteProfile).not.toHaveProperty('birthDate')
+    expect(response.json().athleteProfile).not.toHaveProperty('weight')
+    expect(response.json().athleteProfile).not.toHaveProperty(
+      'medicalConditions'
+    )
+    expect(response.json().athleteProfile).not.toHaveProperty(
+      'hasMedicalConditions'
+    )
     expect(response.json().plannedWorkouts).toEqual([])
     expect(prisma.workout.aggregate).toHaveBeenCalledWith(
       expect.objectContaining({

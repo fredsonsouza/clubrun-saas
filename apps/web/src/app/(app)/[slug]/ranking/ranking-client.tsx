@@ -1,9 +1,10 @@
 'use client'
 
+import { getClubRankingAction } from '@/app/private-actions'
 import { Header } from '@/components/header'
 import { RankingShareModal } from '@/components/ranking-share-modal'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getClubRanking } from '@/http/get-club-ranking'
+
 import {
   Activity,
   ArrowLeft,
@@ -75,7 +76,7 @@ export function RankingClient({
           year: 'yearly',
         } as const
 
-        const { rankings } = await getClubRanking({
+        const { rankings } = await getClubRankingAction({
           slug: club.slug,
           type: typeMap[period],
         })

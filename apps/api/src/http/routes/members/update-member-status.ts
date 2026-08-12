@@ -5,7 +5,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function updateMemberStatus(app: FastifyInstance) {
   app
@@ -40,12 +40,12 @@ export async function updateMemberStatus(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId,
+          memberShip.clubId ?? club.id,
           club.ownerId
         )
 
         if (club.ownerId !== userId || cannot('update_roles', 'User')) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             `You're not allowed to update members status.`
           )
         }

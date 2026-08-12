@@ -1,3 +1,6 @@
+import 'server-only'
+
+import { getSessionToken } from '@/auth/cookies'
 import { env } from '@saas/env'
 import ky from 'ky'
 
@@ -11,21 +14,10 @@ export const api = ky.create({
   hooks: {
     beforeRequest: [
       async (request) => {
-        if (typeof window === 'undefined') {
-          const { cookies } = await import('next/headers')
-          const cookieStore = await cookies()
-          const token = cookieStore.get('token')?.value
+        const token = await getSessionToken()
 
-          if (token) {
-            request.headers.set('Authorization', `Bearer ${token}`)
-          }
-        } else {
-          const { getCookie } = await import('cookies-next')
-          const token = getCookie('token')
-
-          if (token) {
-            request.headers.set('Authorization', `Bearer ${token}`)
-          }
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`)
         }
       },
     ],

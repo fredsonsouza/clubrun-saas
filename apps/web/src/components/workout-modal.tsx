@@ -4,9 +4,8 @@ import {
   createWorkoutAction,
   logToServerAction,
 } from '@/app/(app)/[slug]/dashboard/actions'
+import { getCurrentAthleteProfileAction } from '@/app/private-actions'
 import { ShoeIcon } from '@/components/shoe-icon'
-import { getProfile } from '@/http/get-profile'
-import { getUserProfile } from '@/http/get-user-profile'
 import {
   addHours,
   isBefore,
@@ -108,11 +107,8 @@ export function CreateWorkoutModal({
 
       const fetchProfile = async () => {
         try {
-          const { user } = await getProfile()
-          if (user?.id) {
-            const profileData = await getUserProfile(user.id)
-            setAthleteProfile(profileData.athleteProfile)
-          }
+          const athleteProfile = await getCurrentAthleteProfileAction()
+          setAthleteProfile(athleteProfile)
         } catch (error) {
           console.error('Erro ao buscar perfil:', error)
         }

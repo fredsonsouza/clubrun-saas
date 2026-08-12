@@ -1,8 +1,35 @@
 import { Loader2 } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import { Suspense } from 'react'
 import { SignInForm } from './sign-in-form'
 
-export default function SignInPage() {
+interface SignInPageProps {
+  searchParams: Promise<{
+    token?: string
+    inviteId?: string
+    plan?: string
+    role?: string
+    redirectTo?: string
+  }>
+}
+
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const { token, inviteId, plan, role, redirectTo } = await searchParams
+
+  if (token || inviteId) {
+    const destinationParams = new URLSearchParams()
+    if (plan) destinationParams.set('plan', plan)
+    if (role) destinationParams.set('role', role)
+    if (redirectTo) destinationParams.set('redirectTo', redirectTo)
+
+    const continueTo = `/auth/sign-in${destinationParams.size ? `?${destinationParams.toString()}` : ''}`
+    const captureParams = new URLSearchParams({ continueTo })
+    if (token) captureParams.set('token', token)
+    if (inviteId) captureParams.set('inviteId', inviteId)
+
+    redirect(`/api/auth/invite-continuation?${captureParams.toString()}`)
+  }
+
   return (
     <Suspense
       fallback={

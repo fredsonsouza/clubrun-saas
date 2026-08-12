@@ -1,8 +1,8 @@
 'use client'
 
+import { FormError } from '@/components/form-error'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useFormState } from '@/hooks/use-form-state'
-import { FormError } from '@/components/form-error'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -25,8 +25,6 @@ export function SignUpForm() {
   const role = searchParams.get('role')
   const plan = searchParams.get('plan')
   const redirectTo = searchParams.get('redirectTo')
-  const token = searchParams.get('token')
-  const inviteId = searchParams.get('inviteId')
   const invitedEmail = searchParams.get('email')
 
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
@@ -36,8 +34,6 @@ export function SignUpForm() {
       if (role) params.set('role', role)
       if (plan) params.set('plan', plan)
       if (redirectTo) params.set('redirectTo', redirectTo)
-      if (token) params.set('token', token)
-      if (inviteId) params.set('inviteId', inviteId)
 
       const queryString = params.toString()
       router.push(`/auth/sign-in${queryString ? `?${queryString}` : ''}`)
@@ -45,7 +41,7 @@ export function SignUpForm() {
   )
 
   return (
-    <div className="animate-in fade-in flex min-h-screen bg-white font-sans text-gray-900 duration-500">
+    <div className="fade-in flex min-h-screen animate-in bg-white font-sans text-gray-900 duration-500">
       {/* LADO ESQUERDO */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-gray-900 p-12 text-white lg:flex lg:w-1/2">
         <div className="pointer-events-none absolute top-0 right-0 h-96 w-96 rounded-full bg-orange-500/20 blur-[100px]" />
@@ -56,24 +52,24 @@ export function SignUpForm() {
               className="h-8 w-8 text-orange-500 transition-transform group-hover:scale-110"
               fill="currentColor"
             />
-            <span className="text-2xl font-extrabold tracking-tight">
+            <span className="font-extrabold text-2xl tracking-tight">
               Club<span className="text-orange-500">Run</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-white"
+            className="flex items-center gap-2 font-medium text-gray-400 text-sm transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar ao site
           </Link>
         </div>
 
         <div className="relative z-10 mb-10 max-w-md">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold tracking-wider text-white uppercase">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 font-bold text-white text-xs uppercase tracking-wider">
             <Trophy className="h-4 w-4 text-amber-400" /> Transforme seus
             resultados
           </div>
-          <h1 className="mb-6 text-4xl leading-tight font-extrabold tracking-tight xl:text-5xl">
+          <h1 className="mb-6 font-extrabold text-4xl leading-tight tracking-tight xl:text-5xl">
             Sua jornada começa aqui.
           </h1>
           <ul className="space-y-4 font-medium text-gray-300">
@@ -87,7 +83,7 @@ export function SignUpForm() {
             </li>
           </ul>
         </div>
-        <div className="relative z-10 text-xs font-medium text-gray-500">
+        <div className="relative z-10 font-medium text-gray-500 text-xs">
           © 2026 ClubRun SaaS. Construído para corredores.
         </div>
       </div>
@@ -97,16 +93,16 @@ export function SignUpForm() {
         <div className="relative z-10 w-full max-w-md space-y-8">
           <div className="mb-8 flex items-center justify-center gap-2 lg:hidden">
             <Flame className="h-8 w-8 text-orange-500" fill="currentColor" />
-            <span className="text-3xl font-extrabold tracking-tight">
+            <span className="font-extrabold text-3xl tracking-tight">
               Club<span className="text-orange-500">Run</span>
             </span>
           </div>
 
           <div className="text-center lg:text-left">
-            <h2 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="mb-2 font-extrabold text-3xl text-gray-900 tracking-tight">
               Criar conta
             </h2>
-            <p className="text-sm font-medium text-gray-500">
+            <p className="font-medium text-gray-500 text-sm">
               Cadastre-se rapidamente para acessar a plataforma.
             </p>
           </div>
@@ -128,13 +124,10 @@ export function SignUpForm() {
             {redirectTo && (
               <input type="hidden" name="redirectTo" value={redirectTo} />
             )}
-            {token && <input type="hidden" name="token" value={token} />}
-            {inviteId && (
-              <input type="hidden" name="inviteId" value={inviteId} />
-            )}
+
             <button
               type="submit"
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 font-bold text-gray-700 text-sm shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -159,16 +152,16 @@ export function SignUpForm() {
           </form>
 
           <div className="relative flex items-center py-2">
-            <div className="grow border-t border-gray-200"></div>
-            <span className="shrink-0 px-4 text-xs font-bold tracking-widest text-gray-400 uppercase">
+            <div className="grow border-gray-200 border-t"></div>
+            <span className="shrink-0 px-4 font-bold text-gray-400 text-xs uppercase tracking-widest">
               Ou preencha seus dados
             </span>
-            <div className="grow border-t border-gray-200"></div>
+            <div className="grow border-gray-200 border-t"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
-              <label htmlFor="name" className="text-sm font-bold text-gray-700">
+              <label htmlFor="name" className="font-bold text-gray-700 text-sm">
                 Nome Completo
               </label>
               <input
@@ -189,12 +182,12 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="username"
-                className="text-sm font-bold text-gray-700"
+                className="font-bold text-gray-700 text-sm"
               >
                 Nome de Usuário (Username)
               </label>
               <div className="relative">
-                <span className="absolute top-1/2 left-4 -translate-y-1/2 font-bold text-gray-400">
+                <span className="-translate-y-1/2 absolute top-1/2 left-4 font-bold text-gray-400">
                   @
                 </span>
                 <input
@@ -216,7 +209,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="email"
-                className="text-sm font-bold text-gray-700"
+                className="font-bold text-gray-700 text-sm"
               >
                 E-mail
               </label>
@@ -239,7 +232,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="password"
-                className="text-sm font-bold text-gray-700"
+                className="font-bold text-gray-700 text-sm"
               >
                 Senha
               </label>
@@ -261,7 +254,7 @@ export function SignUpForm() {
             <div className="space-y-1.5">
               <label
                 htmlFor="password_confirmation"
-                className="text-sm font-bold text-gray-700"
+                className="font-bold text-gray-700 text-sm"
               >
                 Confirmar Senha
               </label>
@@ -280,7 +273,7 @@ export function SignUpForm() {
               <FormError message={errors?.password_confirmation?.[0]} />
             </div>
 
-            <p className="text-center text-[10px] leading-relaxed font-medium text-gray-400 uppercase">
+            <p className="text-center font-medium text-[10px] text-gray-400 uppercase leading-relaxed">
               Ao iniciar, você aceita nossa{' '}
               <Link href="/terms" className="text-orange-500 hover:underline">
                 Privacidade
@@ -307,10 +300,10 @@ export function SignUpForm() {
             </button>
           </form>
 
-          <p className="pt-4 text-center text-sm font-medium text-gray-500">
+          <p className="pt-4 text-center font-medium text-gray-500 text-sm">
             Já possui conta?{' '}
             <Link
-              href={`/auth/sign-in${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${redirectTo}` : ''}${token ? `&token=${token}` : ''}` : ''}`}
+              href={`/auth/sign-in${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${encodeURIComponent(redirectTo)}` : ''}` : ''}`}
               className="font-bold text-orange-500 hover:underline"
             >
               Fazer login

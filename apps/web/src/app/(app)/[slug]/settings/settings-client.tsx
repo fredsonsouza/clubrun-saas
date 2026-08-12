@@ -94,7 +94,6 @@ interface SettingsClientProps {
     totalDistanceMonth: number
     totalWorkoutsMonth: number
   }
-  token?: string
 }
 
 // --- MOCKS DE FATURAÇÃO ---
@@ -151,7 +150,6 @@ export function SettingsClient({
   members,
   billing,
   metrics,
-  token,
 }: SettingsClientProps) {
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<
@@ -552,14 +550,12 @@ export function SettingsClient({
                       value={avatarUrl}
                       onChange={setAvatarUrl}
                       aspectRatio="square"
-                      token={token}
                     />
                     <ImageUpload
                       label="Banner de Capa"
                       value={bannerUrl}
                       onChange={setBannerUrl}
                       aspectRatio="video"
-                      token={token}
                     />
                   </div>
 

@@ -1,8 +1,12 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function approveInvite(app: FastifyInstance) {
   app
@@ -22,10 +26,12 @@ export async function approveInvite(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug, inviteId } = request.params
-        const { memberShip } = await request.getUserMemberShip(slug)
-
-        if (memberShip.role !== 'OWNER' && memberShip.role !== 'MANAGER') {
-          throw new UnauthorizedError('Unauthorized')
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'update', 'Invite')
+        if (!['OWNER', 'MANAGER'].includes(context.memberShip.role)) {
+          throw new ForbiddenError(
+            'Only owners and managers can approve invites.'
+          )
         }
 
         return reply.status(204).send()

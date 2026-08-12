@@ -65,6 +65,6 @@ describe('Approve Invite (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

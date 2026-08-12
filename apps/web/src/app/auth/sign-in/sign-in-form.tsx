@@ -1,8 +1,8 @@
 'use client'
 
+import { FormError } from '@/components/form-error'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useFormState } from '@/hooks/use-form-state'
-import { FormError } from '@/components/form-error'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -23,18 +23,17 @@ export function SignInForm() {
   const plan = searchParams.get('plan')
   const role = searchParams.get('role')
   const redirectTo = searchParams.get('redirectTo')
-  const token = searchParams.get('token')
-  const inviteId = searchParams.get('inviteId')
 
   const [{ success, errors, message }, handleSubmit, isPending] = useFormState(
     signInWithEmailAndPassword,
     () => {
-      if (redirectTo) {
-        const params = new URLSearchParams()
-        if (token) params.set('token', token)
-        if (inviteId) params.set('inviteId', inviteId)
-        const queryString = params.toString()
-        router.push(`${redirectTo}${queryString ? `?${queryString}` : ''}`)
+      if (
+        redirectTo?.startsWith('/') &&
+        !redirectTo.startsWith('//') &&
+        !redirectTo.includes('\\') &&
+        !redirectTo.includes('://')
+      ) {
+        router.push(redirectTo)
       } else if (plan) {
         router.push(`/checkout?plan=${plan}${role ? `&role=${role}` : ''}`)
       } else if (role === 'owner') {
@@ -46,7 +45,7 @@ export function SignInForm() {
   )
 
   return (
-    <div className="animate-in fade-in flex min-h-screen bg-white font-sans text-gray-900 duration-500">
+    <div className="fade-in flex min-h-screen animate-in bg-white font-sans text-gray-900 duration-500">
       {/* LADO ESQUERDO: Inspiração */}
       <div className="relative hidden flex-col justify-between overflow-hidden bg-gray-900 p-12 text-white lg:flex lg:w-1/2">
         <div className="pointer-events-none absolute top-0 right-0 h-96 w-96 rounded-full bg-orange-500/20 blur-[100px]" />
@@ -71,20 +70,20 @@ export function SignInForm() {
               className="h-8 w-8 text-orange-500 transition-transform group-hover:scale-110"
               fill="currentColor"
             />
-            <span className="text-2xl font-extrabold tracking-tight">
+            <span className="font-extrabold text-2xl tracking-tight">
               Club<span className="text-orange-500">Run</span>
             </span>
           </Link>
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-medium text-gray-400 transition-colors hover:text-white"
+            className="flex items-center gap-2 font-medium text-gray-400 text-sm transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar ao site
           </Link>
         </div>
 
         <div className="relative z-10 mb-10 max-w-md">
-          <h1 className="mb-6 text-4xl leading-tight font-extrabold tracking-tight xl:text-5xl">
+          <h1 className="mb-6 font-extrabold text-4xl leading-tight tracking-tight xl:text-5xl">
             Bem-vindo de volta ao pelotão.
           </h1>
           <ul className="space-y-4 font-medium text-gray-300">
@@ -98,7 +97,7 @@ export function SignInForm() {
             </li>
           </ul>
         </div>
-        <div className="relative z-10 text-xs font-medium text-gray-500">
+        <div className="relative z-10 font-medium text-gray-500 text-xs">
           © 2026 ClubRun SaaS.
         </div>
       </div>
@@ -108,16 +107,16 @@ export function SignInForm() {
         <div className="relative z-10 w-full max-w-md space-y-8">
           <div className="mb-8 flex items-center justify-center gap-2 lg:hidden">
             <Flame className="h-8 w-8 text-orange-500" fill="currentColor" />
-            <span className="text-3xl font-extrabold tracking-tight">
+            <span className="font-extrabold text-3xl tracking-tight">
               Club<span className="text-orange-500">Run</span>
             </span>
           </div>
 
           <div className="text-center lg:text-left">
-            <h2 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="mb-2 font-extrabold text-3xl text-gray-900 tracking-tight">
               Fazer Login
             </h2>
-            <p className="text-sm font-medium text-gray-500">
+            <p className="font-medium text-gray-500 text-sm">
               Insira seus dados para acessar o painel do seu clube.
             </p>
           </div>
@@ -140,13 +139,10 @@ export function SignInForm() {
             {redirectTo && (
               <input type="hidden" name="redirectTo" value={redirectTo} />
             )}
-            {token && <input type="hidden" name="token" value={token} />}
-            {inviteId && (
-              <input type="hidden" name="inviteId" value={inviteId} />
-            )}
+
             <button
               type="submit"
-              className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
+              className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 font-bold text-gray-700 text-sm shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
                 <path
@@ -171,18 +167,18 @@ export function SignInForm() {
           </form>
 
           <div className="relative flex items-center py-2">
-            <div className="grow border-t border-gray-200"></div>
-            <span className="shrink-0 px-4 text-xs font-bold tracking-widest text-gray-400 uppercase">
+            <div className="grow border-gray-200 border-t"></div>
+            <span className="shrink-0 px-4 font-bold text-gray-400 text-xs uppercase tracking-widest">
               Ou use seu e-mail
             </span>
-            <div className="grow border-t border-gray-200"></div>
+            <div className="grow border-gray-200 border-t"></div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="space-y-1.5">
               <label
                 htmlFor="login"
-                className="text-sm font-bold text-gray-700"
+                className="font-bold text-gray-700 text-sm"
               >
                 E-mail ou Usuário
               </label>
@@ -205,13 +201,13 @@ export function SignInForm() {
               <div className="flex items-center justify-between">
                 <label
                   htmlFor="password"
-                  className="text-sm font-bold text-gray-700"
+                  className="font-bold text-gray-700 text-sm"
                 >
                   Senha
                 </label>
                 <Link
                   href="/auth/forgot-password"
-                  className="text-xs font-bold text-orange-500 transition-colors hover:text-orange-600 hover:underline"
+                  className="font-bold text-orange-500 text-xs transition-colors hover:text-orange-600 hover:underline"
                 >
                   Esqueceu a senha?
                 </Link>
@@ -246,10 +242,10 @@ export function SignInForm() {
             </button>
           </form>
 
-          <p className="pt-4 text-center text-sm font-medium text-gray-500">
+          <p className="pt-4 text-center font-medium text-gray-500 text-sm">
             Não tem uma conta?{' '}
             <Link
-              href={`/auth/sign-up${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${redirectTo}` : ''}${token ? `&token=${token}` : ''}` : ''}`}
+              href={`/auth/sign-up${plan || redirectTo ? `?${plan ? `plan=${plan}${role ? `&role=${role}` : ''}` : ''}${redirectTo ? `${plan ? '&' : ''}redirectTo=${encodeURIComponent(redirectTo)}` : ''}` : ''}`}
               className="font-bold text-orange-500 hover:underline"
             >
               Cadastre-se grátis

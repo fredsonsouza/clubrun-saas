@@ -9,7 +9,8 @@ const resetPasswordSchema = z
     code: z.string(),
     password: z
       .string()
-      .min(8, { message: 'A senha deve ter pelo menos 8 caracteres.' }),
+      .min(12, { message: 'A senha deve ter pelo menos 12 caracteres.' })
+      .max(128, { message: 'A senha deve ter no máximo 128 caracteres.' }),
     password_confirmation: z.string(),
   })
   .refine((data) => data.password === data.password_confirmation, {

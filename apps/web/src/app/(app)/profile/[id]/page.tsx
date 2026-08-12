@@ -14,7 +14,7 @@ export default async function UserProfilePage({
   params,
 }: UserProfilePageProps) {
   const { id } = await params
-  const { user: currentUser, token } = await auth()
+  const { user: currentUser } = await auth()
 
   if (!currentUser) {
     redirect('/auth/sign-in')
@@ -61,7 +61,6 @@ export default async function UserProfilePage({
       workouts={formattedWorkouts}
       plannedWorkouts={formattedPlannedWorkouts}
       isOwnProfile={isOwnProfile}
-      token={token}
     />
   )
 }

@@ -1,10 +1,10 @@
 'use client'
 
+import { requestJoinClubAction } from '@/app/private-actions'
 import { type Club, ClubCard } from '@/components/club-card'
 import { Header } from '@/components/header'
 import { JoinFeedbackModal } from '@/components/join-feedback-modal'
 
-import { requestJoinClub } from '@/http/request-join-club'
 import { Compass, Flame, Search } from 'lucide-react'
 
 import React, { useState } from 'react'
@@ -44,7 +44,7 @@ export function ExploreClubsClient({
     name: string
   ) => {
     try {
-      await requestJoinClub(slug)
+      await requestJoinClubAction(slug)
 
       setClubs(
         clubs.map((c) =>

@@ -1,14 +1,16 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
+import { PublicWorkoutDto, publicWorkoutSelect } from '@/http/dtos'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import {
-  getEffectiveClubRole,
-  getUserPermissions,
-} from '@/utils/get-user-permissions'
+import { getEffectiveClubRole } from '@/utils/get-user-permissions'
 import { getWorkoutVisibilityFilter } from '@/utils/workout-visibility'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+
 
 export async function getWorkouts(app: FastifyInstance) {
   app
@@ -32,47 +34,7 @@ export async function getWorkouts(app: FastifyInstance) {
           }),
           response: {
             200: z.object({
-              workouts: z.array(
-                z.object({
-                  id: z.uuid(),
-                  title: z.string().nullable(),
-                  slug: z.string().nullable(),
-                  distance: z.number(),
-                  duration: z.number().nullable(),
-                  pace: z.number().nullable(),
-                  type: z.string(),
-                  status: z.enum(['PLANNED', 'COMPLETED']),
-                  assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
-                  date: z.coerce.date(),
-                  notes: z.string().nullable(),
-                  imageUrl: z.string().nullable(),
-                  targetDistance: z.number().nullable().optional(),
-                  targetDuration: z.number().nullable().optional(),
-                  stravaActivityId: z.string().nullable().optional(),
-                  syncSource: z.string().nullable().optional(),
-                  routeData: z.any().nullish(),
-                  createdAt: z.coerce.date(),
-                  clubId: z.uuid(),
-                  visibility: z.enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE']),
-                  athlete: z.object({
-                    id: z.string().uuid(),
-                    name: z.string().nullable(),
-                    avatarUrl: z.string().nullable(),
-                  }),
-                  club: z.object({
-                    name: z.string(),
-                    slug: z.string(),
-                    avatarUrl: z.string().nullable(),
-                  }),
-                  reactions: z.array(
-                    z.object({
-                      type: z.string(),
-                      count: z.number(),
-                    })
-                  ),
-                  currentUserReaction: z.string().nullable().optional(),
-                })
-              ),
+              workouts: z.array(PublicWorkoutDto),
               meta: z.object({
                 total: z.number(),
                 page: z.number(),
@@ -87,22 +49,9 @@ export async function getWorkouts(app: FastifyInstance) {
         const { slug } = request.params
         const { page, limit, status, athleteId } = request.query
         const skip = (page - 1) * limit
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
-
-        const { can } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin,
-          memberShip.clubId,
-          club.ownerId
-        )
-
-        if (!can('get', 'Workout')) {
-          throw new UnauthorizedError(
-            'Você não tem permissão para listar os treinos deste clube'
-          )
-        }
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'get', 'Workout')
+        const { club, memberShip, userId } = context
 
         const effectiveRole = getEffectiveClubRole(
           userId,
@@ -126,48 +75,7 @@ export async function getWorkouts(app: FastifyInstance) {
             where,
           }),
           prisma.workout.findMany({
-            select: {
-              id: true,
-              title: true,
-              slug: true,
-              imageUrl: true,
-              clubId: true,
-              visibility: true,
-              distance: true,
-              duration: true,
-              pace: true,
-              type: true,
-              status: true,
-              assignmentMode: true,
-              date: true,
-              notes: true,
-              targetDistance: true,
-              targetDuration: true,
-              stravaActivityId: true,
-              syncSource: true,
-              routeData: true,
-              createdAt: true,
-              athlete: {
-                select: {
-                  id: true,
-                  name: true,
-                  avatarUrl: true,
-                },
-              },
-              club: {
-                select: {
-                  name: true,
-                  slug: true,
-                  avatarUrl: true,
-                },
-              },
-              reactions: {
-                select: {
-                  type: true,
-                  userId: true,
-                },
-              },
-            },
+            select: publicWorkoutSelect,
             where,
             orderBy: {
               createdAt: 'desc',

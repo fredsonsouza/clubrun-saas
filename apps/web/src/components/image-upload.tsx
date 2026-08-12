@@ -9,7 +9,6 @@ interface ImageUploadProps {
   onChange: (url: string) => void
   label?: string
   aspectRatio?: 'square' | 'video'
-  token?: string
 }
 
 export function ImageUpload({
@@ -17,7 +16,6 @@ export function ImageUpload({
   onChange,
   label,
   aspectRatio = 'square',
-  token,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -33,17 +31,9 @@ export function ImageUpload({
     formData.append('file', file)
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'
-
-      const headers: Record<string, string> = {}
-      if (token) {
-        headers.Authorization = `Bearer ${token}`
-      }
-
-      const response = await fetch(`${apiUrl}/uploads`, {
+      const response = await fetch('/api/uploads', {
         method: 'POST',
         body: formData,
-        headers,
       })
 
       if (!response.ok) {

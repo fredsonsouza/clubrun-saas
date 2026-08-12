@@ -1,18 +1,38 @@
 import type { Club, Member } from '../../generated/prisma/client'
 
-type UserMemberShip =
-  | (Member & { isSystemAdmin: boolean })
-  | (Pick<Member, 'id' | 'userId' | 'status' | 'clubId'> & {
-      role: 'VISITOR'
-      isSystemAdmin: boolean
-    })
+type AuthClub = Pick<
+  Club,
+  | 'id'
+  | 'name'
+  | 'slug'
+  | 'domain'
+  | 'cnpj'
+  | 'inviteToken'
+  | 'shouldAttachUsersByDomain'
+  | 'avatarUrl'
+  | 'subscriptionStatus'
+  | 'description'
+  | 'city'
+  | 'state'
+  | 'bannerUrl'
+  | 'status'
+  | 'createdAt'
+  | 'updatedAt'
+  | 'ownerId'
+>
+
+type ActiveUserMembership = Member & { isSystemAdmin: boolean }
+
+interface CurrentUserOptions {
+  allowUnverified?: boolean
+}
 
 declare module 'fastify' {
   export interface FastifyRequest {
-    getCurrentUserId(): Promise<string>
+    getCurrentUserId(options?: CurrentUserOptions): Promise<string>
     getUserMemberShip(slug: string): Promise<{
-      club: Club
-      memberShip: UserMemberShip
+      club: AuthClub
+      memberShip: ActiveUserMembership
     }>
   }
 }

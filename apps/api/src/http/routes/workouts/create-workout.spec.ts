@@ -166,6 +166,6 @@ describe('Create Workout (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

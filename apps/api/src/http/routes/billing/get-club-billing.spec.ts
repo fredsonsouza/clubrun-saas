@@ -75,9 +75,7 @@ describe('Get Club Billing (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
-    expect(response.json().message).toBe(
-      "You're not allowed to get billing details from this club."
-    )
+    expect(response.statusCode).toBe(403)
+    expect(response.json().message).toContain('permissão')
   })
 })

@@ -92,7 +92,7 @@ describe('Update Member Status (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
     expect(prisma.member.findUnique).not.toHaveBeenCalled()
     expect(prisma.member.update).not.toHaveBeenCalled()
   })

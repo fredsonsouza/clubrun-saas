@@ -45,7 +45,9 @@ const appAbilitiesSchema = z.union([
   z.tuple([z.literal('manage'), z.literal('all')]),
 ])
 
-type AppAbilities = z.infer<typeof appAbilitiesSchema>
+export type AppAbilities = z.infer<typeof appAbilitiesSchema>
+export type AppAction = AppAbilities[0]
+export type AppSubject = AppAbilities[1]
 
 export type AppAbility = MongoAbility<AppAbilities>
 

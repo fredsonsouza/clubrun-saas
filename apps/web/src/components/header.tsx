@@ -1,6 +1,6 @@
 'use client'
 
-import { getClubs } from '@/http/get-clubs'
+import { getClubsAction } from '@/app/private-actions'
 import { getCookie } from 'cookies-next'
 import {
   BarChart,
@@ -54,7 +54,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
   useEffect(() => {
     async function loadHeaderData() {
       try {
-        const { clubs: fetchedClubs } = await getClubs()
+        const { clubs: fetchedClubs } = await getClubsAction()
         setClubs(fetchedClubs)
         const currentClubSlug = getCookie('club') as string
 

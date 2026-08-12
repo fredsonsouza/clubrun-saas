@@ -1,6 +1,6 @@
 'use client'
 
-import { submitFeedback as sendFeedback } from '@/http/waitlist-actions'
+import { submitFeedbackAction } from '@/app/private-actions'
 import { AlertCircle, CheckCircle2, MessageSquarePlus, X } from 'lucide-react'
 import type React from 'react'
 import { useState, useTransition } from 'react'
@@ -23,7 +23,7 @@ export function FeedbackButton() {
     setError('')
     startTransition(async () => {
       try {
-        await sendFeedback({ type, comment })
+        await submitFeedbackAction({ type, comment })
         setSuccess(true)
         setComment('')
         setTimeout(() => {

@@ -1,13 +1,15 @@
+import 'server-only'
+
+import { getSessionToken } from '@/auth/cookies'
 import { getProfile } from '@/http/get-profile'
-import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 export async function isAuthenticated() {
-  return !!(await cookies()).get('token')?.value
+  return !!(await getSessionToken())
 }
 
 export async function auth() {
-  const token = (await cookies()).get('token')?.value
+  const token = await getSessionToken()
 
   if (!token) {
     redirect('/')
@@ -29,7 +31,6 @@ export async function auth() {
         id: user.id as string,
         emailVerifiedAt: user.emailVerifiedAt,
       },
-      token,
     }
   } catch (error) {}
 

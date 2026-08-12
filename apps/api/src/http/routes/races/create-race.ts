@@ -1,10 +1,13 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function createRace(app: FastifyInstance) {
   app
@@ -23,7 +26,7 @@ export async function createRace(app: FastifyInstance) {
             city: z.string(),
             date: z.coerce.date(),
             imageUrl: z.string().url().nullish(),
-            routeData: z.any().nullish(),
+            routeData: z.json().nullish(),
           }),
           params: z.object({
             slug: z.string(),
@@ -37,33 +40,16 @@ export async function createRace(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
+        const context = await requireActiveMembership(request, slug)
+        const { club } = context
 
         if (club.status === 'DEACTIVATED') {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             `This club is deactivated and does not allow new races.`
           )
         }
 
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin
-        )
-
-        if (cannot('create', 'Invite')) {
-          // Using 'Invite' as a proxy for admin permission if Race is not in CASL yet, but I should probably check Race
-          // In this project, 'OWNER', 'ADMIN', 'MANAGER' can usually create things.
-          // Let's assume OWNER or ADMIN for races.
-          if (
-            memberShip.role !== 'OWNER' &&
-            memberShip.role !== 'ADMIN' &&
-            memberShip.role !== 'MANAGER'
-          ) {
-            throw new UnauthorizedError(`You're not allowed to create races`)
-          }
-        }
+        requireClubAbility(context, 'create', 'Race')
 
         const { name, distance, city, date, imageUrl, routeData } = request.body
 
@@ -74,7 +60,7 @@ export async function createRace(app: FastifyInstance) {
             city,
             date,
             imageUrl,
-            routeData,
+            routeData: routeData ?? undefined,
             clubId: club.id,
           },
         })

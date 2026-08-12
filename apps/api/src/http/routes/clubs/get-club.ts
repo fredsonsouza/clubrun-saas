@@ -2,6 +2,11 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
+import { InternalClubDto, toInternalClubDto } from '@/http/dtos'
 import { auth } from '@/http/middlewares/auth'
 
 export async function getClub(app: FastifyInstance) {
@@ -20,24 +25,7 @@ export async function getClub(app: FastifyInstance) {
           }),
           response: {
             200: z.object({
-              club: z.object({
-                id: z.string(),
-                name: z.string(),
-                slug: z.string(),
-                domain: z.string().nullable(),
-                shouldAttachUsersByDomain: z.boolean(),
-                avatarUrl: z.string().nullable(),
-                bannerUrl: z.string().nullable(),
-                description: z.string().nullable(),
-                cnpj: z.string().nullable(),
-                city: z.string().nullable(),
-                state: z.string().nullable(),
-                status: z.enum(['ACTIVE', 'DEACTIVATED']),
-                subscriptionStatus: z.string().nullable(),
-                createdAt: z.date(),
-                updatedAt: z.date(),
-                ownerId: z.string(),
-              }),
+              club: InternalClubDto,
               membership: z.object({
                 role: z.string(),
               }),
@@ -47,10 +35,12 @@ export async function getClub(app: FastifyInstance) {
       },
       async (request) => {
         const { slug } = request.params
-        const { club, memberShip } = await request.getUserMemberShip(slug)
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'get', 'Club')
+        const { club, memberShip } = context
 
         return {
-          club,
+          club: toInternalClubDto(club),
           membership: {
             role: memberShip.role,
           },

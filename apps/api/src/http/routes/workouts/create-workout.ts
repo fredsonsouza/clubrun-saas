@@ -1,14 +1,18 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { updateAthleteRanking } from '@/services/update-athlete-ranking'
 import { createAuditLog } from '@/utils/audit-log'
 import { createSlug } from '@/utils/create-slug'
-import { getUserPermissions } from '@/utils/get-user-permissions'
+
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function createWorkout(app: FastifyInstance) {
   app
@@ -41,7 +45,7 @@ export async function createWorkout(app: FastifyInstance) {
             ]),
             date: z.coerce.date(),
             notes: z.string().nullish(),
-            routeData: z.any().optional(),
+            routeData: z.json().optional(),
             visibility: z
               .enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE'])
               .default('PUBLIC'),
@@ -58,22 +62,14 @@ export async function createWorkout(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
+        const context = await requireActiveMembership(request, slug)
+        const { club, userId } = context
 
         if (club.status === 'DEACTIVATED') {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'This club is deactivated and does not allow new workouts.'
           )
         }
-
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin,
-          memberShip.clubId,
-          club.ownerId
-        )
 
         const {
           title,
@@ -93,25 +89,32 @@ export async function createWorkout(app: FastifyInstance) {
         const targetAthleteId = athleteId || userId
         const isPrescribing = targetAthleteId !== userId
 
-        if (isPrescribing && cannot('prescribe', 'Workout')) {
-          throw new UnauthorizedError(
-            `You're not allowed to prescribe workouts to other athletes`
-          )
-        }
+        requireClubAbility(context, isPrescribing ? 'prescribe' : 'create', {
+          __typename: 'Workout',
+          id: `${club.id}:new-workout`,
+          clubId: club.id,
+          athleteId: targetAthleteId,
+          visibility,
+        })
 
-        if (!isPrescribing && cannot('create', 'Workout')) {
-          throw new UnauthorizedError(
-            `You're not allowed to create new workouts`
-          )
+        if (isPrescribing) {
+          const targetMembership = await prisma.member.findFirst({
+            where: {
+              clubId: club.id,
+              userId: targetAthleteId,
+              status: 'ACTIVE',
+            },
+            select: { id: true },
+          })
+
+          if (!targetMembership) {
+            throw new ForbiddenError(
+              'O atleta precisa ser membro ativo deste clube.'
+            )
+          }
         }
 
         const { routeData } = request.body
-
-        console.log(
-          '[DEBUG] API create-workout routeData:',
-          routeData ? 'PRESENTE' : 'AUSENTE',
-          JSON.stringify(routeData)
-        )
 
         // Business Rule: 2h Lead Time for Prescriptions on the same day
         if (isPrescribing) {
@@ -170,7 +173,7 @@ export async function createWorkout(app: FastifyInstance) {
             pace,
             type,
             notes,
-            routeData,
+            routeData: routeData ?? undefined,
             originalDate: isPrescribing ? date : null,
             status: resolvedStatus,
             assignmentMode: isPrescribing ? assignmentMode || 'FREE' : null,

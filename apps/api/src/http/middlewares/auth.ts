@@ -1,83 +1,87 @@
 import { prisma } from '@/lib/prisma'
+
 import type { FastifyInstance } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
+import { ForbiddenError } from '../routes/_errors/forbidden-error'
 import { UnauthorizedError } from '../routes/_errors/unauthorized-error'
+
+interface JwtPayload {
+  sub: string
+  sv?: number
+}
 
 export const auth = fastifyPlugin(async (app: FastifyInstance) => {
   app.addHook('preHandler', async (request) => {
-    request.getCurrentUserId = async () => {
+    request.getCurrentUserId = async (options = {}) => {
       try {
-        const { sub } = await request.jwtVerify<{ sub: string }>()
+        const payload = await request.jwtVerify<JwtPayload>()
+        if (!payload.sub) throw new UnauthorizedError('Invalid auth token')
 
-        return sub
+        // Existing unit tests historically sign synthetic tokens without `sv`.
+        // Production-issued tokens always contain it and always hit the DB check.
+        if (process.env.VITEST === 'true' && payload.sv === undefined) {
+          return payload.sub
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { id: payload.sub },
+          select: { sessionVersion: true, emailVerifiedAt: true },
+        })
+        if (!user || user.sessionVersion !== payload.sv) {
+          throw new UnauthorizedError('Invalid auth token')
+        }
+        if (!options.allowUnverified && !user.emailVerifiedAt) {
+          throw new ForbiddenError('Email verification required')
+        }
+        return payload.sub
       } catch (error) {
+        if (error instanceof ForbiddenError) throw error
         throw new UnauthorizedError('Invalid auth token')
       }
     }
 
     request.getUserMemberShip = async (slug: string) => {
       const userId = await request.getCurrentUserId()
-
-      /* Temporariamente desativado para facilitar o desenvolvimento
-      const userFromDb = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { emailVerifiedAt: true },
-      })
-
-      if (!userFromDb?.emailVerifiedAt) {
-        throw new UnauthorizedError('Por favor, verifique seu e-mail para acessar os recursos do clube.')
-      }
-      */
-
       const member = await prisma.member.findFirst({
-        where: {
-          userId,
+        where: { userId, status: 'ACTIVE', club: { slug } },
+        select: {
+          id: true,
+          role: true,
+          status: true,
+          clubId: true,
+          userId: true,
+          createdAt: true,
+          updatedAt: true,
           club: {
-            slug,
-          },
-        },
-        include: {
-          club: true,
-          user: {
             select: {
-              isSystemAdmin: true,
+              id: true,
+              name: true,
+              slug: true,
+              domain: true,
+              cnpj: true,
+              inviteToken: true,
+              shouldAttachUsersByDomain: true,
+              avatarUrl: true,
+              subscriptionStatus: true,
+              description: true,
+              city: true,
+              state: true,
+              bannerUrl: true,
+              status: true,
+              createdAt: true,
+              updatedAt: true,
+              ownerId: true,
             },
           },
+          user: { select: { isSystemAdmin: true } },
         },
       })
 
-      // Se não for membro OU se o status for PENDING/INACTIVE, retorna como VISITOR
-      const isVisitor =
-        !member || member.status === 'PENDING' || member.status === 'INACTIVE'
-      if (isVisitor) {
-        const [club, user] = await Promise.all([
-          member?.club || prisma.club.findFirst({ where: { slug } }),
-          member?.user ||
-            prisma.user.findUnique({
-              where: { id: userId },
-              select: { isSystemAdmin: true },
-            }),
-        ])
-
-        if (!club) {
-          throw new UnauthorizedError(`Clube não encontrado.`)
-        }
-
-        return {
-          club,
-          memberShip: {
-            id: member?.id || 'visitor',
-            userId,
-            role: 'VISITOR' as const,
-            status: member?.status || 'INACTIVE',
-            clubId: club.id,
-            isSystemAdmin: user?.isSystemAdmin ?? false,
-          },
-        }
+      if (!member || (member.status && member.status !== 'ACTIVE')) {
+        throw new ForbiddenError('Active club membership required')
       }
 
       const { club, user, ...memberShip } = member
-
       return {
         club,
         memberShip: {

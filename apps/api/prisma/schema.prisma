@@ -8,30 +8,31 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  name           String?
-  username       String?         @unique
-  email          String          @unique
-  passwordHash   String?         @map("password_hash")
-  avatarUrl      String?         @map("avatar_url")
-  emailVerifiedAt DateTime?      @map("email_verified_at")
-  isSystemAdmin  Boolean         @default(false) @map("is_system_admin")
-  createdAt      DateTime        @default(now()) @map("created_at")
-  updatedAt      DateTime        @updatedAt @map("updated_at")
+  id              String    @id @default(uuid())
+  name            String?
+  username        String?   @unique
+  email           String    @unique
+  passwordHash    String?   @map("password_hash")
+  avatarUrl       String?   @map("avatar_url")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  isSystemAdmin   Boolean   @default(false) @map("is_system_admin")
+  sessionVersion  Int       @default(0) @map("session_version")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
-  accounts       Account[]
-  athleteProfile AthleteProfile?
-  auditLogs      AuditLog[]
-  clubsOwned     Club[]          @relation("ClubOwner")
-  invites        Invite[]        @relation("InviteAuthor")
-  members_on     Member[]
-  raceResults    RaceResult[]
+  accounts           Account[]
+  athleteProfile     AthleteProfile?
+  auditLogs          AuditLog[]
+  clubsOwned         Club[]            @relation("ClubOwner")
+  invites            Invite[]          @relation("InviteAuthor")
+  members_on         Member[]
+  raceResults        RaceResult[]
   raceParticipations RaceParticipant[]
-  rankings       Ranking[]
-  tokens         Token[]
-  workouts       Workout[]
-  workoutReactions WorkoutReaction[]
-  feedbacks      SystemFeedback[]
+  rankings           Ranking[]
+  tokens             Token[]
+  workouts           Workout[]
+  workoutReactions   WorkoutReaction[]
+  feedbacks          SystemFeedback[]
 
   @@map("users")
 }
@@ -48,37 +49,52 @@ model Account {
 }
 
 model Token {
-  id        String    @id @default(uuid())
-  type      TokenType
-  code      String?
-  createdAt DateTime  @default(now()) @map("created_at")
-  userId    String    @map("user_id")
-  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         String    @id @default(uuid())
+  digest     String    @unique
+  type       TokenType
+  expiresAt  DateTime  @map("expires_at")
+  consumedAt DateTime? @map("consumed_at")
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now()) @map("created_at")
+  userId     String    @map("user_id")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, type, expiresAt])
   @@map("tokens")
 }
 
+model OAuthAttempt {
+  id            String    @id @default(uuid())
+  stateDigest   String    @unique @map("state_digest")
+  pkceChallenge String    @map("pkce_challenge")
+  expiresAt     DateTime  @map("expires_at")
+  consumedAt    DateTime? @map("consumed_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("oauth_attempts")
+}
+
 model Club {
-  id                        String    @id @default(uuid())
+  id                        String     @id @default(uuid())
   name                      String
-  slug                      String    @unique
-  domain                    String?   @unique
-  cnpj                      String?   @unique
-  inviteToken               String?   @unique @map("invite_token")
-  shouldAttachUsersByDomain Boolean   @default(false) @map("should_attach_users_by_domain")
-  avatarUrl                 String?   @map("avatar_url")
-  stripeCustomerId          String?   @unique @map("stripe_customer_id")
-  stripeSubscriptionId      String?   @unique @map("stripe_subscription_id")
-  subscriptionStatus        String?   @map("subscription_status")
+  slug                      String     @unique
+  domain                    String?    @unique
+  cnpj                      String?    @unique
+  inviteToken               String?    @unique @map("invite_token")
+  shouldAttachUsersByDomain Boolean    @default(false) @map("should_attach_users_by_domain")
+  avatarUrl                 String?    @map("avatar_url")
+  stripeCustomerId          String?    @unique @map("stripe_customer_id")
+  stripeSubscriptionId      String?    @unique @map("stripe_subscription_id")
+  subscriptionStatus        String?    @map("subscription_status")
   description               String?
   city                      String?
   state                     String?
-  bannerUrl                 String?   @map("banner_url")
+  bannerUrl                 String?    @map("banner_url")
   status                    ClubStatus @default(ACTIVE)
-  createdAt                 DateTime  @default(now()) @map("created_at")
-  updatedAt                 DateTime  @updatedAt @map("updated_at")
-  ownerId                   String    @map("owner_id")
-  owner                     User      @relation("ClubOwner", fields: [ownerId], references: [id])
+  createdAt                 DateTime   @default(now()) @map("created_at")
+  updatedAt                 DateTime   @updatedAt @map("updated_at")
+  ownerId                   String     @map("owner_id")
+  owner                     User       @relation("ClubOwner", fields: [ownerId], references: [id])
   invites                   Invite[]
   invoices                  Invoice[]
   members                   Member[]
@@ -110,46 +126,46 @@ model Invite {
 }
 
 model Member {
-  id       String       @id @default(uuid())
-  role     Role         @default(ATHLETE)
-  status   MemberStatus @default(ACTIVE)
-  clubId   String       @map("club_id")
-  userId   String       @map("user_id")
-  createdAt DateTime    @default(now()) @map("created_at")
-  updatedAt DateTime    @default(now()) @updatedAt @map("updated_at")
-  invoices Invoice[]
-  club     Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
-  user     User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String       @id @default(uuid())
+  role      Role         @default(ATHLETE)
+  status    MemberStatus @default(ACTIVE)
+  clubId    String       @map("club_id")
+  userId    String       @map("user_id")
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @default(now()) @updatedAt @map("updated_at")
+  invoices  Invoice[]
+  club      Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([clubId, userId])
   @@map("members")
 }
 
 model AthleteProfile {
-  id                    String    @id @default(uuid())
-  paceAvg               Float?
-  weight                Float?
-  height                Int?
-  gender                Gender?
-  birthDate             DateTime  @default("2000-01-01T00:00:00.000Z") @map("birth_date")
-  bio                   String?
-  city                  String?
-  instagramUrl          String?   @map("instagram_url")
-  youtubeUrl            String?   @map("youtube_url")
-  stravaUrl             String?   @map("strava_url")
-  coverUrl              String?   @map("cover_url")
-  isPublic              Boolean   @default(true) @map("is_public")
-  isPremium             Boolean   @default(false) @map("is_premium")
+  id           String   @id @default(uuid())
+  paceAvg      Float?
+  weight       Float?
+  height       Int?
+  gender       Gender?
+  birthDate    DateTime @default("2000-01-01T00:00:00.000Z") @map("birth_date")
+  bio          String?
+  city         String?
+  instagramUrl String?  @map("instagram_url")
+  youtubeUrl   String?  @map("youtube_url")
+  stravaUrl    String?  @map("strava_url")
+  coverUrl     String?  @map("cover_url")
+  isPublic     Boolean  @default(true) @map("is_public")
+  isPremium    Boolean  @default(false) @map("is_premium")
 
   // Equipamentos vestíveis (opcionais)
-  shoes                 String?   @map("shoes")
-  watch                 String?   @map("watch")
-  shoesMaxDistance       Float?    @map("shoes_max_distance")
-  shoesRemainingDistance Float?    @map("shoes_remaining_distance")
+  shoes                  String? @map("shoes")
+  watch                  String? @map("watch")
+  shoesMaxDistance       Float?  @map("shoes_max_distance")
+  shoesRemainingDistance Float?  @map("shoes_remaining_distance")
 
   // Dados Médicos (Resguardo)
-  hasMedicalConditions  Boolean   @default(false) @map("has_medical_conditions")
-  medicalConditions     String?   @map("medical_conditions")
+  hasMedicalConditions Boolean @default(false) @map("has_medical_conditions")
+  medicalConditions    String? @map("medical_conditions")
 
   // Conexão Strava (Simulada)
   stravaAthleteId      String?   @unique @map("strava_athlete_id")
@@ -157,45 +173,45 @@ model AthleteProfile {
   stravaRefreshToken   String?   @map("strava_refresh_token")
   stravaTokenExpiresAt DateTime? @map("strava_token_expires_at")
 
-  userId                String    @unique @map("user_id")
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("athlete_profiles")
 }
 
 model Workout {
-  id             String         @id @default(uuid())
-  title          String?
-  distance       Float
-  duration       Float?
-  pace           Float?
-  type           WorkoutType
-  status         WorkoutStatus @default(COMPLETED)
-  assignmentMode WorkoutMode?  @map("assignment_mode")
-  slug           String?        @unique
-  date           DateTime
-  notes          String?
-  visibility     Visibility     @default(PUBLIC)
-  imageUrl       String?
-  routeData      Json?          @map("route_data")
+  id              String        @id @default(uuid())
+  title           String?
+  distance        Float
+  duration        Float?
+  pace            Float?
+  type            WorkoutType
+  status          WorkoutStatus @default(COMPLETED)
+  assignmentMode  WorkoutMode?  @map("assignment_mode")
+  slug            String?       @unique
+  date            DateTime
+  notes           String?
+  visibility      Visibility    @default(PUBLIC)
+  imageUrl        String?
+  routeData       Json?         @map("route_data")
   rescheduleCount Int           @default(0) @map("reschedule_count")
-  originalDate   DateTime?      @map("original_date")
-  
+  originalDate    DateTime?     @map("original_date")
+
   // Metas Originais para cálculo de desvio
-  targetDistance Float?         @map("target_distance")
-  targetDuration Float?         @map("target_duration")
+  targetDistance Float? @map("target_distance")
+  targetDuration Float? @map("target_duration")
 
   // Link Strava
-  stravaActivityId String?      @unique @map("strava_activity_id")
-  syncSource       String?      @default("MANUAL") @map("sync_source")
-  shoesUsed        String?      @map("shoes_used")
-  reactions      WorkoutReaction[]
+  stravaActivityId String?           @unique @map("strava_activity_id")
+  syncSource       String?           @default("MANUAL") @map("sync_source")
+  shoesUsed        String?           @map("shoes_used")
+  reactions        WorkoutReaction[]
 
-  createdAt      DateTime       @default(now()) @map("created_at")
-  clubId         String         @map("club_id")
-  athleteId      String         @map("athlete_id")
-  athlete        User           @relation(fields: [athleteId], references: [id], onDelete: Cascade)
-  club           Club           @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+  clubId    String   @map("club_id")
+  athleteId String   @map("athlete_id")
+  athlete   User     @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+  club      Club     @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@index([clubId])
   @@index([athleteId])
@@ -218,18 +234,18 @@ enum RacePaymentStatus {
 }
 
 model Race {
-  id        String       @id @default(uuid())
-  name      String
-  distance  Float
-  city      String
-  date      DateTime
-  imageUrl  String?      @map("image_url")
-  routeData Json?        @map("route_data")
-  createdAt DateTime     @default(now()) @map("created_at")
-  clubId    String       @map("club_id")
-  results   RaceResult[]
+  id           String            @id @default(uuid())
+  name         String
+  distance     Float
+  city         String
+  date         DateTime
+  imageUrl     String?           @map("image_url")
+  routeData    Json?             @map("route_data")
+  createdAt    DateTime          @default(now()) @map("created_at")
+  clubId       String            @map("club_id")
+  results      RaceResult[]
   participants RaceParticipant[]
-  club      Club         @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  club         Club              @relation(fields: [clubId], references: [id], onDelete: Cascade)
 
   @@map("races")
 }
@@ -369,13 +385,13 @@ enum WorkoutType {
 
 model WorkoutReaction {
   id        String   @id @default(uuid())
-  type      String   // "LIKE", "FIRE", "CLAP", "TROPHY"
+  type      String // "LIKE", "FIRE", "CLAP", "TROPHY"
   createdAt DateTime @default(now()) @map("created_at")
   workoutId String   @map("workout_id")
   userId    String   @map("user_id")
 
-  workout   Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workout Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workoutId, userId])
   @@map("workout_reactions")
@@ -392,7 +408,7 @@ model Waitlist {
 
 model SystemFeedback {
   id        String   @id @default(uuid())
-  type      String   // "BUG", "SUGGESTION", "OTHER"
+  type      String // "BUG", "SUGGESTION", "OTHER"
   comment   String
   createdAt DateTime @default(now()) @map("created_at")
   userId    String   @map("user_id")

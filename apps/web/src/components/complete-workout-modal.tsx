@@ -1,9 +1,8 @@
 'use client'
 
 import { completeWorkoutAction } from '@/app/(app)/profile/actions'
+import { getCurrentAthleteProfileAction } from '@/app/private-actions'
 import { ShoeIcon } from '@/components/shoe-icon'
-import { getProfile } from '@/http/get-profile'
-import { getUserProfile } from '@/http/get-user-profile'
 import {
   Activity,
   AlertTriangle,
@@ -101,11 +100,8 @@ export function CompleteWorkoutModal({
     if (isOpen) {
       const fetchProfile = async () => {
         try {
-          const { user } = await getProfile()
-          if (user?.id) {
-            const profileData = await getUserProfile(user.id)
-            setAthleteProfile(profileData.athleteProfile)
-          }
+          const athleteProfile = await getCurrentAthleteProfileAction()
+          setAthleteProfile(athleteProfile)
         } catch (error) {
           console.error('Erro ao buscar perfil:', error)
         }
@@ -212,15 +208,15 @@ export function CompleteWorkoutModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200">
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200">
       <div
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-          <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
+      <div className="zoom-in-95 relative w-full max-w-md animate-in overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between border-gray-100 border-b px-6 py-5">
+          <h2 className="flex items-center gap-2 font-black text-gray-900 text-xl">
             <CheckCircle2 className="h-5 w-5 text-orange-500" />
             Finalizar Treino
           </h2>
@@ -232,30 +228,30 @@ export function CompleteWorkoutModal({
           </button>
         </header>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
           <div className="relative overflow-hidden rounded-2xl border border-orange-100 bg-orange-50/50 p-5">
             <div className="absolute top-0 right-0 h-16 w-16 rounded-full bg-orange-500/5 blur-xl" />
-            <h4 className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-orange-600 mb-2">
+            <h4 className="mb-2 flex items-center gap-2 font-black text-[10px] text-orange-600 uppercase tracking-[0.2em]">
               <Target className="h-3 w-3" /> Meta do Treinador
             </h4>
-            <p className="text-base font-black text-gray-900 leading-tight">
+            <p className="font-black text-base text-gray-900 leading-tight">
               {workout.title}
             </p>
             <div className="mt-3 flex items-center gap-4">
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">
+                <span className="font-bold text-[10px] text-gray-400 uppercase">
                   Distância
                 </span>
-                <span className="text-sm font-black text-gray-700">
+                <span className="font-black text-gray-700 text-sm">
                   {workout.distance}km
                 </span>
               </div>
               <div className="h-6 w-px bg-orange-200/50" />
               <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-gray-400 uppercase">
+                <span className="font-bold text-[10px] text-gray-400 uppercase">
                   Tempo Sugerido
                 </span>
-                <span className="text-sm font-black text-gray-700">
+                <span className="font-black text-gray-700 text-sm">
                   {workout.durationInSeconds > 0
                     ? formatDuration(workout.durationInSeconds)
                     : 'Livre'}
@@ -269,7 +265,7 @@ export function CompleteWorkoutModal({
               <button
                 type="button"
                 onClick={() => setShowStravaActivities(!showStravaActivities)}
-                className="w-full flex items-center justify-between gap-2 rounded-2xl bg-orange-50 px-5 py-3.5 text-xs font-black text-orange-600 transition-colors hover:bg-orange-100"
+                className="flex w-full items-center justify-between gap-2 rounded-2xl bg-orange-50 px-5 py-3.5 font-black text-orange-600 text-xs transition-colors hover:bg-orange-100"
               >
                 <span className="flex items-center gap-2">
                   <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
@@ -277,33 +273,33 @@ export function CompleteWorkoutModal({
                   </svg>
                   IMPORTAR DO STRAVA
                 </span>
-                <span className="text-[10px] font-medium opacity-80">
+                <span className="font-medium text-[10px] opacity-80">
                   {showStravaActivities ? 'Fechar ▲' : 'Selecionar atividade ▼'}
                 </span>
               </button>
 
               {showStravaActivities && (
-                <div className="rounded-2xl border border-gray-100 bg-gray-50/50 p-2 space-y-1.5 animate-in slide-in-from-top-2 duration-200">
+                <div className="slide-in-from-top-2 animate-in space-y-1.5 rounded-2xl border border-gray-100 bg-gray-50/50 p-2 duration-200">
                   {mockStravaActivities.map((act) => (
                     <button
                       key={act.id}
                       type="button"
                       onClick={() => handleSelectStravaActivity(act)}
-                      className="w-full flex items-center justify-between rounded-xl bg-white p-3 text-left border border-gray-100 hover:border-orange-200 hover:bg-orange-50/20 transition-all active:scale-99"
+                      className="flex w-full items-center justify-between rounded-xl border border-gray-100 bg-white p-3 text-left transition-all hover:border-orange-200 hover:bg-orange-50/20 active:scale-99"
                     >
                       <div>
-                        <p className="text-xs font-extrabold text-gray-800">
+                        <p className="font-extrabold text-gray-800 text-xs">
                           {act.name}
                         </p>
-                        <p className="text-[10px] text-gray-400 font-bold">
+                        <p className="font-bold text-[10px] text-gray-400">
                           {act.date}
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-black text-orange-600">
+                        <p className="font-black text-orange-600 text-sm">
                           {act.distance.toFixed(2)} km
                         </p>
-                        <p className="text-[10px] text-gray-500 font-mono font-bold">
+                        <p className="font-bold font-mono text-[10px] text-gray-500">
                           {act.durationStr}
                         </p>
                       </div>
@@ -316,7 +312,7 @@ export function CompleteWorkoutModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+              <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                 <Activity className="h-3.5 w-3.5 text-orange-500" /> Distância
                 Real
               </label>
@@ -327,16 +323,16 @@ export function CompleteWorkoutModal({
                   required
                   value={distance}
                   onChange={(e) => setDistance(e.target.value)}
-                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 pr-12 pl-5 font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                 />
-                <span className="absolute right-5 top-1/2 -translate-y-1/2 font-bold text-gray-400">
+                <span className="-translate-y-1/2 absolute top-1/2 right-5 font-bold text-gray-400">
                   km
                 </span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+              <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                 <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo Real
               </label>
               <div className="relative">
@@ -346,7 +342,7 @@ export function CompleteWorkoutModal({
                   placeholder="00:00"
                   value={duration}
                   onChange={handleDurationChange}
-                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 py-4 px-5 font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
+                  className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                 />
               </div>
             </div>
@@ -355,7 +351,7 @@ export function CompleteWorkoutModal({
           {/* Informações do Tênis */}
           {athleteProfile?.shoes && (
             <div
-              className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
+              className={`space-y-2 rounded-2xl border p-4 font-semibold text-xs ${
                 athleteProfile.shoesRemainingDistance <= 42
                   ? 'border-red-100 bg-red-50/50 text-red-700'
                   : 'border-orange-100 bg-orange-50/30 text-gray-700'
@@ -367,7 +363,7 @@ export function CompleteWorkoutModal({
                     className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`}
                   />
                   <span
-                    className="font-bold truncate max-w-[180px]"
+                    className="max-w-[180px] truncate font-bold"
                     title={athleteProfile.shoes}
                   >
                     {athleteProfile.shoes}
@@ -378,7 +374,7 @@ export function CompleteWorkoutModal({
                   <strong
                     className={
                       athleteProfile.shoesRemainingDistance <= 42
-                        ? 'text-red-600 font-extrabold'
+                        ? 'font-extrabold text-red-600'
                         : 'text-gray-900'
                     }
                   >
@@ -391,7 +387,7 @@ export function CompleteWorkoutModal({
               </div>
 
               {athleteProfile.shoesRemainingDistance <= 42 && (
-                <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
+                <div className="flex items-center gap-1 font-bold text-[10px] text-red-600">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   <span>
                     Atenção: Vida útil próxima do fim! Recomendamos a troca.
@@ -400,7 +396,7 @@ export function CompleteWorkoutModal({
               )}
 
               {isDistanceInvalid && (
-                <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
+                <div className="mt-1 flex items-center gap-1 font-bold text-[10px] text-red-600">
                   <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                   <span>
                     A distância informada ({Number.parseFloat(distance)} km) é
@@ -414,23 +410,23 @@ export function CompleteWorkoutModal({
 
           <div className="flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50 p-5">
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest text-orange-600">
+              <span className="font-black text-[10px] text-orange-600 uppercase tracking-widest">
                 Pace Médio Final
               </span>
-              <p className="text-xs font-medium text-orange-400">
+              <p className="font-medium text-orange-400 text-xs">
                 Calculado automaticamente
               </p>
             </div>
             <div className="flex items-baseline gap-1 text-orange-600">
-              <span className="font-mono text-3xl font-black">{pace}</span>
-              <span className="text-sm font-bold opacity-70">/km</span>
+              <span className="font-black font-mono text-3xl">{pace}</span>
+              <span className="font-bold text-sm opacity-70">/km</span>
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isLoading || isDistanceInvalid}
-            className="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-orange-500 font-black text-white shadow-xl shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="group relative flex h-16 w-full items-center justify-center gap-3 overflow-hidden rounded-2xl bg-orange-500 font-black text-white shadow-orange-500/20 shadow-xl transition-all hover:bg-orange-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />

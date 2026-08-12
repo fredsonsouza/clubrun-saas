@@ -98,7 +98,7 @@ describe('Get Workout (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe('Workout not found!')
+    expect(response.statusCode).toBe(404)
+    expect(response.json().message).toBe('Workout not found')
   })
 })

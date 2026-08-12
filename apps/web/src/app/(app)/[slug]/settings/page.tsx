@@ -59,8 +59,6 @@ export default async function ClubSettingsPage({
     subscriptionStatus: club.subscriptionStatus,
   }
 
-  const { token } = await auth()
-
   const simulationEnabled = ['development', 'test'].includes(
     process.env.NODE_ENV ?? ''
   )
@@ -79,7 +77,6 @@ export default async function ClubSettingsPage({
       members={members}
       billing={billing}
       metrics={metrics}
-      token={token}
     />
   )
 }

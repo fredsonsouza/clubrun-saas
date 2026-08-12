@@ -77,7 +77,7 @@ describe('Get Club (Unit)', () => {
     })
   })
 
-  it('should return 401 if user is not a member of the club', async () => {
+  it('should return 403 if user is not an active member of the club', async () => {
     const userId = '4f88e178-57d5-4537-8e68-c1d00c4c4af5'
     const token = app.jwt.sign({ sub: userId })
 
@@ -95,6 +95,6 @@ describe('Get Club (Unit)', () => {
       },
     })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

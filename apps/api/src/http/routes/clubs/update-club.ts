@@ -7,7 +7,7 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function updateClub(app: FastifyInstance) {
   app
@@ -45,7 +45,7 @@ export async function updateClub(app: FastifyInstance) {
         const { club, memberShip } = await request.getUserMemberShip(slug)
 
         if (club.status === 'DEACTIVATED') {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'This club is deactivated and cannot be updated.'
           )
         }
@@ -67,11 +67,13 @@ export async function updateClub(app: FastifyInstance) {
         const { cannot } = getUserPermissions(
           userId,
           memberShip.role,
-          memberShip.isSystemAdmin
+          memberShip.isSystemAdmin,
+          memberShip.clubId ?? club.id,
+          club.ownerId
         )
 
         if (cannot('update', authClub)) {
-          throw new UnauthorizedError(`You're not allowed to update this club`)
+          throw new ForbiddenError(`You're not allowed to update this club`)
         }
 
         if (domain) {

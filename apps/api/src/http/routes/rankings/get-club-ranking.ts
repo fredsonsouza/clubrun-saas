@@ -4,7 +4,7 @@ import { getISOWeek, getMonth, getYear } from 'date-fns'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+
 
 export async function getClubeRanking(app: FastifyInstance) {
   app
@@ -31,11 +31,7 @@ export async function getClubeRanking(app: FastifyInstance) {
       async (request, reply) => {
         const { slug } = request.params
         const { type, year, month, week } = request.query
-        const { club, memberShip } = await request.getUserMemberShip(slug)
-
-        if (memberShip.role === 'VISITOR') {
-          throw new UnauthorizedError('Membro não autorizado.')
-        }
+        const { club } = await request.getUserMemberShip(slug)
 
         const whereClause: any = {
           clubId: club.id,

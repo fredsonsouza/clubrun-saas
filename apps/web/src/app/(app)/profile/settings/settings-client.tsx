@@ -80,8 +80,8 @@ export function ProfileSettingsClient({ user }: ProfileSettingsClientProps) {
       return
     }
 
-    if (passwordForm.new.length < 6) {
-      toast.error('A nova senha deve ter no mínimo 6 caracteres.')
+    if (passwordForm.new.length < 12) {
+      toast.error('A nova senha deve ter no mínimo 12 caracteres.')
       return
     }
 
@@ -397,7 +397,7 @@ export function ProfileSettingsClient({ user }: ProfileSettingsClientProps) {
                       setPasswordForm({ ...passwordForm, new: e.target.value })
                     }
                     className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-4 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
-                    placeholder="Mínimo 6 caracteres"
+                    placeholder="Mínimo 12 caracteres"
                   />
                 </div>
 

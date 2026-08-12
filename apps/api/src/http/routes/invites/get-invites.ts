@@ -3,10 +3,12 @@ import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
 
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
-import { UnauthorizedError } from '@/http/routes/_errors/unauthorized-error'
 import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
 
 export async function getInvites(app: FastifyInstance) {
   app
@@ -44,18 +46,9 @@ export async function getInvites(app: FastifyInstance) {
       },
       async (request) => {
         const { slug } = request.params
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
-
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin
-        )
-
-        if (cannot('get', 'Invite')) {
-          throw new UnauthorizedError(`You're not allowed to get club invites.`)
-        }
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'get', 'Invite')
+        const { club } = context
 
         const invites = await prisma.invite.findMany({
           where: {

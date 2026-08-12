@@ -18,7 +18,10 @@ export default defineConfig({
     },
     env: {
       DATABASE_URL: 'postgresql://dev:ignite@localhost:5432/club_run',
-      JWT_SECRET: 'test-jwt-secret-key-for-vitest',
+      JWT_SECRET: 'test-jwt-secret-key-for-vitest-at-least-32-bytes',
+      JWT_ISSUER: 'club-run-api-test',
+      JWT_AUDIENCE: 'club-run-test-clients',
+      TOKEN_PEPPER: 'test-token-pepper-at-least-32-bytes-long',
       GOOGLE_OAUTH_CLIENT_ID: 'test-google-client-id',
       GOOGLE_OAUTH_CLIENT_SECRET: 'test-google-client-secret',
       GOOGLE_OAUTH_CLIENT_REDIRECT_URI:

@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function getSystemWaitlist(app: FastifyInstance) {
   app
@@ -43,7 +43,7 @@ export async function getSystemWaitlist(app: FastifyInstance) {
         })
 
         if (!user?.isSystemAdmin) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'Only system administrators can access this.'
           )
         }

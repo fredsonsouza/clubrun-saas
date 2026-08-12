@@ -8,96 +8,120 @@ type PermissionsByRole = (
   builder: AbilityBuilder<AppAbility>
 ) => void
 
+const tenantCondition = (user: User) => ({
+  clubId: { $eq: user.currentClubId as string },
+})
+
+const clubCondition = (user: User) => ({
+  id: { $eq: user.currentClubId as string },
+})
+
 export const permissions: Record<Role, PermissionsByRole> = {
-  ADMIN(_, { can, cannot }) {
-    can('manage', 'all')
-    cannot('transfer_ownership', 'Club')
-    cannot('update_roles', 'User')
-  },
   OWNER(user, { can }) {
-    can('get', ['Club', 'User', 'AthleteProfile'])
-    can('manage', [
-      'Workout',
-      'Race',
-      'RaceResult',
-      'Ranking',
-      'Invite',
-      'Billing',
-      'Invoice',
-    ])
+    if (!user.currentClubId) return
 
-    can('update', 'Club')
-    can('delete', 'Club')
-    can('transfer_ownership', 'Club', { ownerId: { $eq: user.id } })
-    can('update_roles', 'User')
-    can('delete', 'User') // Removing members
-  },
-
-  MANAGER(_, { can, cannot }) {
-    can('get', ['Club', 'User', 'AthleteProfile'])
-
+    const tenant = tenantCondition(user)
+    can('get', 'Club', clubCondition(user))
+    can(['update', 'delete'], 'Club', clubCondition(user))
+    can('transfer_ownership', 'Club', {
+      id: { $eq: user.currentClubId },
+      ownerId: { $eq: user.id },
+    })
+    can(['get', 'update_roles', 'delete'], 'User', tenant)
+    can(['get', 'update', 'delete'], 'AthleteProfile', tenant)
     can(
-      ['get', 'create', 'update', 'delete'],
-      ['Workout', 'Race', 'RaceResult']
+      ['get', 'create', 'update', 'delete', 'prescribe', 'view_private'],
+      'Workout',
+      tenant
     )
-    can(['get', 'update'], 'Ranking')
-    can('manage', ['Invite', 'Billing', 'Invoice'])
-
-    // Restrictions
-    cannot('transfer_ownership', 'Club')
-    cannot('delete', 'User') // Cannot remove members
+    can(['get', 'create', 'update', 'delete'], 'Race', tenant)
+    can(['get', 'create', 'update', 'delete'], 'RaceResult', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Ranking', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invite', tenant)
+    can(['get', 'update', 'export'], 'Billing', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invoice', tenant)
   },
 
-  ATHLETE(user, { can }) {
-    can('get', ['Club', 'User', 'AthleteProfile'])
+  ADMIN(user, { can }) {
+    if (!user.currentClubId) return
 
-    can(['get', 'create'], 'Workout')
-    can(['update', 'delete'], 'Workout', { athleteId: { $eq: user.id } })
+    const tenant = tenantCondition(user)
+    can(['get', 'update'], 'Club', clubCondition(user))
+    can(['get', 'delete'], 'User', tenant)
+    can(['get', 'update', 'delete'], 'AthleteProfile', tenant)
+    can(
+      ['get', 'create', 'update', 'delete', 'prescribe', 'view_private'],
+      'Workout',
+      tenant
+    )
+    can(['get', 'create', 'update', 'delete'], 'Race', tenant)
+    can(['get', 'create', 'update', 'delete'], 'RaceResult', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Ranking', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invite', tenant)
+    can(['get', 'update', 'export'], 'Billing', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invoice', tenant)
+  },
 
-    can('get', ['Race', 'RaceResult', 'Ranking'])
+  MANAGER(user, { can }) {
+    if (!user.currentClubId) return
 
-    can('create', 'Invite')
-    can('get', 'Invite', { authorId: { $eq: user.id } })
+    const tenant = tenantCondition(user)
+    can('get', 'Club', clubCondition(user))
+    can('get', ['User', 'AthleteProfile'], tenant)
+    can(
+      ['get', 'create', 'update', 'delete', 'prescribe', 'view_private'],
+      'Workout',
+      tenant
+    )
+    can(['get', 'create', 'update', 'delete'], 'Race', tenant)
+    can(['get', 'create', 'update', 'delete'], 'RaceResult', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Ranking', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invite', tenant)
+    can(['get', 'update', 'export'], 'Billing', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invoice', tenant)
   },
 
   COACH(user, { can }) {
-    can('get', ['Club', 'User', 'AthleteProfile'])
+    if (!user.currentClubId) return
 
-    // Coach can prescribe workouts to anyone in the club
-    can('prescribe', 'Workout')
-
-    // Coach can manage their own workouts
-    can(['get', 'create', 'update', 'delete'], 'Workout', {
+    const tenant = tenantCondition(user)
+    can('get', 'Club', clubCondition(user))
+    can('get', ['User', 'AthleteProfile'], tenant)
+    can(['get', 'prescribe', 'view_private'], 'Workout', tenant)
+    can(['create', 'update', 'delete', 'view_private'], 'Workout', {
+      ...tenant,
       athleteId: { $eq: user.id },
     })
-
-    // Coach can see all club workouts
-    can('get', 'Workout')
-
-    can(['get'], 'Race')
-    can(['create', 'update'], 'RaceResult')
-    can('get', 'Ranking')
+    can('get', ['Race', 'RaceResult', 'Ranking'], tenant)
   },
 
-  BILLING(_, { can, cannot }) {
-    // Basic member permissions
-    can('get', [
-      'Club',
-      'User',
-      'AthleteProfile',
-      'Workout',
-      'Race',
-      'RaceResult',
-      'Ranking',
-    ])
+  BILLING(user, { can }) {
+    if (!user.currentClubId) return
 
-    // Billing specific
-    can('manage', ['Billing', 'Invoice'])
-
-    // Restrictions
-    cannot(['create', 'update', 'delete'], 'Workout')
+    const tenant = tenantCondition(user)
+    can('get', 'Club', clubCondition(user))
+    can('get', ['User', 'AthleteProfile', 'Race', 'RaceResult', 'Ranking'], tenant)
+    can(['get', 'update', 'export'], 'Billing', tenant)
+    can(['get', 'create', 'update', 'delete'], 'Invoice', tenant)
   },
+
+  ATHLETE(user, { can }) {
+    if (!user.currentClubId) return
+
+    const tenant = tenantCondition(user)
+    can('get', 'Club', clubCondition(user))
+    can('get', ['User', 'AthleteProfile'], tenant)
+    can('get', 'Workout', tenant)
+    can(['create', 'update', 'delete', 'view_private'], 'Workout', {
+      ...tenant,
+      athleteId: { $eq: user.id },
+    })
+    can('get', ['Race', 'RaceResult', 'Ranking'], tenant)
+  },
+
   VISITOR(_, { can }) {
-    can('get', ['Club', 'Workout', 'Race', 'RaceResult', 'Ranking'])
+    can('get_public', 'Club')
+    can('get_public', 'Workout', { visibility: { $eq: 'PUBLIC' } })
+    can('get_public', ['Race', 'RaceResult', 'Ranking'])
   },
 }

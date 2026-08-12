@@ -1,7 +1,7 @@
 'use client'
 
+import { getSystemFeedbacksAction } from '@/app/private-actions'
 import { AdminHeader } from '@/components/admin-header'
-import { getSystemFeedbacks } from '@/http/waitlist-actions'
 import {
   AlertCircle,
   ArrowLeft,
@@ -61,10 +61,9 @@ export function AdminFeedbacksClient({
 
     startTransition(async () => {
       try {
-        const result = await getSystemFeedbacks({
+        const result = await getSystemFeedbacksAction({
           page,
           limit: 15,
-          signal: controller.signal,
         })
         if (!controller.signal.aborted) {
           setFeedbacks(result.feedbacks)

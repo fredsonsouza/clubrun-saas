@@ -1,91 +1,75 @@
 import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
-import { hash } from 'bcryptjs'
+import { hashPassword } from '@/utils/identity'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-    },
-    club: {
-      findFirst: vi.fn(),
-    },
-    invite: {
-      findFirst: vi.fn(),
-    },
-    token: {
-      create: vi.fn(),
-    },
-    auditLog: {
-      create: vi.fn(),
-    },
-  },
+vi.mock('@/lib/mail', () => ({
+  resend: { emails: { send: vi.fn().mockResolvedValue({}) } },
 }))
-
-vi.mock('bcryptjs', () => ({
-  hash: vi.fn(),
+vi.mock('@/utils/identity', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/utils/identity')>()),
+  hashPassword: vi.fn(),
 }))
+vi.mock('@/lib/prisma', () => {
+  const prisma = {
+    user: { findUnique: vi.fn(), create: vi.fn() },
+    token: { updateMany: vi.fn(), create: vi.fn() },
+    auditLog: { create: vi.fn() },
+    $transaction: vi.fn(async (callback: (tx: any) => unknown) =>
+      callback(prisma)
+    ),
+  }
+  return { prisma }
+})
 
 describe('Create Account (Unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-  })
-
-  it('should be able to create a new account', async () => {
+    vi.mocked(hashPassword).mockResolvedValue('argon2id-hash')
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-    vi.mocked(prisma.club.findFirst).mockResolvedValue(null)
-    vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
-    vi.mocked(hash).mockResolvedValue('hashed-password' as any)
     vi.mocked(prisma.user.create).mockResolvedValue({
       id: 'user-id',
-      email: 'john@example.com',
       username: 'johndoe',
     } as any)
+    vi.mocked(prisma.token.updateMany).mockResolvedValue({ count: 0 })
     vi.mocked(prisma.token.create).mockResolvedValue({} as any)
-    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
+  })
 
+  it('normalizes e-mail and creates only user, profile and verification token', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users',
       body: {
         name: 'John Doe',
         username: 'johndoe',
-        email: 'john@example.com',
-        password: 'password123',
+        email: '  John@Example.COM ',
+        password: 'a-secure-password',
       },
     })
 
     expect(response.statusCode).toBe(201)
-    expect(prisma.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          name: 'John Doe',
-          username: 'johndoe',
-          email: 'john@example.com',
-          passwordHash: 'hashed-password',
-        }),
-      })
-    )
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        email: 'john@example.com',
+        passwordHash: 'argon2id-hash',
+        athleteProfile: { create: expect.any(Object) },
+      }),
+      select: { id: true, username: true },
+    })
+    const userData = vi.mocked(prisma.user.create).mock.calls[0][0].data
+    expect(userData).not.toHaveProperty('members_on')
+    expect(prisma.token.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        digest: expect.stringMatching(/^[a-f0-9]{64}$/),
+        type: 'EMAIL_VERIFICATION',
+        expiresAt: expect.any(Date),
+        userId: 'user-id',
+      }),
+    })
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
   })
 
-  it('should be able to create an account and auto-join a club by domain', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
-    vi.mocked(prisma.club.findFirst).mockResolvedValue({
-      id: 'club-id',
-      domain: 'acme.com',
-    } as any)
-    vi.mocked(prisma.invite.findFirst).mockResolvedValue(null)
-    vi.mocked(hash).mockResolvedValue('hashed-password' as any)
-    vi.mocked(prisma.user.create).mockResolvedValue({
-      id: 'user-id',
-      email: 'john@acme.com',
-      username: 'johndoe',
-    } as any)
-    vi.mocked(prisma.token.create).mockResolvedValue({} as any)
-    vi.mocked(prisma.auditLog.create).mockResolvedValue({} as any)
-
+  it('does not consult memberships, clubs or invites during registration', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/users',
@@ -93,26 +77,20 @@ describe('Create Account (Unit)', () => {
         name: 'John Doe',
         username: 'johndoe',
         email: 'john@acme.com',
-        password: 'password123',
+        password: 'a-secure-password',
       },
     })
 
     expect(response.statusCode).toBe(201)
-    expect(prisma.user.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({
-          members_on: {
-            create: [{ clubId: 'club-id' }],
-          },
-        }),
-      })
-    )
+    expect(prisma).not.toHaveProperty('club')
+    expect(prisma).not.toHaveProperty('invite')
+    expect(prisma).not.toHaveProperty('member')
   })
 
-  it('should not be able to create an account with existing e-mail', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({
-      id: 'existing-id',
-    } as any)
+  it('rejects a normalized duplicate e-mail', async () => {
+    vi.mocked(prisma.user.findUnique)
+      .mockResolvedValueOnce({ id: 'existing-id' } as any)
+      .mockResolvedValueOnce(null)
 
     const response = await app.inject({
       method: 'POST',
@@ -120,14 +98,15 @@ describe('Create Account (Unit)', () => {
       body: {
         name: 'John Doe',
         username: 'johndoe',
-        email: 'john@example.com',
-        password: 'password123',
+        email: ' JOHN@example.com ',
+        password: 'a-secure-password',
       },
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json().message).toBe(
-      'User with same e-mail already exists!'
-    )
+    expect(prisma.user.findUnique).toHaveBeenCalledWith({
+      where: { email: 'john@example.com' },
+      select: { id: true },
+    })
   })
 })

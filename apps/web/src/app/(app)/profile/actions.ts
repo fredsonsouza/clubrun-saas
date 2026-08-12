@@ -1,12 +1,13 @@
 'use server'
 
+import { clearSessionCookie } from '@/auth/cookies'
 import { anonymizeUser } from '@/http/anonymize-user'
 import { mutationApi } from '@/http/api-client'
 import { updateAthleteProfile } from '@/http/update-athlete-profile'
-import { deleteCookie } from 'cookies-next'
+
 import { HTTPError } from 'ky'
 import { revalidatePath } from 'next/cache'
-import { cookies } from 'next/headers'
+
 import { redirect } from 'next/navigation'
 
 import { connectStrava } from '@/http/connect-strava'
@@ -56,9 +57,7 @@ export async function anonymizeAccountAction(password: string) {
   try {
     await anonymizeUser(password)
 
-    // Invalidate session
-    const cookieStore = await cookies()
-    cookieStore.delete('token')
+    await clearSessionCookie()
 
     return {
       success: true,

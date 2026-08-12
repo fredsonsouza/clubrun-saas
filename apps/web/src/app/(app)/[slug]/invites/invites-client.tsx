@@ -1,5 +1,6 @@
 'use client'
 
+import { getInviteLinkAction } from '@/app/private-actions'
 import { Header } from '@/components/header'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -10,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { getInviteLink } from '@/http/get-invite-link'
+
 import {
   AlertTriangle,
   CheckCircle2,
@@ -93,7 +94,7 @@ export function InvitesClient({
   React.useEffect(() => {
     async function fetchLink() {
       try {
-        const { inviteLink: link } = await getInviteLink(slug)
+        const { inviteLink: link } = await getInviteLinkAction(slug)
         setInviteLink(link)
       } catch (error) {
         console.error('Falha ao buscar link de convite', error)
@@ -185,12 +186,12 @@ export function InvitesClient({
   const RoleBadge = ({ role }: { role: Role }) => {
     if (role === 'MANAGER' || role === 'ADMIN' || role === 'OWNER')
       return (
-        <span className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-[10px] font-bold tracking-wider text-blue-600 uppercase">
+        <span className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 font-bold text-[10px] text-blue-600 uppercase tracking-wider">
           <User className="h-3 w-3" /> Administrador
         </span>
       )
     return (
-      <span className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+      <span className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 font-bold text-[10px] text-gray-500 uppercase tracking-wider">
         <UserPlus className="h-3 w-3" /> Atleta
       </span>
     )
@@ -200,13 +201,13 @@ export function InvitesClient({
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900">
       <Header user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 duration-500 sm:px-6 lg:px-8">
+      <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-8 duration-500 sm:px-6 lg:px-8">
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h1 className="mb-2 text-3xl font-extrabold tracking-tight text-gray-900">
+            <h1 className="mb-2 font-extrabold text-3xl text-gray-900 tracking-tight">
               Gestão de Convites & Membros
             </h1>
-            <p className="text-sm font-medium text-gray-500">
+            <p className="font-medium text-gray-500 text-sm">
               Acompanhe as solicitações de entrada e envie novos convites.
             </p>
           </div>
@@ -224,7 +225,7 @@ export function InvitesClient({
                   <h3 className="font-extrabold text-gray-900">
                     Link de Convite
                   </h3>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="font-medium text-gray-500 text-xs">
                     Apenas para Atletas (Members)
                   </p>
                 </div>
@@ -235,11 +236,11 @@ export function InvitesClient({
                     type="text"
                     readOnly
                     value={inviteLink || 'Gerando link...'}
-                    className="flex-1 truncate bg-transparent px-3 text-sm font-medium text-gray-600 outline-none"
+                    className="flex-1 truncate bg-transparent px-3 font-medium text-gray-600 text-sm outline-none"
                   />
                   <button
                     onClick={handleCopyLink}
-                    className={`cursor-pointer flex h-10 w-10 items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50'}`}
+                    className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50'}`}
                   >
                     {isCopied ? (
                       <CheckCircle2 className="h-4 w-4" />
@@ -258,7 +259,7 @@ export function InvitesClient({
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 text-sm font-bold text-white shadow-lg shadow-[#25D366]/20 transition-all hover:bg-[#128C7E] ${!inviteLink ? 'pointer-events-none opacity-50' : ''}`}
+                  className={`flex w-full items-center justify-center gap-2 rounded-xl bg-[#25D366] py-3 font-bold text-sm text-white shadow-[#25D366]/20 shadow-lg transition-all hover:bg-[#128C7E] ${!inviteLink ? 'pointer-events-none opacity-50' : ''}`}
                 >
                   PARTILHAR VIA WHATSAPP
                 </a>
@@ -275,7 +276,7 @@ export function InvitesClient({
                   <h3 className="font-extrabold text-gray-900">
                     Convite por E-mail
                   </h3>
-                  <p className="text-xs font-medium text-gray-500">
+                  <p className="font-medium text-gray-500 text-xs">
                     Defina o nível de acesso
                   </p>
                 </div>
@@ -287,12 +288,12 @@ export function InvitesClient({
                   value={emailToInvite}
                   onChange={(e) => setEmailToInvite(e.target.value)}
                   placeholder="atleta@exemplo.com"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-medium focus:border-orange-500 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-medium text-sm focus:border-orange-500 focus:outline-none"
                 />
                 <select
                   value={roleToInvite}
                   onChange={(e) => setRoleToInvite(e.target.value as Role)}
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm font-bold text-gray-700 focus:border-orange-500 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-bold text-gray-700 text-sm focus:border-orange-500 focus:outline-none"
                 >
                   <option value="ATHLETE">Atleta (Membro Comum)</option>
                   <option value="COACH">Treinador (Staff Técnico)</option>
@@ -303,7 +304,7 @@ export function InvitesClient({
                 <button
                   type="submit"
                   disabled={isSending || !emailToInvite}
-                  className="cursor-pointer flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white hover:bg-gray-800 disabled:opacity-70"
+                  className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-white hover:bg-gray-800 disabled:opacity-70"
                 >
                   {isSending ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -320,34 +321,34 @@ export function InvitesClient({
           <div className="space-y-8 md:col-span-7">
             {/* SOLICITAÇÕES DE ENTRADA */}
             <div className="flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 bg-orange-50/30 px-6 py-5">
+              <div className="flex items-center justify-between border-gray-100 border-b bg-orange-50/30 px-6 py-5">
                 <h3 className="flex items-center gap-2 font-extrabold text-gray-900">
                   <UserPlus className="h-5 w-5 text-orange-600" /> Solicitações
                   de Entrada
                 </h3>
-                <span className="rounded-lg bg-orange-100 px-2.5 py-1 text-xs font-bold text-orange-700">
+                <span className="rounded-lg bg-orange-100 px-2.5 py-1 font-bold text-orange-700 text-xs">
                   {pendingMembers.length}
                 </span>
               </div>
               {pendingMembers.length > 0 ? (
-                <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
+                <div className="max-h-[400px] divide-y divide-gray-50 overflow-y-auto">
                   {pendingMembers.map((member) => (
                     <div
                       key={member.id}
-                      className="flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
+                      className="flex items-center justify-between p-5 transition-colors hover:bg-gray-50"
                     >
                       <div className="flex items-center gap-4">
                         <Avatar className="h-10 w-10 border border-gray-100">
                           <AvatarImage src={member.avatarUrl || ''} />
-                          <AvatarFallback className="bg-orange-100 text-orange-600 font-bold">
+                          <AvatarFallback className="bg-orange-100 font-bold text-orange-600">
                             {member.name.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-bold text-gray-900">
+                          <p className="font-bold text-gray-900 text-sm">
                             {member.name}
                           </p>
-                          <p className="text-xs font-medium text-gray-400">
+                          <p className="font-medium text-gray-400 text-xs">
                             {member.email}
                           </p>
                         </div>
@@ -357,7 +358,7 @@ export function InvitesClient({
                           onClick={() =>
                             setMemberToProcess({ member, action: 'INACTIVE' })
                           }
-                          className="cursor-pointer rounded-xl bg-gray-100 px-4 py-2 text-xs font-bold text-gray-500 hover:bg-red-50 hover:text-red-600"
+                          className="cursor-pointer rounded-xl bg-gray-100 px-4 py-2 font-bold text-gray-500 text-xs hover:bg-red-50 hover:text-red-600"
                         >
                           Recusar
                         </button>
@@ -365,7 +366,7 @@ export function InvitesClient({
                           onClick={() =>
                             setMemberToProcess({ member, action: 'ACTIVE' })
                           }
-                          className="cursor-pointer rounded-xl bg-orange-500 px-4 py-2 text-xs font-bold text-white hover:bg-orange-600"
+                          className="cursor-pointer rounded-xl bg-orange-500 px-4 py-2 font-bold text-white text-xs hover:bg-orange-600"
                         >
                           Aprovar
                         </button>
@@ -374,7 +375,7 @@ export function InvitesClient({
                   ))}
                 </div>
               ) : (
-                <div className="p-12 text-center text-sm font-medium text-gray-400 italic">
+                <div className="p-12 text-center font-medium text-gray-400 text-sm italic">
                   Nenhuma solicitação pendente.
                 </div>
               )}
@@ -382,36 +383,36 @@ export function InvitesClient({
 
             {/* CONVITES POR E-MAIL */}
             <div className="flex flex-col overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-6 py-5">
+              <div className="flex items-center justify-between border-gray-100 border-b bg-gray-50/50 px-6 py-5">
                 <h3 className="flex items-center gap-2 font-extrabold text-gray-900">
                   <Clock className="h-5 w-5 text-orange-500" /> Convites por
                   E-mail (Enviados)
                 </h3>
-                <span className="rounded-lg bg-gray-200 px-2.5 py-1 text-xs font-bold text-gray-600">
+                <span className="rounded-lg bg-gray-200 px-2.5 py-1 font-bold text-gray-600 text-xs">
                   {invites.length}
                 </span>
               </div>
               {invites.length > 0 ? (
-                <div className="divide-y divide-gray-50 max-h-[400px] overflow-y-auto">
+                <div className="max-h-[400px] divide-y divide-gray-50 overflow-y-auto">
                   {invites.map((invite) => (
                     <div
                       key={invite.id}
-                      className="group flex items-center justify-between p-5 hover:bg-gray-50 transition-colors"
+                      className="group flex items-center justify-between p-5 transition-colors hover:bg-gray-50"
                     >
                       <div>
-                        <p className="mb-1 text-sm font-bold text-gray-900">
+                        <p className="mb-1 font-bold text-gray-900 text-sm">
                           {invite.email}
                         </p>
                         <div className="flex items-center gap-3">
                           <RoleBadge role={invite.role} />
-                          <span className="text-xs font-medium text-gray-400">
+                          <span className="font-medium text-gray-400 text-xs">
                             {invite.createdAt}
                           </span>
                         </div>
                       </div>
                       <button
                         onClick={() => setInviteToRevoke(invite)}
-                        className="cursor-pointer rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600 md:opacity-0 group-hover:opacity-100 transition-all"
+                        className="cursor-pointer rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 md:opacity-0"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -419,7 +420,7 @@ export function InvitesClient({
                   ))}
                 </div>
               ) : (
-                <div className="p-12 text-center text-sm font-medium text-gray-400 italic">
+                <div className="p-12 text-center font-medium text-gray-400 text-sm italic">
                   Nenhum convite por e-mail pendente.
                 </div>
               )}
@@ -459,14 +460,14 @@ export function InvitesClient({
             <DialogFooter className="mt-8 gap-3">
               <button
                 onClick={() => setMemberToProcess(null)}
-                className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 hover:bg-gray-50"
+                className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleUpdateMemberStatus}
                 disabled={isProcessingMember}
-                className={`cursor-pointer flex-[1.5] rounded-2xl px-6 py-4 text-sm font-black text-white shadow-lg ${memberToProcess?.action === 'ACTIVE' ? 'bg-green-600 shadow-green-600/20 hover:bg-green-700' : 'bg-red-600 shadow-red-600/20 hover:bg-red-700'}`}
+                className={`flex-[1.5] cursor-pointer rounded-2xl px-6 py-4 font-black text-sm text-white shadow-lg ${memberToProcess?.action === 'ACTIVE' ? 'bg-green-600 shadow-green-600/20 hover:bg-green-700' : 'bg-red-600 shadow-red-600/20 hover:bg-red-700'}`}
               >
                 {isProcessingMember ? 'PROCESSANDO...' : 'CONFIRMAR'}
               </button>
@@ -494,14 +495,14 @@ export function InvitesClient({
             <DialogFooter className="mt-8 gap-3">
               <button
                 onClick={() => setInviteToRevoke(null)}
-                className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 hover:bg-gray-50"
+                className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleRevokeInvite}
                 disabled={isRevoking}
-                className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 hover:bg-red-700"
+                className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 hover:bg-red-700"
               >
                 {isRevoking ? 'CANCELANDO...' : 'CONFIRMAR CANCELAMENTO'}
               </button>

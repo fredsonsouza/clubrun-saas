@@ -1,13 +1,13 @@
 'use client'
 
+import { setRaceRegistrationAction } from '@/app/private-actions'
 import { AddResultModal } from '@/components/add-result-modal'
 import { CreateRaceModal } from '@/components/create-race-modal'
 import { DeleteRaceModal } from '@/components/delete-race-modal'
 import { Header } from '@/components/header'
 import { PaymentIncentiveModal } from '@/components/payment-incentive-modal'
 import { UpdateRaceModal } from '@/components/update-race-modal'
-import { deleteRace } from '@/http/delete-race'
-import { setRaceRegistration } from '@/http/race-registration'
+
 import {
   Activity,
   AlertCircle,
@@ -135,7 +135,7 @@ export function RacesClient({
   const setRegistration = async (raceId: string, isRegistered: boolean) => {
     setIsToggling(raceId)
     try {
-      const result = await setRaceRegistration({
+      const result = await setRaceRegistrationAction({
         slug: club.slug,
         raceId,
         isRegistered,

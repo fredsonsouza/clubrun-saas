@@ -1,7 +1,7 @@
 'use client'
 
+import { getSystemWaitlistAction } from '@/app/private-actions'
 import { AdminHeader } from '@/components/admin-header'
-import { getSystemWaitlist } from '@/http/waitlist-actions'
 import {
   ArrowLeft,
   Calendar,
@@ -60,10 +60,9 @@ export function AdminWaitlistClient({
 
     startTransition(async () => {
       try {
-        const result = await getSystemWaitlist({
+        const result = await getSystemWaitlistAction({
           page,
           limit: 20,
-          signal: controller.signal,
         })
         if (!controller.signal.aborted) {
           setWaitlist(result.waitlist)

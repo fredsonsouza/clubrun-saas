@@ -4,7 +4,7 @@ import { z } from 'zod'
 
 import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
-import { UnauthorizedError } from '@/http/routes/_errors/unauthorized-error'
+import { ForbiddenError } from '@/http/routes/_errors/forbidden-error'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
 import { getUserPermissions } from '@/utils/get-user-permissions'
@@ -44,12 +44,12 @@ export async function removeMember(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId,
+          memberShip.clubId ?? club.id,
           club.ownerId
         )
 
         if (cannot('delete', 'User')) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             `You're not allowed to remove this member from club.`
           )
         }
@@ -64,7 +64,7 @@ export async function removeMember(app: FastifyInstance) {
         }
 
         if (targetMember.userId === club.ownerId) {
-          throw new UnauthorizedError(
+          throw new ForbiddenError(
             'The club owner can only leave through the transfer flow.'
           )
         }

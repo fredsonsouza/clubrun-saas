@@ -1,7 +1,7 @@
 'use client'
 
 import { updateRaceAction } from '@/app/(app)/[slug]/races/actions'
-import { getRace } from '@/http/get-race'
+import { getRaceAction } from '@/app/private-actions'
 import { env } from '@saas/env'
 import { addHours, format, isBefore, parse } from 'date-fns'
 import {
@@ -87,7 +87,7 @@ export function UpdateRaceModal({
     async function loadData() {
       try {
         setIsFetching(true)
-        const { race } = await getRace(slug, raceId, controller.signal)
+        const { race } = await getRaceAction({ slug, raceId })
 
         if (controller.signal.aborted) return
 

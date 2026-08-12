@@ -7,7 +7,7 @@ import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { WorkoutType } from '../../../../generated/prisma/enums'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function updateWorkout(app: FastifyInstance) {
   app
@@ -60,13 +60,12 @@ export async function updateWorkout(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId ?? club.id,
+          club.ownerId
         )
 
         if (cannot('update', authWorkout)) {
-          throw new UnauthorizedError(
-            `You're not allowed to update this workout`
-          )
+          throw new ForbiddenError(`You're not allowed to update this workout`)
         }
 
         const { title, distance, duration, pace, type, date, routeData } =

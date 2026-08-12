@@ -47,7 +47,6 @@ interface UpdateProfileModalProps {
     isPublic?: boolean
     isPremium?: boolean
   } | null
-  token?: string
 }
 
 export function UpdateProfileModal({
@@ -55,7 +54,6 @@ export function UpdateProfileModal({
   onClose,
   user,
   athleteProfile: initialData,
-  token,
 }: UpdateProfileModalProps) {
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -147,7 +145,9 @@ export function UpdateProfileModal({
 
   return (
     <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
-      <div
+      <button
+        type="button"
+        aria-label="Fechar edição de perfil"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -161,6 +161,7 @@ export function UpdateProfileModal({
             Editar Perfil de Atleta
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
           >
@@ -211,7 +212,6 @@ export function UpdateProfileModal({
                 value={formData.avatarUrl}
                 onChange={(url) => setFormData({ ...formData, avatarUrl: url })}
                 aspectRatio="square"
-                token={token}
               />
               <div className="relative">
                 <ImageUpload
@@ -221,7 +221,6 @@ export function UpdateProfileModal({
                     setFormData({ ...formData, coverUrl: url })
                   }
                   aspectRatio="video"
-                  token={token}
                 />
                 {!isSubscribed && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl border border-gray-200 border-dashed bg-white/70 p-4 text-center backdrop-blur-xs">
@@ -238,10 +237,14 @@ export function UpdateProfileModal({
 
             {/* NOME COMPLETO */}
             <div className="space-y-2">
-              <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+              <label
+                htmlFor="profile-name"
+                className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+              >
                 Seu Nome Completo
               </label>
               <input
+                id="profile-name"
                 type="text"
                 required
                 disabled={!isSubscribed}
@@ -261,10 +264,14 @@ export function UpdateProfileModal({
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5 md:col-span-2">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-bio"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Sobre Você (Bio)
                   </label>
                   <textarea
+                    id="profile-bio"
                     disabled={!isSubscribed}
                     value={formData.bio}
                     onChange={(e) =>
@@ -281,10 +288,14 @@ export function UpdateProfileModal({
 
                 {/* Data de Nascimento (Obrigatória para todos - Liberada) */}
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-birth-date"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Data de Nascimento *
                   </label>
                   <input
+                    id="profile-birth-date"
                     type="date"
                     required
                     value={formData.birthDate}
@@ -296,10 +307,14 @@ export function UpdateProfileModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-city"
+                    className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase"
+                  >
                     <MapPin className="h-3 w-3" /> Cidade / Estado
                   </label>
                   <input
+                    id="profile-city"
                     type="text"
                     value={formData.city}
                     onChange={(e) =>
@@ -311,10 +326,14 @@ export function UpdateProfileModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-gender"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Gênero
                   </label>
                   <select
+                    id="profile-gender"
                     disabled={!isSubscribed}
                     value={formData.gender}
                     onChange={(e) =>
@@ -337,10 +356,14 @@ export function UpdateProfileModal({
               </h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-weight"
+                    className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase"
+                  >
                     <Scale className="h-3 w-3" /> Peso (kg)
                   </label>
                   <input
+                    id="profile-weight"
                     type="number"
                     disabled={!isSubscribed}
                     value={formData.weight}
@@ -352,10 +375,14 @@ export function UpdateProfileModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-height"
+                    className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase"
+                  >
                     <Ruler className="h-3 w-3" /> Altura (cm)
                   </label>
                   <input
+                    id="profile-height"
                     type="number"
                     disabled={!isSubscribed}
                     value={formData.height}
@@ -377,10 +404,14 @@ export function UpdateProfileModal({
               </h3>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-shoes"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Tênis de Treino
                   </label>
                   <input
+                    id="profile-shoes"
                     type="text"
                     disabled={!isSubscribed}
                     value={formData.shoes}
@@ -396,10 +427,14 @@ export function UpdateProfileModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-shoes-max"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Vida Útil Máxima (KM)
                   </label>
                   <input
+                    id="profile-shoes-max"
                     type="number"
                     min="1"
                     disabled={!isSubscribed || !formData.shoes}
@@ -415,10 +450,14 @@ export function UpdateProfileModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-watch"
+                    className="font-bold text-gray-500 text-xs uppercase"
+                  >
                     Relógio / Smartwatch
                   </label>
                   <input
+                    id="profile-watch"
                     type="text"
                     disabled={!isSubscribed}
                     value={formData.watch}
@@ -465,11 +504,15 @@ export function UpdateProfileModal({
 
                 {isSubscribed && formData.hasMedicalConditions && (
                   <div className="fade-in slide-in-from-top-2 animate-in space-y-1.5 duration-300">
-                    <label className="font-bold text-red-500 text-xs uppercase">
+                    <label
+                      htmlFor="profile-medical-conditions"
+                      className="font-bold text-red-500 text-xs uppercase"
+                    >
                       Descreva suas condições médicas (ex: Asma, Diabetes,
                       Hipertensão, Lesão, etc.) *
                     </label>
                     <textarea
+                      id="profile-medical-conditions"
                       required
                       value={formData.medicalConditions}
                       onChange={(e) =>
@@ -493,10 +536,14 @@ export function UpdateProfileModal({
               </h3>
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-instagram"
+                    className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase"
+                  >
                     <Instagram className="h-3 w-3" /> Instagram URL
                   </label>
                   <input
+                    id="profile-instagram"
                     type="url"
                     disabled={!isSubscribed}
                     value={formData.instagramUrl}
@@ -515,10 +562,14 @@ export function UpdateProfileModal({
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase">
+                  <label
+                    htmlFor="profile-strava"
+                    className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase"
+                  >
                     <Activity className="h-3 w-3" /> Strava URL
                   </label>
                   <input
+                    id="profile-strava"
                     type="url"
                     disabled={!isSubscribed}
                     value={formData.stravaUrl}
@@ -537,9 +588,9 @@ export function UpdateProfileModal({
             </div>
 
             <div className="space-y-3 pt-2">
-              <label className="font-black text-orange-500 text-xs uppercase tracking-widest">
+              <p className="font-black text-orange-500 text-xs uppercase tracking-widest">
                 Privacidade do Perfil
-              </label>
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <label
                   className={`group relative ${isSubscribed ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}

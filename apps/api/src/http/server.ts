@@ -19,6 +19,7 @@ import { subscribeAthlete } from './routes/athlete/subscribe-athlete'
 import { updateAthleteProfile } from './routes/athlete/update-athlete-profile'
 import { authenticateWithGoogle } from './routes/auth/authenticate-with-google'
 import { authenticateWithPassword } from './routes/auth/authenticate-with-password'
+import { createOAuthAttempt } from './routes/auth/create-oauth-attempt'
 import { createAccount } from './routes/auth/create-account'
 import { getProfile } from './routes/auth/get-profile'
 import { requestPasswordRecovery } from './routes/auth/request-password-recovery'
@@ -70,6 +71,7 @@ import { uploadImage } from './routes/uploads/upload-image'
 import { anonymizeUser } from './routes/users/anonymize-user'
 import { connectStrava } from './routes/users/connect-strava'
 import { disconnectStrava } from './routes/users/disconnect-strava'
+import { getUserMedicalProfile } from './routes/users/get-user-medical-profile'
 import { getUserProfile } from './routes/users/get-user-profile'
 import { updatePassword } from './routes/users/update-password'
 import { completeWorkout } from './routes/workouts/complete-workout'
@@ -129,6 +131,17 @@ app.register(fastifySwaggerUi, {
 
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
+  sign: {
+    algorithm: 'HS256',
+    expiresIn: '15m',
+    iss: env.JWT_ISSUER,
+    aud: env.JWT_AUDIENCE,
+  },
+  verify: {
+    algorithms: ['HS256'],
+    allowedIss: env.JWT_ISSUER,
+    allowedAud: env.JWT_AUDIENCE,
+  },
 })
 
 app.register(fastifyCors)
@@ -136,6 +149,7 @@ app.register(fastifyCors)
 app.register(fastifyRateLimit, {
   max: 100,
   timeWindow: '1 minute',
+  hook: 'preHandler',
 })
 
 app.register(fastifyMultipart, {
@@ -173,6 +187,7 @@ app.register(updateAthleteProfile)
 app.register(subscribeAthlete)
 app.register(requestPasswordRecovery)
 app.register(resetPassword)
+app.register(createOAuthAttempt)
 app.register(authenticateWithGoogle)
 app.register(verifyEmail)
 app.register(resendVerification)
@@ -251,6 +266,7 @@ app.register(createFeedback)
 app.register(getSystemFeedbacks)
 app.register(getSystemWaitlist)
 app.register(getUserProfile)
+app.register(getUserMedicalProfile)
 app.register(uploadImage)
 app.register(anonymizeUser)
 app.register(updatePassword)

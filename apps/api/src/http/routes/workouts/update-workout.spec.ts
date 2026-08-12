@@ -116,6 +116,6 @@ describe('Update Workout (Unit)', () => {
     })
 
     console.log(response.json())
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

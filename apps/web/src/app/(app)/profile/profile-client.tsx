@@ -99,7 +99,6 @@ interface ProfileClientProps {
   workouts: Workout[]
   plannedWorkouts: Workout[]
   isOwnProfile: boolean
-  token?: string
 }
 
 function formatPace(pace: number): string {
@@ -131,7 +130,6 @@ export function ProfileClient({
   plannedWorkouts,
   stats,
   isOwnProfile,
-  token,
 }: ProfileClientProps) {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
@@ -1176,7 +1174,6 @@ export function ProfileClient({
         onClose={() => setIsUpdateModalOpen(false)}
         user={user}
         athleteProfile={athleteProfile}
-        token={token}
       />
 
       <ProfileShareModal

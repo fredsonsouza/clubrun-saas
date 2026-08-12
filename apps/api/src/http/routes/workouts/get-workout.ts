@@ -1,16 +1,19 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
+import {
+  PrivateWorkoutDto,
+  PublicWorkoutDto,
+  privateWorkoutSelect,
+} from '@/http/dtos'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { createSlug } from '@/utils/create-slug'
-import {
-  getEffectiveClubRole,
-  getUserPermissions,
-} from '@/utils/get-user-permissions'
 import { getWorkoutVisibilityFilter } from '@/utils/workout-visibility'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function getWorkout(app: FastifyInstance) {
   app
@@ -29,104 +32,66 @@ export async function getWorkout(app: FastifyInstance) {
           }),
           response: {
             200: z.object({
-              workout: z.object({
-                id: z.uuid(),
-                title: z.string().nullable(),
-                distance: z.number(),
-                duration: z.number().nullable(),
-                pace: z.number().nullable(),
-                type: z.string(),
-                status: z.enum(['PLANNED', 'COMPLETED']),
-                assignmentMode: z.enum(['GOAL', 'FREE']).nullable(),
-                date: z.coerce.date(),
-                notes: z.string().nullable(),
-                imageUrl: z.string().nullable(),
-                targetDistance: z.number().nullable().optional(),
-                targetDuration: z.number().nullable().optional(),
-                stravaActivityId: z.string().nullable().optional(),
-                syncSource: z.string().nullable().optional(),
-                routeData: z.any().nullish(),
-                clubId: z.uuid(),
-                visibility: z.enum(['PUBLIC', 'COACH_ONLY', 'PRIVATE']),
-                athlete: z.object({
-                  id: z.uuid(),
-                  name: z.string().nullable(),
-                  avatarUrl: z.string().nullable(),
-                }),
-                createdAt: z.coerce.date(),
-              }),
+              workout: z.union([PrivateWorkoutDto, PublicWorkoutDto]),
             }),
           },
         },
       },
       async (request, reply) => {
         const { slug, workoutSlug } = request.params
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
+        const context = await requireActiveMembership(request, slug)
+        const { club, memberShip, userId } = context
 
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin,
-          memberShip.clubId,
-          club.ownerId
-        )
-
-        if (cannot('get', 'Workout')) {
-          throw new UnauthorizedError(`You're not allowed to see this workout`)
-        }
-
-        const effectiveRole = getEffectiveClubRole(
-          userId,
-          memberShip.role,
-          club.ownerId
-        )
         const visibilityFilter = getWorkoutVisibilityFilter(
           userId,
-          effectiveRole,
+          memberShip.role,
           memberShip.isSystemAdmin
+        )
+        const where = {
+          slug: workoutSlug,
+          clubId: club.id,
+          ...visibilityFilter,
+        }
+
+        const workoutAccess = await prisma.workout.findFirst({
+          where,
+          select: {
+            id: true,
+            athleteId: true,
+            clubId: true,
+            visibility: true,
+          },
+        })
+
+        if (!workoutAccess) {
+          throw new ResourceNotFoundError('Workout not found')
+        }
+
+        const workoutSubject = {
+          __typename: 'Workout' as const,
+          ...workoutAccess,
+        }
+        requireClubAbility(context, 'get', workoutSubject)
+        const canViewPrivateDetails = context.ability.can(
+          'view_private',
+          workoutSubject
         )
 
         const workout = await prisma.workout.findFirst({
+          where,
           select: {
-            id: true,
-            title: true,
-            slug: true,
-            imageUrl: true,
-            clubId: true,
-            visibility: true,
-            distance: true,
-            duration: true,
-            pace: true,
-            type: true,
-            status: true,
-            assignmentMode: true,
-            date: true,
-            notes: true,
-            targetDistance: true,
-            targetDuration: true,
-            stravaActivityId: true,
-            syncSource: true,
-            routeData: true,
-            createdAt: true,
-            athlete: {
-              select: {
-                id: true,
-                name: true,
-                avatarUrl: true,
-              },
-            },
-          },
-          where: {
-            slug: workoutSlug,
-            clubId: club.id,
-            ...visibilityFilter,
+            ...privateWorkoutSelect,
+            notes: canViewPrivateDetails,
+            targetDistance: canViewPrivateDetails,
+            targetDuration: canViewPrivateDetails,
+            routeData: canViewPrivateDetails,
           },
         })
 
         if (!workout) {
-          throw new BadRequestError('Workout not found!')
+          throw new ResourceNotFoundError('Workout not found')
         }
+
         return reply.send({ workout })
       }
     )

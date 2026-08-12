@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
+import { authRateLimit } from '@/utils/auth-rate-limit'
 import { createAuditLog } from '@/utils/audit-log'
-import { compare } from 'bcryptjs'
+import { hashPassword, normalizeEmail, verifyPassword } from '@/utils/identity'
+import { issueAccessToken } from '@/utils/jwt'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
@@ -10,54 +12,45 @@ export function authenticateWithPassword(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().post(
     '/sessions/password',
     {
+      config: authRateLimit((request) => {
+        const body = (request.body ?? {}) as { login?: string }
+        const login = body.login ?? ''
+        return login.includes('@') ? normalizeEmail(login) : login
+      }),
       schema: {
         tags: ['auth'],
         summary: 'Authenticate with e-mail & password',
-        body: z.object({
-          login: z.string(),
-          password: z.string(),
-        }),
-        response: {
-          201: z.object({
-            token: z.string(),
-          }),
-        },
+        body: z.object({ login: z.string(), password: z.string().max(128) }),
+        response: { 201: z.object({ token: z.string() }) },
       },
     },
     async (request, reply) => {
-      const { login, password } = request.body
+      const { password } = request.body
+      const login = request.body.login.includes('@')
+        ? normalizeEmail(request.body.login)
+        : request.body.login
 
       const user = await prisma.user.findFirst({
-        where: {
-          OR: [{ email: login }, { username: login }],
+        where: { OR: [{ email: login }, { username: login }] },
+        select: {
+          id: true,
+          passwordHash: true,
+          sessionVersion: true,
         },
       })
 
-      if (!user) {
+      if (!user?.passwordHash) {
         createAuditLog({
           action: 'USER_LOGIN_FAILED',
           entity: 'USER',
-          entityId: 'SYSTEM',
-          payload: { login, reason: 'user_not_found' },
+          entityId: user?.id ?? 'SYSTEM',
+          payload: { reason: user ? 'missing_password_hash' : 'user_not_found' },
         })
         throw new BadRequestError('Invalid credentials')
       }
 
-      if (user.passwordHash === null) {
-        createAuditLog({
-          action: 'USER_LOGIN_FAILED',
-          entity: 'USER',
-          entityId: user.id,
-          payload: { reason: 'missing_password_hash' },
-        })
-        throw new BadRequestError(
-          'User does not have a password, use social login'
-        )
-      }
-
-      const isPasswordValid = await compare(password, user.passwordHash)
-
-      if (!isPasswordValid) {
+      const verification = await verifyPassword(password, user.passwordHash)
+      if (!verification.valid) {
         createAuditLog({
           action: 'USER_LOGIN_FAILED',
           entity: 'USER',
@@ -67,16 +60,15 @@ export function authenticateWithPassword(app: FastifyInstance) {
         throw new BadRequestError('Invalid credentials')
       }
 
-      const token = await reply.jwtSign(
-        {},
-        {
-          sign: {
-            sub: user.id,
-            expiresIn: '7d',
-          },
-        }
-      )
+      if (verification.needsRehash) {
+        const passwordHash = await hashPassword(password)
+        await prisma.user.update({
+          where: { id: user.id, passwordHash: user.passwordHash },
+          data: { passwordHash },
+        })
+      }
 
+      const token = await issueAccessToken(reply, user)
       createAuditLog({
         action: 'USER_LOGIN',
         entity: 'USER',

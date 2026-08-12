@@ -1,5 +1,6 @@
 'use client'
 
+import { getWorkoutsAction, requestJoinClubAction } from '@/app/private-actions'
 import { CompleteWorkoutModal } from '@/components/complete-workout-modal'
 import { Header } from '@/components/header'
 import { JoinFeedbackModal } from '@/components/join-feedback-modal'
@@ -20,7 +21,6 @@ import {
   type WorkoutType,
 } from '@/components/workout-card'
 import { CreateWorkoutModal } from '@/components/workout-modal'
-import { getWorkouts } from '@/http/get-workouts'
 import { setCookie } from 'cookies-next'
 import {
   Activity,
@@ -123,11 +123,10 @@ export function DashboardClient({
     setIsLoadingMore(true)
     try {
       const nextPage = page + 1
-      const result = await getWorkouts({
+      const result = await getWorkoutsAction({
         slug: requestedSlug,
         page: nextPage,
         limit: 10,
-        signal: controller.signal,
       })
 
       if (
@@ -278,8 +277,7 @@ export function DashboardClient({
 
   const handleJoinRequest = async () => {
     try {
-      const { requestJoinClub } = await import('@/http/request-join-club')
-      await requestJoinClub(club.slug)
+      await requestJoinClubAction(club.slug)
       setIsPendingState(true)
       setFeedbackType('success')
       setIsFeedbackOpen(true)

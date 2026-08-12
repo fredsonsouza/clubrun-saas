@@ -78,6 +78,7 @@ describe('Update Athlete Profile (Unit)', () => {
     expect(response.statusCode).toBe(200)
     expect(prisma.athleteProfile.update).toHaveBeenCalledWith({
       where: { userId },
+      select: expect.any(Object),
       data: {
         weight: 75,
         height: 180,

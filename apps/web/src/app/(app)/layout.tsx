@@ -14,11 +14,9 @@ export default async function AppLayout({
     redirect('/auth/sign-in')
   }
 
-  /* Temporariamente desativado
   if (!user.emailVerifiedAt) {
     redirect('/auth/verify-email')
   }
-  */
 
   return (
     <>

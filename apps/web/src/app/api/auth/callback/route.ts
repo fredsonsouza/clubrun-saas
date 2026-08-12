@@ -1,48 +1,58 @@
+import { timingSafeEqual } from 'node:crypto'
+import {
+  clearOAuthTransaction,
+  getOAuthTransaction,
+  parseInternalRedirect,
+  setSessionCookie,
+} from '@/auth/cookies'
 import { signInWithGoogle } from '@/http/sign-in-with-google'
-import { cookies } from 'next/headers'
-import { type NextRequest, NextResponse } from 'next/server'
 import { env } from '@saas/env'
+import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+
+const callbackSchema = z.object({
+  code: z.string().min(1),
+  state: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+})
+
+function statesMatch(receivedState: string, expectedState?: string) {
+  if (!expectedState) return false
+
+  const received = Buffer.from(receivedState, 'utf8')
+  const expected = Buffer.from(expectedState, 'utf8')
+
+  return (
+    received.length === expected.length && timingSafeEqual(received, expected)
+  )
+}
 
 export async function GET(request: NextRequest) {
-  const searchParams = request.nextUrl.searchParams
+  const parsed = callbackSchema.safeParse({
+    code: request.nextUrl.searchParams.get('code'),
+    state: request.nextUrl.searchParams.get('state'),
+  })
+  const transaction = await getOAuthTransaction()
 
-  const code = searchParams.get('code')
+  await clearOAuthTransaction()
 
-  if (!code) {
+  if (
+    !parsed.success ||
+    !statesMatch(parsed.data.state, transaction.state) ||
+    !transaction.codeVerifier
+  ) {
     return NextResponse.json(
-      {
-        message: 'Google OAuth code was not found',
-      },
-      {
-        status: 400,
-      }
+      { message: 'Estado OAuth ausente ou inválido.' },
+      { status: 400 }
     )
   }
 
-  const { token } = await signInWithGoogle({ code })
-  ;(await cookies()).set('token', token, {
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7, //7 days
+  const { token } = await signInWithGoogle({
+    code: parsed.data.code,
+    state: parsed.data.state,
+    codeVerifier: transaction.codeVerifier,
   })
+  await setSessionCookie(token)
 
-  const state = searchParams.get('state')
-  let redirectTo = '/'
-
-  if (state) {
-    try {
-      const parsedState = JSON.parse(state)
-      if (parsedState.redirectTo) {
-        const params = new URLSearchParams()
-        if (parsedState.token) params.set('token', parsedState.token)
-        if (parsedState.inviteId) params.set('inviteId', parsedState.inviteId)
-
-        const queryString = params.toString()
-        redirectTo = `${parsedState.redirectTo}${queryString ? `?${queryString}` : ''}`
-      }
-    } catch (e) {
-      console.error('Falha ao processar o state do Google:', e)
-    }
-  }
-
+  const redirectTo = parseInternalRedirect(transaction.redirectTo)
   return NextResponse.redirect(new URL(redirectTo, env.NEXT_PUBLIC_APP_URL))
 }

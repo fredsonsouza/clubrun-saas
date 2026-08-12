@@ -6,7 +6,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+import { ForbiddenError } from '../_errors/forbidden-error'
 
 export async function deleteWorkout(app: FastifyInstance) {
   app
@@ -50,13 +50,12 @@ export async function deleteWorkout(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId
+          memberShip.clubId ?? club.id,
+          club.ownerId
         )
 
         if (cannot('delete', authWorkout)) {
-          throw new UnauthorizedError(
-            `You're not allowed to delete this workout`
-          )
+          throw new ForbiddenError(`You're not allowed to delete this workout`)
         }
 
         if (workout.status === 'COMPLETED' && workout.shoesUsed) {

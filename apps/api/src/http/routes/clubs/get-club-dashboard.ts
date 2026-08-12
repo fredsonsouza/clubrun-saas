@@ -1,3 +1,7 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { endOfMonth, startOfMonth } from 'date-fns'
@@ -40,7 +44,9 @@ export async function getClubDashBoard(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
-        const { club } = await request.getUserMemberShip(slug)
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'get', 'Club')
+        const { club } = context
 
         const now = new Date()
         const monthStart = startOfMonth(now)

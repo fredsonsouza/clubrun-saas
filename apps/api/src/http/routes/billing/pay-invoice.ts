@@ -1,11 +1,15 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
-import { getUserPermissions } from '@/utils/get-user-permissions'
+
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
-import { ForbiddenError } from '../_errors/forbidden-error'
+
 import { ResourceNotFoundError } from '../_errors/resource-not-found-error'
 
 export async function payInvoice(app: FastifyInstance) {
@@ -30,22 +34,9 @@ export async function payInvoice(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug, invoiceId } = request.params
-        const userId = await request.getCurrentUserId()
-        const { club, memberShip } = await request.getUserMemberShip(slug)
-
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin,
-          memberShip.clubId,
-          club.ownerId
-        )
-
-        if (cannot('update', 'Invoice')) {
-          throw new ForbiddenError(
-            `You don't have permission to manage invoices`
-          )
-        }
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'update', 'Invoice')
+        const { club, userId } = context
 
         const invoice = await prisma.invoice.findUnique({
           where: { id: invoiceId, clubId: club.id },

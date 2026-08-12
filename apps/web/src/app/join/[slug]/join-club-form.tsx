@@ -1,7 +1,7 @@
 'use client'
 
+import { joinClubFromInviteAction } from '@/app/private-actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { joinClub } from '@/http/join-club'
 import { ArrowRight, CheckCircle2, Flame, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -14,14 +14,13 @@ interface JoinClubFormProps {
     avatarUrl: string | null
     description?: string | null
   }
-  token: string
   user: {
     name: string | null
     email: string
   }
 }
 
-export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
+export function JoinClubForm({ club, user }: JoinClubFormProps) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
@@ -29,7 +28,7 @@ export function JoinClubForm({ club, token, user }: JoinClubFormProps) {
   const handleJoin = async () => {
     setIsLoading(true)
     try {
-      await joinClub(club.slug, token)
+      await joinClubFromInviteAction(club.slug)
       setIsSuccess(true)
       toast.success('Solicitação enviada com sucesso!')
 

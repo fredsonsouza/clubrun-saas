@@ -1,8 +1,9 @@
 'use client'
 
+import { getSystemLogsAction } from '@/app/private-actions'
 import { AdminHeader } from '@/components/admin-header'
 import { DatePicker } from '@/components/date-picker'
-import { getSystemLogs } from '@/http/get-system-logs'
+
 import {
   Activity,
   ArrowLeft,
@@ -109,7 +110,7 @@ export function AdminLogsClient({
           const parsedStartDate = parseToIso(startDate)
           const parsedEndDate = parseToIso(endDate)
 
-          const result = await getSystemLogs({
+          const result = await getSystemLogsAction({
             page,
             limit: 20, // menor limite para melhor performance de visualização de payloads
             action: actionFilter || undefined,
@@ -117,7 +118,6 @@ export function AdminLogsClient({
             search: search || undefined,
             startDate: parsedStartDate,
             endDate: parsedEndDate,
-            signal: controller.signal,
           })
           if (!controller.signal.aborted) {
             setLogs(result.logs)

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { getUserPermissions } from '@/utils/get-user-permissions'
+import { normalizeEmail } from '@/utils/identity'
 import { persistedRoleSchema } from '@saas/auth'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
@@ -23,7 +24,7 @@ export async function createInvite(app: FastifyInstance) {
           summary: 'Create a new invite',
           security: [{ bearerAuth: [] }],
           body: z.object({
-            email: z.email(),
+            email: z.string().transform(normalizeEmail).pipe(z.email()),
             role: persistedRoleSchema,
           }),
           params: z.object({
@@ -45,7 +46,7 @@ export async function createInvite(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId,
+          memberShip.clubId ?? club.id,
           club.ownerId
         )
 

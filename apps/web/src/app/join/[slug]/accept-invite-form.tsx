@@ -1,8 +1,8 @@
 'use client'
 
+import { acceptInviteAction } from '@/app/private-actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { acceptInvite } from '@/http/accept-invite'
 import { CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import React, { useState } from 'react'
@@ -36,7 +36,7 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
   const handleAccept = async () => {
     setIsLoading(true)
     try {
-      await acceptInvite(invite.id)
+      await acceptInviteAction(invite.id)
       setIsSuccess(true)
       toast.success('Convite aceito! Bem-vindo ao clube.')
 

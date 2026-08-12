@@ -1,7 +1,7 @@
 import 'dotenv/config'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { hash } from 'bcryptjs'
 import { PrismaClient } from '../generated/prisma/client'
+import { hashPassword, passwordSchema } from '../src/utils/identity'
 
 declare const process: any
 
@@ -49,12 +49,14 @@ async function seed() {
     await prisma.member.deleteMany()
     await prisma.invite.deleteMany()
     await prisma.account.deleteMany()
+    await prisma.oAuthAttempt.deleteMany()
     await prisma.token.deleteMany()
     await prisma.athleteProfile.deleteMany()
     await prisma.club.deleteMany()
     await prisma.user.deleteMany()
 
-    const passwordHash = await hash(password, 6)
+    passwordSchema.parse(password)
+    const passwordHash = await hashPassword(password)
 
     console.log('Creating super admin...')
     await prisma.user.create({

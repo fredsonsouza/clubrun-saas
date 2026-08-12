@@ -1,3 +1,4 @@
+import { OwnAthleteDto, ownAthleteProfileResponseSelect } from '@/http/dtos'
 import { auth } from '@/http/middlewares/auth'
 import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 import { ForbiddenError } from '@/http/routes/_errors/forbidden-error'
@@ -37,6 +38,11 @@ export async function updateAthleteProfile(app: FastifyInstance) {
             hasMedicalConditions: z.boolean().optional(),
             medicalConditions: z.string().max(1000).nullable().optional(),
           }),
+          response: {
+            200: z.object({
+              profile: OwnAthleteDto.shape.athleteProfile.unwrap().partial(),
+            }),
+          },
         },
       },
       async (request, reply) => {
@@ -208,12 +214,22 @@ export async function updateAthleteProfile(app: FastifyInstance) {
           },
           data: {
             ...athleteData,
-            shoesMaxDistance: finalShoesMax,
-            shoesRemainingDistance: finalShoesRemaining,
+            ...(finalShoesMax !== undefined
+              ? { shoesMaxDistance: finalShoesMax }
+              : {}),
+            ...(finalShoesRemaining !== undefined
+              ? { shoesRemainingDistance: finalShoesRemaining }
+              : {}),
           },
+          select: ownAthleteProfileResponseSelect,
         })
 
-        return reply.send({ profile })
+        return reply.send({
+          profile: {
+            ...profile,
+            isStravaConnected: Boolean(profile.stravaAthleteId),
+          },
+        })
       }
     )
 }

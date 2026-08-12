@@ -43,7 +43,7 @@ export async function updateMember(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId,
+          memberShip.clubId ?? club.id,
           club.ownerId
         )
 

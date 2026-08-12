@@ -1,9 +1,8 @@
 'use client'
 
 import { createRaceResultAction } from '@/app/(app)/[slug]/races/actions'
+import { getCurrentAthleteProfileAction } from '@/app/private-actions'
 import { ShoeIcon } from '@/components/shoe-icon'
-import { getProfile } from '@/http/get-profile'
-import { getUserProfile } from '@/http/get-user-profile'
 import {
   AlertTriangle,
   ChevronRight,
@@ -43,11 +42,8 @@ export function AddResultModal({
     if (isOpen) {
       const fetchProfile = async () => {
         try {
-          const { user } = await getProfile()
-          if (user?.id) {
-            const profileData = await getUserProfile(user.id)
-            setAthleteProfile(profileData.athleteProfile)
-          }
+          const athleteProfile = await getCurrentAthleteProfileAction()
+          setAthleteProfile(athleteProfile)
         } catch (error) {
           console.error('Erro ao buscar perfil:', error)
         }
@@ -98,15 +94,15 @@ export function AddResultModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
       <div
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl duration-200">
-        <header className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-5">
-          <h2 className="flex items-center gap-3 text-xl font-black text-gray-900">
+      <div className="zoom-in-95 relative flex max-h-[90vh] w-full max-w-md animate-in flex-col overflow-hidden rounded-[2.5rem] bg-white shadow-2xl duration-200">
+        <header className="flex items-center justify-between border-gray-100 border-b bg-white px-6 py-5">
+          <h2 className="flex items-center gap-3 font-black text-gray-900 text-xl">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
               <Trophy className="h-5 w-5" />
             </div>
@@ -121,8 +117,8 @@ export function AddResultModal({
         </header>
 
         <div className="bg-white p-6 md:p-8">
-          <div className="mb-6 rounded-2xl bg-gray-50 p-4 border border-gray-100">
-            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">
+          <div className="mb-6 rounded-2xl border border-gray-100 bg-gray-50 p-4">
+            <p className="mb-1 font-black text-[10px] text-gray-400 uppercase tracking-widest">
               Prova
             </p>
             <p className="font-bold text-gray-900">{raceName}</p>
@@ -131,7 +127,7 @@ export function AddResultModal({
           <form id="result-form" onSubmit={handleSubmit} className="space-y-6">
             {/* TEMPO */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+              <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider">
                 <Clock className="h-3.5 w-3.5 text-orange-500" /> Tempo Final
                 (HH:MM:SS)
               </label>
@@ -142,13 +138,13 @@ export function AddResultModal({
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
                 placeholder="00:00:00"
-                className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-mono text-2xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
+                className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold font-mono text-2xl text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
               />
             </div>
 
             {/* POSIÇÃO */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+              <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider">
                 <Trophy className="h-3.5 w-3.5 text-orange-500" /> Posição Geral
                 (Opcional)
               </label>
@@ -160,7 +156,7 @@ export function AddResultModal({
                   placeholder="Ex: 42"
                   className="w-full rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                 />
-                <span className="absolute top-1/2 right-4 -translate-y-1/2 font-black text-gray-400">
+                <span className="-translate-y-1/2 absolute top-1/2 right-4 font-black text-gray-400">
                   º
                 </span>
               </div>
@@ -169,7 +165,7 @@ export function AddResultModal({
             {/* Informações do Tênis */}
             {athleteProfile?.shoes && (
               <div
-                className={`rounded-2xl border p-4 space-y-2 text-xs font-semibold ${
+                className={`space-y-2 rounded-2xl border p-4 font-semibold text-xs ${
                   athleteProfile.shoesRemainingDistance <= 42
                     ? 'border-red-100 bg-red-50/50 text-red-700'
                     : 'border-orange-100 bg-orange-50/30 text-gray-700'
@@ -181,7 +177,7 @@ export function AddResultModal({
                       className={`h-4 w-4 shrink-0 ${athleteProfile.shoesRemainingDistance <= 42 ? 'text-red-500' : 'text-orange-500'}`}
                     />
                     <span
-                      className="font-bold truncate max-w-[180px]"
+                      className="max-w-[180px] truncate font-bold"
                       title={athleteProfile.shoes}
                     >
                       {athleteProfile.shoes}
@@ -192,7 +188,7 @@ export function AddResultModal({
                     <strong
                       className={
                         athleteProfile.shoesRemainingDistance <= 42
-                          ? 'text-red-600 font-extrabold'
+                          ? 'font-extrabold text-red-600'
                           : 'text-gray-900'
                       }
                     >
@@ -205,7 +201,7 @@ export function AddResultModal({
                 </div>
 
                 {athleteProfile.shoesRemainingDistance <= 42 && (
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-red-600">
+                  <div className="flex items-center gap-1 font-bold text-[10px] text-red-600">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     <span>
                       Atenção: Vida útil próxima do fim! Recomendamos a troca.
@@ -214,7 +210,7 @@ export function AddResultModal({
                 )}
 
                 {isDistanceInvalid && (
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-red-600 mt-1">
+                  <div className="mt-1 flex items-center gap-1 font-bold text-[10px] text-red-600">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     <span>
                       A distância da corrida ({raceDistance.toFixed(1)} km) é
@@ -228,11 +224,11 @@ export function AddResultModal({
           </form>
         </div>
 
-        <footer className="flex items-center justify-end gap-4 rounded-b-[2.5rem] border-t border-gray-100 bg-gray-50 px-8 py-6">
+        <footer className="flex items-center justify-end gap-4 rounded-b-[2.5rem] border-gray-100 border-t bg-gray-50 px-8 py-6">
           <button
             type="button"
             onClick={onClose}
-            className="cursor-pointer h-12 rounded-xl px-6 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
+            className="h-12 cursor-pointer rounded-xl px-6 font-bold text-gray-600 transition-colors hover:bg-gray-200/50"
           >
             Cancelar
           </button>
@@ -240,7 +236,7 @@ export function AddResultModal({
             type="submit"
             form="result-form"
             disabled={isLoading || isDistanceInvalid}
-            className="cursor-pointer flex h-12 items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex h-12 cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-500 px-8 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <Loader2 className="h-5 w-5 animate-spin" />

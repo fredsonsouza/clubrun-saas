@@ -1,9 +1,8 @@
 'use server'
 
+import { setSessionCookie } from '@/auth/cookies'
 import { signInWithPassword } from '@/http/sign-in-with-password'
 import { HTTPError } from 'ky'
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
 import z from 'zod'
 
 const signInSchema = z.object({
@@ -29,15 +28,13 @@ export async function signInWithEmailAndPassword(data: FormData) {
       login,
       password,
     })
-    ;(await cookies()).set('token', token, {
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7, //7days
-    })
+    await setSessionCookie(token)
   } catch (err) {
     if (err instanceof HTTPError) {
       let { message } = await err.response.json()
       if (message === 'Invalid credentials') {
-        message = 'Credenciais inválidas. Por favor, verifique seu e-mail/usuário e senha.'
+        message =
+          'Credenciais inválidas. Por favor, verifique seu e-mail/usuário e senha.'
       }
       return { success: false, message, errors: null }
     }

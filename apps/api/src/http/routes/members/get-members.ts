@@ -50,7 +50,7 @@ export async function getMembers(app: FastifyInstance) {
           userId,
           memberShip.role,
           memberShip.isSystemAdmin,
-          memberShip.clubId,
+          memberShip.clubId ?? club.id,
           club.ownerId
         )
 

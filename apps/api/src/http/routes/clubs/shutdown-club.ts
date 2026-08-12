@@ -1,11 +1,14 @@
+import {
+  requireActiveMembership,
+  requireClubAbility,
+} from '@/authorization/club-authorization'
 import { auth } from '@/http/middlewares/auth'
 import { prisma } from '@/lib/prisma'
-import { getUserPermissions } from '@/utils/get-user-permissions'
-import { clubSchema } from '@saas/auth'
+
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
-import { UnauthorizedError } from '../_errors/unauthorized-error'
+
 
 export async function shutdownClub(app: FastifyInstance) {
   app
@@ -28,22 +31,9 @@ export async function shutdownClub(app: FastifyInstance) {
       },
       async (request, reply) => {
         const { slug } = request.params
-        const userId = await request.getCurrentUserId()
-        const { memberShip, club } = await request.getUserMemberShip(slug)
-
-        const authClub = clubSchema.parse(club)
-
-        const { cannot } = getUserPermissions(
-          userId,
-          memberShip.role,
-          memberShip.isSystemAdmin
-        )
-
-        if (cannot('delete', authClub)) {
-          throw new UnauthorizedError(
-            `You're not allowed to shutdown this club`
-          )
-        }
+        const context = await requireActiveMembership(request, slug)
+        requireClubAbility(context, 'delete', 'Club')
+        const { club, userId } = context
 
         await prisma.$transaction([
           prisma.auditLog.create({
