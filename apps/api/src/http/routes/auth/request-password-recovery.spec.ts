@@ -9,6 +9,7 @@ vi.mock('@/lib/prisma', () => {
   const prisma = {
     user: { findUnique: vi.fn() },
     token: { updateMany: vi.fn(), create: vi.fn() },
+    emailOutbox: { upsert: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: any) => unknown) =>
       callback(prisma)
     ),
@@ -21,10 +22,15 @@ describe('Request Password Recovery (Unit)', () => {
     vi.clearAllMocks()
     vi.mocked(prisma.token.updateMany).mockResolvedValue({ count: 1 })
     vi.mocked(prisma.token.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.emailOutbox.upsert).mockResolvedValue({
+      id: 'email-id',
+    } as any)
   })
 
   it('normalizes the e-mail, revokes prior recovery tokens and stores digest only', async () => {
-    vi.mocked(prisma.user.findUnique).mockResolvedValue({ id: 'user-id' } as any)
+    vi.mocked(prisma.user.findUnique).mockResolvedValue({
+      id: 'user-id',
+    } as any)
 
     const response = await app.inject({
       method: 'POST',
@@ -53,9 +59,9 @@ describe('Request Password Recovery (Unit)', () => {
         userId: 'user-id',
       }),
     })
-    expect(vi.mocked(prisma.token.create).mock.calls[0][0].data).not.toHaveProperty(
-      'code'
-    )
+    expect(
+      vi.mocked(prisma.token.create).mock.calls[0][0].data
+    ).not.toHaveProperty('code')
   })
 
   it('returns the same generic response when the user does not exist', async () => {

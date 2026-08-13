@@ -14,6 +14,7 @@ vi.mock('@/lib/prisma', () => {
   const prisma = {
     user: { findUnique: vi.fn(), create: vi.fn() },
     token: { updateMany: vi.fn(), create: vi.fn() },
+    emailOutbox: { upsert: vi.fn() },
     auditLog: { create: vi.fn() },
     $transaction: vi.fn(async (callback: (tx: any) => unknown) =>
       callback(prisma)
@@ -33,6 +34,9 @@ describe('Create Account (Unit)', () => {
     } as any)
     vi.mocked(prisma.token.updateMany).mockResolvedValue({ count: 0 })
     vi.mocked(prisma.token.create).mockResolvedValue({} as any)
+    vi.mocked(prisma.emailOutbox.upsert).mockResolvedValue({
+      id: 'email-id',
+    } as any)
   })
 
   it('normalizes e-mail and creates only user, profile and verification token', async () => {

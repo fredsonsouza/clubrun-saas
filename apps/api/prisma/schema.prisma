@@ -35,6 +35,7 @@ model User {
   feedbacks           SystemFeedback[]
   idempotencyRecords  IdempotencyRecord[]
   shoesMileageEntries ShoesMileageEntry[]
+  emailOutbox         EmailOutbox[]
 
   @@map("users")
 }
@@ -347,6 +348,34 @@ enum IdempotencyStatus {
   PROCESSING
   COMPLETED
   FAILED
+}
+
+enum EmailOutboxStatus {
+  PENDING
+  PROCESSING
+  SENT
+  FAILED
+}
+
+model EmailOutbox {
+  id             String            @id @default(uuid())
+  userId         String?           @map("user_id")
+  toAddress      String            @map("to_address")
+  template       String
+  payload        Json
+  idempotencyKey String            @unique @map("idempotency_key")
+  status         EmailOutboxStatus @default(PENDING)
+  attempts       Int               @default(0)
+  nextAttemptAt  DateTime          @default(now()) @map("next_attempt_at")
+  lockedUntil    DateTime?         @map("locked_until")
+  sentAt         DateTime?         @map("sent_at")
+  lastError      String?           @map("last_error")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, nextAttemptAt])
+  @@map("email_outbox")
 }
 
 model ShoesMileageEntry {

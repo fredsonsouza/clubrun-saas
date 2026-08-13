@@ -1,12 +1,13 @@
-import { resend } from '@/lib/mail'
+import { enqueueEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
+import { createAuditLog } from '@/utils/audit-log'
 import { authRateLimit } from '@/utils/auth-rate-limit'
 import { hashPassword, normalizeEmail, passwordSchema } from '@/utils/identity'
 import {
   EMAIL_VERIFICATION_TTL_MS,
   issueOtpInTransaction,
+  sha256,
 } from '@/utils/tokens'
-import { createAuditLog } from '@/utils/audit-log'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import { z } from 'zod'
@@ -51,7 +52,7 @@ export async function createAccount(app: FastifyInstance) {
       }
 
       const passwordHash = await hashPassword(password)
-      const { user, verificationCode } = await prisma.$transaction(async (tx) => {
+      const { user } = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
             name,
@@ -73,7 +74,14 @@ export async function createAccount(app: FastifyInstance) {
           'EMAIL_VERIFICATION',
           EMAIL_VERIFICATION_TTL_MS
         )
-        return { user, verificationCode }
+        await enqueueEmail(tx, {
+          userId: user.id,
+          to: email,
+          template: 'EMAIL_VERIFICATION',
+          payload: { name, code: verificationCode },
+          idempotencyKey: `verification:${user.id}:${await sha256(verificationCode)}`,
+        })
+        return { user }
       })
 
       createAuditLog({
@@ -83,25 +91,6 @@ export async function createAccount(app: FastifyInstance) {
         entityId: user.id,
         payload: { username: user.username },
       })
-
-      try {
-        await resend.emails.send({
-          from: 'ClubRun <onboarding@resend.dev>',
-          to: email,
-          subject: 'Verifique seu e-mail no ClubRun',
-          html: `
-            <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-              <h2 style="color: #f97316;">Bem-vindo ao ClubRun!</h2>
-              <p>Use o código abaixo para verificar seu e-mail:</p>
-              <div style="background: #f3f4f6; padding: 20px; text-align: center; font-size: 32px; font-weight: bold; letter-spacing: 5px; border-radius: 8px;">
-                ${verificationCode}
-              </div>
-              <p>O código expira em 15 minutos.</p>
-            </div>`,
-        })
-      } catch (error) {
-        console.error('[MAIL-ERROR] Verification delivery failed', error)
-      }
 
       return reply.status(201).send()
     }

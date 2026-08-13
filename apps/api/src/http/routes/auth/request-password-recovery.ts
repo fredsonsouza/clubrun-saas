@@ -1,10 +1,12 @@
-import { resend } from '@/lib/mail'
+import { enqueueEmail } from '@/lib/email'
+
 import { prisma } from '@/lib/prisma'
 import { authRateLimit } from '@/utils/auth-rate-limit'
 import { normalizeEmail } from '@/utils/identity'
 import {
-  issueBearerTokenInTransaction,
   PASSWORD_RECOVERY_TTL_MS,
+  issueBearerTokenInTransaction,
+  sha256,
 } from '@/utils/tokens'
 import { env } from '@saas/env'
 import type { FastifyInstance } from 'fastify'
@@ -37,31 +39,23 @@ export async function requestPasswordRecovery(app: FastifyInstance) {
 
       if (!user) return reply.status(201).send(null)
 
-      const token = await prisma.$transaction((tx) =>
-        issueBearerTokenInTransaction(
+      await prisma.$transaction(async (tx) => {
+        const token = await issueBearerTokenInTransaction(
           tx,
           user.id,
           'PASSWORD_RECOVER',
           PASSWORD_RECOVERY_TTL_MS
         )
-      )
-
-      try {
-        await resend.emails.send({
-          from: 'ClubRun <onboarding@resend.dev>',
+        await enqueueEmail(tx, {
+          userId: user.id,
           to: email,
-          subject: 'Recuperação de Senha - ClubRun',
-          html: `
-            <div style="font-family: sans-serif; line-height: 1.6; color: #111;">
-              <h2>Recuperação de Senha</h2>
-              <p>Use o link abaixo para redefinir sua senha. Ele expira em 30 minutos.</p>
-              <a href="${env.NEXT_PUBLIC_APP_URL}/auth/reset-password?code=${token}">REDEFINIR SENHA</a>
-              <p>Se você não solicitou esta redefinição, ignore este e-mail.</p>
-            </div>`,
+          template: 'PASSWORD_RECOVERY',
+          payload: {
+            resetUrl: `${env.NEXT_PUBLIC_APP_URL}/auth/reset-password?code=${token}`,
+          },
+          idempotencyKey: `password-recovery:${user.id}:${sha256(token)}`,
         })
-      } catch (error) {
-        console.error('[MAIL-ERROR] Password recovery delivery failed', error)
-      }
+      })
 
       return reply.status(201).send(null)
     }

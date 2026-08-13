@@ -161,24 +161,26 @@ app.register(fastifyMultipart, {
   },
 })
 
-const uploadDir = getUploadDirectory()
-mkdirSync(uploadDir, { recursive: true, mode: 0o750 })
+if (process.env.NODE_ENV !== 'production') {
+  const uploadDir = getUploadDirectory()
+  mkdirSync(uploadDir, { recursive: true, mode: 0o750 })
 
-app.register(fastifyStatic, {
-  root: uploadDir,
-  prefix: '/uploads/',
-  dotfiles: 'deny',
-  index: false,
-  setHeaders(response) {
-    const headerResponse = response as unknown as StaticHeaderResponse
+  app.register(fastifyStatic, {
+    root: uploadDir,
+    prefix: '/uploads/',
+    dotfiles: 'deny',
+    index: false,
+    setHeaders(response) {
+      const headerResponse = response as unknown as StaticHeaderResponse
 
-    if ('setHeader' in headerResponse) {
-      headerResponse.setHeader('X-Content-Type-Options', 'nosniff')
-    } else {
-      headerResponse.header('X-Content-Type-Options', 'nosniff')
-    }
-  },
-})
+      if ('setHeader' in headerResponse) {
+        headerResponse.setHeader('X-Content-Type-Options', 'nosniff')
+      } else {
+        headerResponse.header('X-Content-Type-Options', 'nosniff')
+      }
+    },
+  })
+}
 
 app.register(createAccount)
 app.register(authenticateWithPassword)

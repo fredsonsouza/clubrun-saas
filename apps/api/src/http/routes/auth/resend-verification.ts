@@ -1,10 +1,11 @@
 import { auth } from '@/http/middlewares/auth'
-import { resend } from '@/lib/mail'
+import { enqueueEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { authRateLimit } from '@/utils/auth-rate-limit'
 import {
   EMAIL_VERIFICATION_TTL_MS,
   issueOtpInTransaction,
+  sha256,
 } from '@/utils/tokens'
 import type { FastifyInstance } from 'fastify'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
@@ -39,31 +40,21 @@ export async function resendVerification(app: FastifyInstance) {
         if (!user) throw new UnauthorizedError('User not found.')
         if (user.emailVerifiedAt) return reply.status(204).send(null)
 
-        const code = await prisma.$transaction((tx) =>
-          issueOtpInTransaction(
+        await prisma.$transaction(async (tx) => {
+          const code = await issueOtpInTransaction(
             tx,
             userId,
             'EMAIL_VERIFICATION',
             EMAIL_VERIFICATION_TTL_MS
           )
-        )
-
-        try {
-          await resend.emails.send({
-            from: 'ClubRun <onboarding@resend.dev>',
+          await enqueueEmail(tx, {
+            userId,
             to: user.email,
-            subject: 'Seu novo código de verificação',
-            html: `
-              <div style="font-family: sans-serif; line-height: 1.6;">
-                <h2>Olá, ${user.name ?? 'atleta'}!</h2>
-                <p>Seu novo código é:</p>
-                <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px;">${code}</div>
-                <p>Ele expira em 15 minutos.</p>
-              </div>`,
+            template: 'EMAIL_VERIFICATION',
+            payload: { name: user.name ?? 'atleta', code },
+            idempotencyKey: `verification:${userId}:${sha256(code)}`,
           })
-        } catch (error) {
-          console.error('[MAIL-ERROR] Verification delivery failed', error)
-        }
+        })
 
         return reply.status(204).send(null)
       }
