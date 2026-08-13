@@ -1,11 +1,12 @@
 {
-  "name": "--turbo",
+  "name": "@clubrun/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "check-types": "tsc --noEmit --incremental false",
+    "test": "node -e \"console.log('No web tests configured')\"",
     "start": "next start"
   },
   "dependencies": {

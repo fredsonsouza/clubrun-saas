@@ -6,7 +6,7 @@ import fastifyRateLimit from '@fastify/rate-limit'
 import fastifyStatic from '@fastify/static'
 import fastifySwagger from '@fastify/swagger'
 import fastifySwaggerUi from '@fastify/swagger-ui'
-import { fastify } from 'fastify'
+import { type FastifyRequest, fastify } from 'fastify'
 
 import {
   type ZodTypeProvider,
@@ -84,12 +84,16 @@ import { updateWorkout } from './routes/workouts/update-workout'
 import { workoutReactions } from './routes/workouts/workout-reactions'
 
 import { env } from '@saas/env'
+import { pool, prisma } from '../lib/prisma'
 import { getUploadDirectory } from '../lib/storage'
+import { getMetricsSnapshot, recordRequest } from '../observability/metrics'
 import { errorHandler } from './error-handle'
 
 type StaticHeaderResponse =
   | { setHeader(name: string, value: string): void }
   | { header(name: string, value: string): unknown }
+
+const requestStartTimes = new WeakMap<FastifyRequest, bigint>()
 
 const trustedProxies = (process.env.TRUSTED_PROXY ?? '')
   .split(',')
@@ -103,7 +107,54 @@ export const app = fastify({
 app.setSerializerCompiler(serializerCompiler)
 app.setValidatorCompiler(validatorCompiler)
 
+app.addHook('onRequest', async (request) => {
+  requestStartTimes.set(request, process.hrtime.bigint())
+})
+
+app.addHook('onSend', async (request, reply) => {
+  const startedAt = requestStartTimes.get(request)
+  if (startedAt) {
+    recordRequest({
+      durationMs: Number(process.hrtime.bigint() - startedAt) / 1_000_000,
+      statusCode: reply.statusCode,
+    })
+  }
+  reply.header('X-Request-Id', request.id)
+  reply.header('X-Content-Type-Options', 'nosniff')
+  reply.header('Referrer-Policy', 'strict-origin-when-cross-origin')
+  reply.header('X-Frame-Options', 'DENY')
+  if (process.env.NODE_ENV === 'production') {
+    reply.header(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
+    )
+  }
+})
+
 app.setErrorHandler(errorHandler)
+
+app.get('/health', async () => ({ status: 'ok' }))
+app.get('/metrics', async (request, reply) => {
+  const metricsToken = process.env.METRICS_TOKEN
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (!metricsToken || request.headers['x-metrics-token'] !== metricsToken)
+  ) {
+    return reply.code(401).send({
+      code: 'UNAUTHORIZED',
+      message: 'Metrics authentication required',
+    })
+  }
+  return getMetricsSnapshot()
+})
+app.get('/ready', async (_request, reply) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+    return { status: 'ready' }
+  } catch {
+    return reply.status(503).send({ status: 'not_ready' })
+  }
+})
 
 app.register(fastifySwagger, {
   openapi: {
@@ -125,9 +176,11 @@ app.register(fastifySwagger, {
   transform: jsonSchemaTransform,
 })
 
-app.register(fastifySwaggerUi, {
-  routePrefix: '/docs',
-})
+if (process.env.NODE_ENV !== 'production') {
+  app.register(fastifySwaggerUi, {
+    routePrefix: '/docs',
+  })
+}
 
 app.register(fastifyJwt, {
   secret: env.JWT_SECRET,
@@ -144,7 +197,15 @@ app.register(fastifyJwt, {
   },
 })
 
-app.register(fastifyCors)
+const allowedOrigins = (process.env.CORS_ORIGINS ?? '')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.register(fastifyCors, {
+  origin: allowedOrigins.length > 0 ? allowedOrigins : false,
+  credentials: true,
+})
 
 app.register(fastifyRateLimit, {
   max: 100,
@@ -279,9 +340,23 @@ app.register(disconnectStrava)
 //   console.log('HTTP server runnig ✅')
 // })
 
+let shutdownStarted = false
+
+export async function shutdown(signal: string) {
+  if (shutdownStarted) return
+  shutdownStarted = true
+  console.info(JSON.stringify({ event: 'shutdown_started', signal }))
+  await app.close()
+  await prisma.$disconnect()
+  await pool.end()
+  console.info(JSON.stringify({ event: 'shutdown_completed', signal }))
+}
+
 if (process.env.NODE_ENV !== 'test') {
-  const port = process.env.PORT ? Number(process.env.PORT) : 3333
+  const port = env.SERVER_PORT
   app.listen({ port, host: '0.0.0.0' }).then(() => {
     console.log(`HTTP server running on port ${port}! ✅`)
   })
+  process.once('SIGTERM', () => void shutdown('SIGTERM'))
+  process.once('SIGINT', () => void shutdown('SIGINT'))
 }

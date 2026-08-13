@@ -54,7 +54,10 @@ describe('Authenticate with Password (Unit)', () => {
   })
 
   it('rehashes a valid legacy bcrypt password opportunistically', async () => {
-    vi.mocked(verifyPassword).mockResolvedValue({ valid: true, needsRehash: true })
+    vi.mocked(verifyPassword).mockResolvedValue({
+      valid: true,
+      needsRehash: true,
+    })
     vi.mocked(hashPassword).mockResolvedValue('$argon2id$new-hash')
 
     const response = await app.inject({
@@ -83,7 +86,10 @@ describe('Authenticate with Password (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json()).toEqual({ message: 'Invalid credentials' })
+    expect(response.json()).toEqual({
+      code: 'BAD_REQUEST',
+      message: 'Invalid credentials',
+    })
   })
 
   it('rejects an invalid password', async () => {
@@ -99,6 +105,9 @@ describe('Authenticate with Password (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
-    expect(response.json()).toEqual({ message: 'Invalid credentials' })
+    expect(response.json()).toEqual({
+      code: 'BAD_REQUEST',
+      message: 'Invalid credentials',
+    })
   })
 })

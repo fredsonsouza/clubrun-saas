@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: true
+      NODE_ENV: test
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/club_run
+      JWT_SECRET: ci-jwt-secret-at-least-32-bytes-long
+      TOKEN_PEPPER: ci-token-pepper-at-least-32-bytes-long
+      GOOGLE_OAUTH_CLIENT_ID: ci-google-client
+      GOOGLE_OAUTH_CLIENT_SECRET: ci-google-secret
+      GOOGLE_OAUTH_CLIENT_REDIRECT_URI: https://ci.example.com/auth/callback
+      RESEND_API_KEY: re_test_ci
+      NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ci-mapbox-token
+      NEXT_PUBLIC_APP_URL: https://ci.example.com
+      NEXT_PUBLIC_API_URL: https://api.ci.example.com
+    services:
+      postgres:
+        image: postgres:16.4
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: club_run
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d club_run"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec biome check .
+      - run: pnpm --filter @saas/env check-types
+      - run: pnpm --filter @saas/auth check-types
+      - run: pnpm --filter @saas/api check-types
+      - run: pnpm --filter @clubrun/web check-types
+      - run: pnpm --filter @saas/auth test
+      - run: pnpm --filter @saas/api test
+      - run: pnpm --filter @saas/api exec prisma migrate deploy
+      - run: pnpm --filter @saas/api test:integration:migration
+      - run: pnpm --filter @saas/api build
+      - run: pnpm --filter @clubrun/web build
