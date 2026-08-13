@@ -28,7 +28,7 @@ export default (<ContextTestEnvironment>{
       // @ts-ignore
       const pg = await import('pg')
       Client = pg.Client || pg.default?.Client
-    } catch (err) {}
+    } catch (_err) {}
 
     if (Client) {
       const client = new Client({ connectionString: originalUrl })
@@ -36,14 +36,14 @@ export default (<ContextTestEnvironment>{
       await client.query(`CREATE DATABASE "${dbName}"`)
       await client.end()
     } else {
-      execSync(`npx prisma db execute --url "${originalUrl}" --stdin`, {
+      execSync(`pnpm exec prisma db execute --url "${originalUrl}" --stdin`, {
         input: `CREATE DATABASE "${dbName}";`,
       })
     }
 
     process.env.DATABASE_URL = databaseUrl
 
-    execSync('npx prisma migrate deploy', {
+    execSync('pnpm exec prisma migrate deploy', {
       env: { ...process.env, DATABASE_URL: databaseUrl },
     })
 
@@ -60,12 +60,18 @@ export default (<ContextTestEnvironment>{
           await client.query(`DROP DATABASE "${dbName}";`)
           await client.end()
         } else {
-          execSync(`npx prisma db execute --url "${originalUrl}" --stdin`, {
-            input: `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();`,
-          })
-          execSync(`npx prisma db execute --url "${originalUrl}" --stdin`, {
-            input: `DROP DATABASE "${dbName}";`,
-          })
+          execSync(
+            `pnpm exec prisma db execute --url "${originalUrl}" --stdin`,
+            {
+              input: `SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = '${dbName}' AND pid <> pg_backend_pid();`,
+            }
+          )
+          execSync(
+            `pnpm exec prisma db execute --url "${originalUrl}" --stdin`,
+            {
+              input: `DROP DATABASE "${dbName}";`,
+            }
+          )
         }
       },
     }

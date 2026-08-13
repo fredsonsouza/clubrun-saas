@@ -18,6 +18,7 @@
     "test": "vitest run --project unit",
     "test:unit:idempotency": "vitest run src/utils/idempotency.spec.ts",
     "test:e2e": "pnpm env:load vitest run --project e2e",
+    "test:smoke": "node ../../scripts/smoke-api.mjs",
     "test:integration:migration": "RUN_MIGRATION_INTEGRATION=1 pnpm env:load vitest run src/prisma/phase-4-migration.spec.ts --project unit",
     "test:watch": "vitest --project unit",
     "test:e2e:watch": "pnpm env:load vitest --project e2e",
