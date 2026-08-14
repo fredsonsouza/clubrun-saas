@@ -145,7 +145,7 @@ export function RankingShareModal({
     if (top2) text += `🥈 *2º* ${top2.name} - ${formatKm(top2.distance)} km\n`
     if (top3) text += `🥉 *3º* ${top3.name} - ${formatKm(top3.distance)} km\n`
 
-    text += `\nVeja o pódio completo e fotos no site!`
+    text += '\nVeja o pódio completo e fotos no site!'
     const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
     window.open(url, '_blank')
   }
@@ -161,6 +161,8 @@ export function RankingShareModal({
             Compartilhar Pódio
           </DialogTitle>
           <button
+            type="button"
+            aria-label="Fechar compartilhamento do pódio"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-1.5 text-gray-500 hover:bg-gray-100"
           >
@@ -317,6 +319,7 @@ export function RankingShareModal({
         {/* CONTROLES DO CARD */}
         <div className="grid grid-cols-3 gap-3 border-gray-100 border-t bg-white p-6">
           <button
+            type="button"
             onClick={handleCopyText}
             className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 py-3.5 text-center transition-all hover:bg-orange-50 hover:text-orange-500 active:scale-95"
           >
@@ -331,6 +334,7 @@ export function RankingShareModal({
           </button>
 
           <button
+            type="button"
             onClick={handleShareWhatsApp}
             className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 py-3.5 text-center transition-all hover:bg-emerald-50 hover:text-emerald-500 active:scale-95"
           >
@@ -341,6 +345,7 @@ export function RankingShareModal({
           </button>
 
           <button
+            type="button"
             onClick={handleDownload}
             disabled={isDownloading}
             className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl bg-orange-500 py-3.5 text-center text-white transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-75"

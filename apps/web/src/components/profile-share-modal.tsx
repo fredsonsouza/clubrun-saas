@@ -263,6 +263,7 @@ export function ProfileShareModal({
 
                   return (
                     <button
+                      type="button"
                       key={theme.id}
                       onClick={() => setSelectedThemeId(theme.id)}
                       className={`relative flex cursor-pointer flex-col items-start rounded-2xl border p-3.5 text-left transition-all active:scale-98 ${
@@ -330,6 +331,7 @@ export function ProfileShareModal({
           {/* CONTROLES E AÇÕES */}
           <div className="mt-8 grid grid-cols-3 gap-3 border-gray-100 border-t pt-6">
             <button
+              type="button"
               onClick={handleCopyLink}
               className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 py-3 text-center transition-all hover:bg-orange-50 hover:text-orange-500 active:scale-95"
             >
@@ -344,6 +346,7 @@ export function ProfileShareModal({
             </button>
 
             <button
+              type="button"
               onClick={handleShareWhatsApp}
               className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl border border-gray-100 bg-gray-50 py-3 text-center transition-all hover:bg-emerald-50 hover:text-emerald-500 active:scale-95"
             >
@@ -354,6 +357,7 @@ export function ProfileShareModal({
             </button>
 
             <button
+              type="button"
               onClick={handleDownload}
               disabled={isDownloading || isLockedTheme}
               className={`flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-2xl py-3 text-center text-white transition-all active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -554,6 +558,7 @@ export function ProfileShareModal({
                   <Crown className="h-3 w-3" fill="currentColor" />
                 </Link>
                 <button
+                  type="button"
                   onClick={() => setSelectedThemeId('classic')}
                   className="mt-3 font-black text-[8px] text-gray-400 uppercase transition-colors hover:text-white"
                 >

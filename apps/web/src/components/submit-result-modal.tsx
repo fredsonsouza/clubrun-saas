@@ -57,21 +57,25 @@ export function SubmitResultModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200 sm:p-6">
-      <div
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
+      <button
+        type="button"
+        aria-label="Fechar modal de resultado"
         className="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative flex w-full max-w-md flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-200">
-        <header className="flex items-center justify-between border-b border-gray-100 bg-white px-6 py-5">
-          <h2 className="flex items-center gap-2 text-xl font-extrabold text-gray-900">
+      <div className="zoom-in-95 relative flex w-full max-w-md animate-in flex-col overflow-hidden rounded-3xl bg-white shadow-2xl duration-200">
+        <header className="flex items-center justify-between border-gray-100 border-b bg-white px-6 py-5">
+          <h2 className="flex items-center gap-2 font-extrabold text-gray-900 text-xl">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-500">
               <Medal className="h-4 w-4" />
             </div>
             Submeter Resultado
           </h2>
           <button
+            type="button"
+            aria-label="Fechar modal de resultado"
             onClick={onClose}
             className="rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
           >
@@ -82,17 +86,17 @@ export function SubmitResultModal({
         <div className="bg-white p-6">
           <form id="result-form" onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+              <span className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider">
                 <Target className="h-3.5 w-3.5 text-orange-500" /> Distância
                 Concluída
-              </label>
+              </span>
               <div className="grid grid-cols-3 gap-2">
                 {raceDistances.map((dist) => (
                   <button
                     key={dist}
                     type="button"
                     onClick={() => setDistance(dist)}
-                    className={`rounded-xl border py-3 text-sm font-bold transition-all ${distance === dist ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
+                    className={`rounded-xl border py-3 font-bold text-sm transition-all ${distance === dist ? 'border-orange-500 bg-orange-50 text-orange-600 shadow-sm' : 'border-gray-200 bg-gray-50 text-gray-600 hover:bg-gray-100'}`}
                   >
                     {dist}
                   </button>
@@ -101,22 +105,27 @@ export function SubmitResultModal({
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase">
+              <label
+                htmlFor="submit-result-minutes"
+                className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
+              >
                 <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo Oficial
                 (Líquido)
               </label>
               <div className="flex items-center gap-2">
                 <input
+                  id="submit-result-hours"
                   type="number"
                   min="0"
                   max="99"
                   value={hours}
                   onChange={(e) => setHours(e.target.value)}
                   placeholder="00"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
                 <span className="font-bold text-gray-400">:</span>
                 <input
+                  id="submit-result-minutes"
                   type="number"
                   min="0"
                   max="59"
@@ -124,10 +133,11 @@ export function SubmitResultModal({
                   value={minutes}
                   onChange={(e) => setMinutes(e.target.value)}
                   placeholder="00"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
                 <span className="font-bold text-gray-400">:</span>
                 <input
+                  id="submit-result-seconds"
                   type="number"
                   min="0"
                   max="59"
@@ -135,26 +145,26 @@ export function SubmitResultModal({
                   value={seconds}
                   onChange={(e) => setSeconds(e.target.value)}
                   placeholder="00"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-mono text-xl font-bold text-gray-900 shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 text-center font-bold font-mono text-gray-900 text-xl shadow-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
             </div>
 
             <div className="flex items-center justify-between rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <span className="text-[10px] font-bold tracking-wider text-gray-500 uppercase">
+              <span className="font-bold text-[10px] text-gray-500 uppercase tracking-wider">
                 Pace Médio Estimado
               </span>
               <div className="flex items-baseline gap-1">
-                <span className="font-mono text-2xl font-black text-gray-900">
+                <span className="font-black font-mono text-2xl text-gray-900">
                   {pace}
                 </span>
-                <span className="text-sm font-bold text-gray-400">/km</span>
+                <span className="font-bold text-gray-400 text-sm">/km</span>
               </div>
             </div>
           </form>
         </div>
 
-        <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-t border-gray-100 bg-gray-50 px-6 py-5">
+        <footer className="flex items-center justify-end gap-3 rounded-b-3xl border-gray-100 border-t bg-gray-50 px-6 py-5">
           <button
             type="button"
             onClick={onClose}
