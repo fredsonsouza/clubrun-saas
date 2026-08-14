@@ -81,6 +81,7 @@ export function ClubSwitcher() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="hidden items-center gap-2 rounded-xl border border-transparent px-3 py-1.5 font-bold text-gray-700 text-sm transition-all hover:border-gray-200 hover:bg-gray-50 focus:outline-none md:flex"
       >
@@ -115,6 +116,7 @@ export function ClubSwitcher() {
           <div className="space-y-1 px-2">
             {clubs.map((club) => (
               <button
+                type="button"
                 key={club.id}
                 onClick={() => handleSelectClub(club)}
                 className={`group flex w-full cursor-pointer items-center justify-between gap-2 rounded-xl px-3 py-2 text-left font-bold text-sm transition-colors hover:bg-gray-50 ${

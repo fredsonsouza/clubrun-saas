@@ -38,7 +38,7 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
       return (
         <Link
           href={`/${club.slug}/dashboard`}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 text-sm font-bold text-white transition-all hover:bg-gray-800 active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-gray-900 py-3 font-bold text-sm text-white transition-all hover:bg-gray-800 active:scale-[0.98]"
         >
           <LayoutDashboard className="h-4 w-4" />
           Acessar Painel
@@ -51,15 +51,17 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
         {/* Botão de Status / Solicitação */}
         {isPending ? (
           <button
+            type="button"
             disabled
-            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-orange-50 py-3 text-sm font-bold text-orange-500"
+            className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-orange-50 py-3 font-bold text-orange-500 text-sm"
           >
             <Clock className="h-4 w-4" /> Solicitação Pendente
           </button>
         ) : (
           <button
+            type="button"
             onClick={() => onJoinRequest?.(club.id)}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 text-sm font-bold text-white shadow-sm transition-all hover:bg-orange-600 active:scale-[0.98]"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 font-bold text-sm text-white shadow-sm transition-all hover:bg-orange-600 active:scale-[0.98]"
           >
             Pedir para Participar <ArrowRight className="h-4 w-4" />
           </button>
@@ -68,7 +70,7 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
         {/* Botão secundário de Acesso (Novo) */}
         <Link
           href={`/${club.slug}/dashboard`}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-100 bg-gray-50 py-3 text-sm font-bold text-gray-600 transition-all hover:border-gray-200 hover:bg-white hover:text-gray-900 active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-100 bg-gray-50 py-3 font-bold text-gray-600 text-sm transition-all hover:border-gray-200 hover:bg-white hover:text-gray-900 active:scale-[0.98]"
         >
           <LayoutDashboard className="h-4 w-4" />
           Acessar Painel
@@ -78,19 +80,19 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
   }
 
   return (
-    <div className="group flex h-full flex-col rounded-4xl border border-gray-100 bg-white p-6 shadow-xs transition-all duration-300 hover:border-orange-200 hover:shadow-xl hover:shadow-orange-500/5">
+    <div className="group flex h-full flex-col rounded-4xl border border-gray-100 bg-white p-6 shadow-xs transition-all duration-300 hover:border-orange-200 hover:shadow-orange-500/5 hover:shadow-xl">
       {/* Header do Cartão */}
       <div className="mb-5 flex items-start justify-between">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 text-xl font-black text-gray-400 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-orange-50 group-hover:text-orange-500">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gray-50 font-black text-gray-400 text-xl transition-all duration-300 group-hover:rotate-3 group-hover:scale-110 group-hover:bg-orange-50 group-hover:text-orange-500">
           {club.name.charAt(0)}
         </div>
         {club.membershipStatus === 'ATHLETE' && (
-          <span className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 text-[10px] font-bold tracking-wider text-green-600 uppercase">
+          <span className="flex items-center gap-1 rounded-full bg-green-50 px-3 py-1 font-bold text-[10px] text-green-600 uppercase tracking-wider">
             <CheckCircle2 className="h-3 w-3" /> Inscrito
           </span>
         )}
         {club.membershipStatus === 'OWNER' && (
-          <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-[10px] font-bold tracking-wider text-orange-600 uppercase">
+          <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 font-bold text-[10px] text-orange-600 uppercase tracking-wider">
             Dono
           </span>
         )}
@@ -99,19 +101,19 @@ export function ClubCard({ club, onJoinRequest }: ClubCardProps) {
       {/* Info do Clube */}
       <div className="flex-1">
         <h3
-          className="mb-2 truncate text-xl font-extrabold text-gray-900"
+          className="mb-2 truncate font-extrabold text-gray-900 text-xl"
           title={club.name}
         >
           {club.name}
         </h3>
-        <p className="mb-6 line-clamp-2 text-sm leading-relaxed font-medium text-gray-500">
+        <p className="mb-6 line-clamp-2 font-medium text-gray-500 text-sm leading-relaxed">
           {club.description || 'Nenhuma descrição fornecida pela equipe.'}
         </p>
       </div>
 
       {/* Metadados e Ação */}
       <div className="mt-auto space-y-5">
-        <div className="flex flex-wrap items-center gap-3 text-[10px] font-bold text-gray-400">
+        <div className="flex flex-wrap items-center gap-3 font-bold text-[10px] text-gray-400">
           <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-2.5 py-1.5 transition-colors group-hover:border-gray-200">
             <Users className="h-3.5 w-3.5 text-gray-400" /> {club.membersCount}{' '}
             MEMBROS
