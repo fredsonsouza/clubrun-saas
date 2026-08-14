@@ -269,7 +269,9 @@ export function UpdateRaceModal({
 
   return (
     <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
-      <div
+      <button
+        type="button"
+        aria-label="Fechar modal de corrida"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -283,6 +285,8 @@ export function UpdateRaceModal({
             Editar Corrida
           </h2>
           <button
+            type="button"
+            aria-label="Fechar modal de corrida"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
           >
@@ -308,11 +312,15 @@ export function UpdateRaceModal({
                 {/* ESQUERDA: CAMPOS DE TEXTO */}
                 <div className="space-y-6">
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="update-race-name"
+                      className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       <Flag className="h-3.5 w-3.5 text-orange-500" /> Nome da
                       Corrida
                     </label>
                     <input
+                      id="update-race-name"
                       type="text"
                       required
                       value={name}
@@ -324,12 +332,16 @@ export function UpdateRaceModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="update-race-distance"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <Activity className="h-3.5 w-3.5 text-orange-500" />{' '}
                         Distância
                       </label>
                       <div className="relative">
                         <input
+                          id="update-race-distance"
                           type="number"
                           step="0.1"
                           required
@@ -345,12 +357,16 @@ export function UpdateRaceModal({
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="update-race-time"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <CalendarIcon className="h-3.5 w-3.5 text-orange-500" />{' '}
                         Hora
                       </label>
                       <div className="relative">
                         <input
+                          id="update-race-time"
                           type="text"
                           required
                           value={time}
@@ -380,11 +396,15 @@ export function UpdateRaceModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="update-race-state"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
                       </label>
                       <div className="relative">
                         <select
+                          id="update-race-state"
                           required
                           value={selectedState}
                           onChange={(e) => setSelectedState(e.target.value)}
@@ -403,12 +423,16 @@ export function UpdateRaceModal({
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="update-race-city"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <MapPin className="h-3.5 w-3.5 text-orange-500" />{' '}
                         Cidade
                       </label>
                       <div className="relative">
                         <select
+                          id="update-race-city"
                           required
                           value={selectedCity}
                           onChange={(e) => setSelectedCity(e.target.value)}
@@ -428,11 +452,15 @@ export function UpdateRaceModal({
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="update-race-image"
+                      className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       <ImageIcon className="h-3.5 w-3.5 text-orange-500" /> URL
                       da Imagem (Opcional)
                     </label>
                     <input
+                      id="update-race-image"
                       type="url"
                       value={imageUrl}
                       onChange={(e) => setImageUrl(e.target.value)}
@@ -444,10 +472,10 @@ export function UpdateRaceModal({
 
                 {/* DIREITA: MAPA */}
                 <div className="flex flex-col space-y-3 lg:h-full">
-                  <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                  <span className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                     <MapIcon className="h-3.5 w-3.5 text-orange-500" /> Editar
                     Percurso (Opcional)
-                  </label>
+                  </span>
                   <div className="min-h-[400px] flex-1 overflow-hidden rounded-2xl border border-gray-100">
                     <MapEditor
                       initialValue={routeData}

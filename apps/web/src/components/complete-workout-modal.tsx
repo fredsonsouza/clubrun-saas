@@ -24,6 +24,30 @@ interface CompleteWorkoutModalProps {
   isStravaConnected?: boolean
 }
 
+function formatSecondsToTime(totalSeconds: number) {
+  if (!totalSeconds || totalSeconds <= 0) return ''
+  const mins = Math.floor(totalSeconds / 60)
+  const rawSecs = totalSeconds % 60
+  const secs = Math.floor(rawSecs)
+  const centis = Math.round((rawSecs - secs) * 100)
+  if (centis > 0) {
+    return `${mins}:${secs.toString().padStart(2, '0')}:${centis.toString().padStart(2, '0')}`
+  }
+  return `${mins}:${secs.toString().padStart(2, '0')}`
+}
+
+function timeToSeconds(timeStr: string) {
+  if (!timeStr) return 0
+  const parts = timeStr.split(':').map(Number)
+  if (parts.length === 3) {
+    return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
+  }
+  if (parts.length === 2) {
+    return (parts[0] || 0) * 60 + (parts[1] || 0)
+  }
+  return (parts[0] || 0) * 60
+}
+
 export function CompleteWorkoutModal({
   isOpen,
   workout,
@@ -72,18 +96,6 @@ export function CompleteWorkoutModal({
     return `${m}m ${s}s`
   }
 
-  const formatSecondsToTime = (totalSeconds: number) => {
-    if (!totalSeconds || totalSeconds <= 0) return ''
-    const mins = Math.floor(totalSeconds / 60)
-    const rawSecs = totalSeconds % 60
-    const secs = Math.floor(rawSecs)
-    const centis = Math.round((rawSecs - secs) * 100)
-    if (centis > 0) {
-      return `${mins}:${secs.toString().padStart(2, '0')}:${centis.toString().padStart(2, '0')}`
-    }
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
-
   // Initialize with workout values if it's a GOAL
   React.useEffect(() => {
     if (workout) {
@@ -116,19 +128,6 @@ export function CompleteWorkoutModal({
     const remaining = athleteProfile.shoesRemainingDistance ?? 0
     return d > remaining
   }, [athleteProfile, distance])
-
-  const timeToSeconds = (timeStr: string) => {
-    if (!timeStr) return 0
-    const parts = timeStr.split(':').map(Number)
-    if (parts.length === 3) {
-      // Format MM:SS:CC (minutes:seconds:centiseconds)
-      return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
-    }
-    if (parts.length === 2) {
-      return (parts[0] || 0) * 60 + (parts[1] || 0)
-    }
-    return (parts[0] || 0) * 60
-  }
 
   const pace = useMemo(() => {
     const d = Number.parseFloat(distance) || 0
@@ -209,7 +208,9 @@ export function CompleteWorkoutModal({
 
   return (
     <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200">
-      <div
+      <button
+        type="button"
+        aria-label="Fechar modal de treino"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -221,6 +222,8 @@ export function CompleteWorkoutModal({
             Finalizar Treino
           </h2>
           <button
+            type="button"
+            aria-label="Fechar modal de treino"
             onClick={onClose}
             className="rounded-full bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
           >
@@ -268,7 +271,11 @@ export function CompleteWorkoutModal({
                 className="flex w-full items-center justify-between gap-2 rounded-2xl bg-orange-50 px-5 py-3.5 font-black text-orange-600 text-xs transition-colors hover:bg-orange-100"
               >
                 <span className="flex items-center gap-2">
-                  <svg className="h-4 w-4 fill-current" viewBox="0 0 24 24">
+                  <svg
+                    aria-hidden="true"
+                    className="h-4 w-4 fill-current"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-3.828L8.375 6.056 6.287 10.172H9.333m5.549-4.116L12.06 0l-5.12 10.172h3.066" />
                   </svg>
                   IMPORTAR DO STRAVA
@@ -312,12 +319,16 @@ export function CompleteWorkoutModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+              <label
+                htmlFor="workout-distance"
+                className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+              >
                 <Activity className="h-3.5 w-3.5 text-orange-500" /> Distância
                 Real
               </label>
               <div className="relative">
                 <input
+                  id="workout-distance"
                   type="number"
                   step="0.01"
                   required
@@ -332,11 +343,15 @@ export function CompleteWorkoutModal({
             </div>
 
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+              <label
+                htmlFor="workout-duration"
+                className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+              >
                 <Timer className="h-3.5 w-3.5 text-orange-500" /> Tempo Real
               </label>
               <div className="relative">
                 <input
+                  id="workout-duration"
                   type="text"
                   required
                   placeholder="00:00"
