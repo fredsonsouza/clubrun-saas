@@ -152,7 +152,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
 
           {showClubSwitcher && (
             <>
-              <div className="h-8 w-px bg-gray-200"></div>
+              <div className="h-8 w-px bg-gray-200" />
               <ClubSwitcher />
             </>
           )}
@@ -230,6 +230,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
           {isSuperAdmin && (
             <div className="relative" ref={systemMenuRef}>
               <button
+                type="button"
                 onClick={() => setIsSystemMenuOpen(!isSystemMenuOpen)}
                 className="flex items-center gap-1.5 rounded-xl bg-gray-900 px-3 py-2 font-black text-[10px] text-white tracking-widest shadow-lg transition-all hover:bg-gray-800 active:scale-95"
               >
@@ -281,7 +282,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             </Link>
           )}
 
-          <div className="h-8 w-px bg-gray-200 xl:hidden"></div>
+          <div className="h-8 w-px bg-gray-200 xl:hidden" />
 
           <button
             type="button"
@@ -296,7 +297,7 @@ export function Header({ user, variant = 'default' }: HeaderProps) {
             )}
           </button>
 
-          <div className="h-8 w-px bg-gray-200"></div>
+          <div className="h-8 w-px bg-gray-200" />
 
           <ProfileButton user={user} />
         </div>

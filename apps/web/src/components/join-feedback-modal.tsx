@@ -33,10 +33,8 @@ export function JoinFeedbackModal({
           className={`relative h-32 w-full bg-gradient-to-br ${isSuccess ? 'from-orange-500 to-amber-500' : 'from-red-500 to-rose-600'}`}
         >
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-          <div className="absolute -bottom-10 left-1/2 -translate-x-1/2">
-            <div
-              className={`flex h-20 w-20 items-center justify-center rounded-[2rem] bg-white shadow-2xl ring-4 ring-white`}
-            >
+          <div className="-bottom-10 -translate-x-1/2 absolute left-1/2">
+            <div className="flex h-20 w-20 items-center justify-center rounded-[2rem] bg-white shadow-2xl ring-4 ring-white">
               {isSuccess ? (
                 <CheckCircle2 className="h-10 w-10 text-orange-500" />
               ) : (
@@ -48,10 +46,10 @@ export function JoinFeedbackModal({
 
         <div className="px-8 pt-16 pb-10 text-center">
           <DialogHeader className="items-center">
-            <DialogTitle className="text-3xl font-black">
+            <DialogTitle className="font-black text-3xl">
               {isSuccess ? 'Solicitação Enviada!' : 'Ops! Algo deu errado'}
             </DialogTitle>
-            <DialogDescription className="mt-2 text-lg font-medium">
+            <DialogDescription className="mt-2 font-medium text-lg">
               {isSuccess ? (
                 <>
                   Sua solicitação para o clube{' '}
@@ -69,11 +67,11 @@ export function JoinFeedbackModal({
               <div className="rounded-2xl bg-orange-50 p-5 text-left">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-orange-500" />
-                  <span className="text-sm font-bold text-orange-800">
+                  <span className="font-bold text-orange-800 text-sm">
                     Próximos Passos:
                   </span>
                 </div>
-                <p className="mt-2 text-xs font-medium text-orange-700/80 leading-relaxed">
+                <p className="mt-2 font-medium text-orange-700/80 text-xs leading-relaxed">
                   O treinador e os administradores do clube foram notificados.
                   Assim que aprovarem seu perfil, você terá acesso total ao feed
                   e poderá registrar seus treinos.
@@ -81,7 +79,7 @@ export function JoinFeedbackModal({
               </div>
             ) : (
               <div className="rounded-2xl bg-red-50 p-5 text-left text-red-800">
-                <p className="text-xs font-bold leading-relaxed">
+                <p className="font-bold text-xs leading-relaxed">
                   Verifique se você já não possui uma solicitação pendente para
                   este clube ou tente novamente em alguns instantes.
                 </p>
@@ -91,6 +89,7 @@ export function JoinFeedbackModal({
 
           <DialogFooter className="mt-8 sm:justify-center">
             <button
+              type="button"
               onClick={onClose}
               className={`flex w-full items-center justify-center gap-2 rounded-2xl py-4 font-black text-white shadow-xl transition-all hover:scale-[1.02] active:scale-95 ${
                 isSuccess
@@ -105,7 +104,7 @@ export function JoinFeedbackModal({
 
           <div className="mt-6 flex items-center justify-center gap-2 opacity-30">
             <Flame className="h-4 w-4 text-gray-500" fill="currentColor" />
-            <span className="text-[10px] font-black tracking-widest uppercase">
+            <span className="font-black text-[10px] uppercase tracking-widest">
               ClubRun Platform
             </span>
           </div>
