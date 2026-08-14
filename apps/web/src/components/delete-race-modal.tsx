@@ -29,14 +29,14 @@ export function DeleteRaceModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-[60] flex items-center justify-center bg-gray-900/60 backdrop-blur-md p-4">
-      <div className="animate-in zoom-in-95 w-full max-w-md rounded-[2.5rem] bg-white p-8 shadow-2xl">
+    <div className="fade-in fixed inset-0 z-[60] flex animate-in items-center justify-center bg-gray-900/60 p-4 backdrop-blur-md">
+      <div className="zoom-in-95 w-full max-w-md animate-in rounded-[2.5rem] bg-white p-8 shadow-2xl">
         <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-red-50 text-red-600">
           <AlertTriangle className="h-8 w-8" />
         </div>
 
-        <h3 className="text-2xl font-black text-gray-900">Excluir Corrida?</h3>
-        <p className="mt-4 text-sm font-medium leading-relaxed text-gray-500">
+        <h3 className="font-black text-2xl text-gray-900">Excluir Corrida?</h3>
+        <p className="mt-4 font-medium text-gray-500 text-sm leading-relaxed">
           Você está prestes a excluir a corrida{' '}
           <span className="font-bold text-gray-900">"{raceName}"</span>. Esta
           ação é irreversível e removerá todos os dados e inscrições vinculados
@@ -45,16 +45,18 @@ export function DeleteRaceModal({
 
         <div className="mt-8 flex gap-3">
           <button
+            type="button"
             onClick={onClose}
             disabled={isDeleting}
-            className="flex-1 rounded-2xl bg-gray-100 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-200"
+            className="flex-1 rounded-2xl bg-gray-100 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-200"
           >
             Cancelar
           </button>
           <button
+            type="button"
             onClick={handleConfirm}
             disabled={isDeleting}
-            className="flex-[1.5] flex items-center justify-center gap-2 rounded-2xl bg-red-600 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+            className="flex flex-[1.5] items-center justify-center gap-2 rounded-2xl bg-red-600 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
           >
             {isDeleting ? (
               <Loader2 className="h-4 w-4 animate-spin" />

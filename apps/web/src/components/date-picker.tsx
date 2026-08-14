@@ -21,6 +21,7 @@ export function DatePicker({
   required,
 }: DatePickerProps) {
   const [showCalendar, setShowCalendar] = React.useState(false)
+  const inputId = React.useId()
   const containerRef = React.useRef<HTMLDivElement>(null)
 
   // Close calendar on outside click
@@ -59,14 +60,18 @@ export function DatePicker({
   }, [value])
 
   return (
-    <div className="space-y-1.5 relative" ref={containerRef}>
+    <div className="relative space-y-1.5" ref={containerRef}>
       {label && (
-        <label className="flex items-center gap-2 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+        <label
+          htmlFor={inputId}
+          className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+        >
           <CalendarIcon className="h-3.5 w-3.5 text-orange-500" /> {label}
         </label>
       )}
       <div className="relative">
         <input
+          id={inputId}
           type="text"
           required={required}
           value={value}
@@ -77,14 +82,14 @@ export function DatePicker({
         <button
           type="button"
           onClick={() => setShowCalendar(!showCalendar)}
-          className="absolute top-1/2 right-4 -translate-y-1/2 text-gray-400 hover:text-orange-500 transition-colors"
+          className="-translate-y-1/2 absolute top-1/2 right-4 text-gray-400 transition-colors hover:text-orange-500"
         >
           <CalendarIcon className="h-5 w-5" />
         </button>
       </div>
 
       {showCalendar && (
-        <div className="absolute top-full left-0 z-[110] mt-2 rounded-3xl border border-gray-100 bg-white p-4 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+        <div className="fade-in zoom-in-95 absolute top-full left-0 z-[110] mt-2 animate-in rounded-3xl border border-gray-100 bg-white p-4 shadow-2xl duration-200">
           <DayPicker
             mode="single"
             selected={selectedDay}
