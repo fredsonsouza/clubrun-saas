@@ -4,7 +4,7 @@ import { acceptInviteAction } from '@/app/private-actions'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Loader2, Sparkles, UserCheck } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import React, { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -28,8 +28,7 @@ interface AcceptInviteFormProps {
 
 export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
   const router = useRouter()
-  const params = useParams()
-  const slug = (params?.slug as string) || ''
+
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
 
@@ -46,7 +45,7 @@ export function AcceptInviteForm({ invite, user }: AcceptInviteFormProps) {
         // Vou assumir que o slug está na URL ou passar via prop se necessário.
         router.refresh()
       }, 2000)
-    } catch (error) {
+    } catch (_error) {
       toast.error('Falha ao aceitar convite. Ele pode ter expirado.')
     } finally {
       setIsLoading(false)

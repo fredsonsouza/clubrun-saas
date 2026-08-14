@@ -129,7 +129,7 @@ export function SignUpForm() {
               type="submit"
               className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 font-bold text-gray-700 text-sm shadow-sm transition-colors hover:bg-gray-50 active:scale-95"
             >
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 24 24">
                 <path
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
                   fill="#4285F4"
@@ -152,11 +152,11 @@ export function SignUpForm() {
           </form>
 
           <div className="relative flex items-center py-2">
-            <div className="grow border-gray-200 border-t"></div>
+            <div className="grow border-gray-200 border-t" />
             <span className="shrink-0 px-4 font-bold text-gray-400 text-xs uppercase tracking-widest">
               Ou preencha seus dados
             </span>
-            <div className="grow border-gray-200 border-t"></div>
+            <div className="grow border-gray-200 border-t" />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
