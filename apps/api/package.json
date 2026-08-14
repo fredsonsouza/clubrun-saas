@@ -52,7 +52,7 @@
   "devDependencies": {
     "@faker-js/faker": "^10.1.0",
     "@saas/tsconfig": "workspace:*",
-    "@types/node": "^24.10.1",
+    "@types/node": "^20.19.0",
     "@types/pg": "^8.20.0",
     "@types/supertest": "^7.2.0",
     "@vitest/coverage-v8": "^4.1.4",

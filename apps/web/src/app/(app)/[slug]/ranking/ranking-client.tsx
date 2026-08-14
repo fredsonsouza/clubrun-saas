@@ -15,7 +15,7 @@ import {
   Trophy,
 } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface RankingAthlete {
   id: string
@@ -58,14 +58,17 @@ export function RankingClient({
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('month')
   const [isLoading, setIsLoading] = useState(false)
   const [isShareModalOpen, setIsShareModalOpen] = useState(false)
+  const isInitialRender = useRef(true)
 
   useEffect(() => {
     let isCurrent = true
 
-    // Se for o estado inicial com 'month', não precisamos refazer a requisição no primeiro render
-    if (period === 'month' && ranking === initialRankings) {
+    // O ranking mensal inicial já foi carregado no servidor.
+    if (isInitialRender.current && period === 'month') {
+      isInitialRender.current = false
       return
     }
+    isInitialRender.current = false
 
     const fetchRanking = async () => {
       setIsLoading(true)
@@ -118,10 +121,9 @@ export function RankingClient({
     return () => {
       isCurrent = false
     }
-  }, [period, club.slug, user.id, initialRankings])
+  }, [period, club.slug, user.id])
 
   const top3 = ranking.slice(0, 3)
-  const restOfRanking = ranking.slice(3)
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
@@ -162,6 +164,7 @@ export function RankingClient({
           <div className="flex flex-wrap items-center gap-3">
             {ranking.length > 0 && (
               <button
+                type="button"
                 onClick={() => setIsShareModalOpen(true)}
                 className="flex cursor-pointer items-center gap-2 rounded-2xl border border-gray-200 bg-white px-5 py-3.5 font-black text-gray-500 text-xs uppercase tracking-wider shadow-xs transition-all hover:border-orange-200 hover:bg-orange-50 hover:text-orange-500 active:scale-95"
               >
@@ -172,6 +175,7 @@ export function RankingClient({
             <div className="flex rounded-2xl border border-gray-100 bg-white p-1.5 shadow-sm">
               {(['week', 'month', 'year'] as const).map((p) => (
                 <button
+                  type="button"
                   key={p}
                   onClick={() => setPeriod(p)}
                   disabled={isLoading}

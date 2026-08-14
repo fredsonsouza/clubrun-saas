@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@saas/tsconfig": "workspace:*",
-    "@types/node": "^24.10.1"
+    "@types/node": "^20.19.0"
   },
   "dependencies": {
     "@t3-oss/env-nextjs": "^0.13.11",

@@ -7,7 +7,7 @@ interface SignUpRequest {
   password: string
 }
 
-type SignUpResponse = void
+type SignUpResponse = undefined
 
 export async function signUp({
   name,

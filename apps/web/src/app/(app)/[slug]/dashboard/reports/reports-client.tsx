@@ -157,7 +157,9 @@ export function ReportsClient({
 
     const currentTotalPlanned = currentPlanned.length + currentCompleted.length
     const currentAdherence =
-      currentTotalPlanned > 0 ? (currentCompleted.length / currentTotalPlanned) * 100 : 0
+      currentTotalPlanned > 0
+        ? (currentCompleted.length / currentTotalPlanned) * 100
+        : 0
 
     const prevTotalPlanned = prevPlanned.length + prevCompleted.length
     const prevAdherence =
@@ -170,7 +172,6 @@ export function ReportsClient({
       hasData: currentTotalPlanned > 0 || prevTotalPlanned > 0,
     }
   }, [plannedWorkouts, completedWorkouts])
-
 
   const TYPE_LABELS = {
     EASY: 'Rodagem Leve',
@@ -501,7 +502,8 @@ export function ReportsClient({
                             }}
                             formatter={(value: any, name: any) => [
                               `${value} treinos`,
-                              TYPE_LABELS[name as keyof typeof TYPE_LABELS] || name,
+                              TYPE_LABELS[name as keyof typeof TYPE_LABELS] ||
+                                name,
                             ]}
                           />
                         </PieChart>

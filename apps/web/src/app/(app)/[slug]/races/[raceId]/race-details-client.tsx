@@ -27,7 +27,7 @@ const MapView = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="h-[500px] w-full animate-pulse rounded-[3rem] bg-gray-100 flex items-center justify-center text-xs font-bold text-gray-400">
+      <div className="flex h-[500px] w-full animate-pulse items-center justify-center rounded-[3rem] bg-gray-100 font-bold text-gray-400 text-xs">
         Carregando percurso...
       </div>
     ),
@@ -130,7 +130,7 @@ export function RaceDetailsClient({
       } else {
         toast.error(result.message)
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error('Erro ao atualizar status do pagamento.')
     } finally {
       setUpdatingAthleteId(null)
@@ -153,7 +153,7 @@ export function RaceDetailsClient({
         {/* BACK BUTTON */}
         <Link
           href={`/${club.slug}/races`}
-          className="mb-8 inline-flex items-center gap-2 text-sm font-bold text-gray-400 transition-colors hover:text-gray-900"
+          className="mb-8 inline-flex items-center gap-2 font-bold text-gray-400 text-sm transition-colors hover:text-gray-900"
         >
           <ArrowLeft className="h-4 w-4" /> Voltar para o Calendário
         </Link>
@@ -180,24 +180,24 @@ export function RaceDetailsClient({
 
             <div className="flex-1">
               <div className="mb-4 flex flex-wrap gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-1.5 text-[10px] font-black tracking-widest text-white uppercase shadow-lg shadow-orange-500/20">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-500 px-4 py-1.5 font-black text-[10px] text-white uppercase tracking-widest shadow-lg shadow-orange-500/20">
                   {race.distance}k
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 text-[10px] font-black tracking-widest text-white uppercase">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-gray-900 px-4 py-1.5 font-black text-[10px] text-white uppercase tracking-widest">
                   Oficial
                 </span>
               </div>
-              <h1 className="mb-4 text-4xl font-black tracking-tight text-gray-900 md:text-5xl">
+              <h1 className="mb-4 font-black text-4xl text-gray-900 tracking-tight md:text-5xl">
                 {race.name}
               </h1>
               <div className="flex flex-wrap gap-6">
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
+                <div className="flex items-center gap-2 font-bold text-gray-500 text-sm">
                   <Calendar className="h-4 w-4 text-orange-500" /> {raceDate}
                 </div>
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
+                <div className="flex items-center gap-2 font-bold text-gray-500 text-sm">
                   <MapPin className="h-4 w-4 text-orange-500" /> {race.city}
                 </div>
-                <div className="flex items-center gap-2 text-sm font-bold text-gray-500">
+                <div className="flex items-center gap-2 font-bold text-gray-500 text-sm">
                   <Trophy className="h-4 w-4 text-orange-500" />{' '}
                   {results.length} Atletas Finalistas
                 </div>
@@ -218,10 +218,10 @@ export function RaceDetailsClient({
           <div className="space-y-6">
             <div className="flex items-end justify-between px-4 sm:px-0">
               <div>
-                <h2 className="text-2xl font-black tracking-tight text-gray-900">
+                <h2 className="font-black text-2xl text-gray-900 tracking-tight">
                   Atletas <span className="text-orange-500">Inscritos</span>
                 </h2>
-                <p className="text-sm font-medium text-gray-400">
+                <p className="font-medium text-gray-400 text-sm">
                   Acompanhe quem está confirmado no pelotão para a largada de{' '}
                   {race.name}.
                 </p>
@@ -232,17 +232,17 @@ export function RaceDetailsClient({
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-gray-50 bg-gray-50/50">
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase w-24">
+                    <tr className="border-gray-50 border-b bg-gray-50/50">
+                      <th className="w-24 px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         #
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Atleta
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Data de Inscrição
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase w-56">
+                      <th className="w-56 px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Status do Pagamento
                       </th>
                     </tr>
@@ -263,7 +263,7 @@ export function RaceDetailsClient({
                             className="group transition-colors hover:bg-gray-50/50"
                           >
                             <td className="px-8 py-6">
-                              <span className="flex h-8 w-8 items-center justify-center rounded-lg text-xs font-black bg-gray-100 text-gray-500">
+                              <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 font-black text-gray-500 text-xs">
                                 {index + 1}
                               </span>
                             </td>
@@ -282,12 +282,12 @@ export function RaceDetailsClient({
                                     </div>
                                   )}
                                 </div>
-                                <span className="text-sm font-black text-gray-900 transition-colors group-hover:text-orange-500">
+                                <span className="font-black text-gray-900 text-sm transition-colors group-hover:text-orange-500">
                                   {p.athlete.name || 'Atleta Anônimo'}
                                 </span>
                               </div>
                             </td>
-                            <td className="px-8 py-6 text-xs font-bold text-gray-500">
+                            <td className="px-8 py-6 font-bold text-gray-500 text-xs">
                               {new Date(p.createdAt).toLocaleDateString(
                                 'pt-BR',
                                 {
@@ -302,6 +302,7 @@ export function RaceDetailsClient({
                             <td className="px-8 py-6">
                               {isPrivileged ? (
                                 <button
+                                  type="button"
                                   onClick={() =>
                                     handleTogglePayment(
                                       p.athlete.id,
@@ -309,10 +310,10 @@ export function RaceDetailsClient({
                                     )
                                   }
                                   disabled={updatingAthleteId === p.athlete.id}
-                                  className={`cursor-pointer inline-flex items-center gap-2 rounded-xl px-4 py-2 text-[10px] font-black tracking-widest uppercase transition-all shadow-sm active:scale-95 disabled:opacity-75 ${
+                                  className={`inline-flex cursor-pointer items-center gap-2 rounded-xl px-4 py-2 font-black text-[10px] uppercase tracking-widest shadow-sm transition-all active:scale-95 disabled:opacity-75 ${
                                     p.paymentStatus === 'CONFIRMED'
-                                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-100 hover:bg-emerald-100'
-                                      : 'bg-amber-50 text-amber-600 border border-amber-100 hover:bg-amber-100'
+                                      ? 'border border-emerald-100 bg-emerald-50 text-emerald-600 hover:bg-emerald-100'
+                                      : 'border border-amber-100 bg-amber-50 text-amber-600 hover:bg-amber-100'
                                   }`}
                                 >
                                   {updatingAthleteId === p.athlete.id ? (
@@ -330,10 +331,10 @@ export function RaceDetailsClient({
                                 <div className="inline-flex">
                                   {canViewStatus ? (
                                     <span
-                                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-[9px] font-black tracking-widest uppercase ${
+                                      className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 font-black text-[9px] uppercase tracking-widest ${
                                         p.paymentStatus === 'CONFIRMED'
-                                          ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                          : 'bg-amber-50 text-amber-600 border border-amber-100'
+                                          ? 'border border-emerald-100 bg-emerald-50 text-emerald-600'
+                                          : 'border border-amber-100 bg-amber-50 text-amber-600'
                                       }`}
                                     >
                                       {p.paymentStatus === 'CONFIRMED'
@@ -341,7 +342,7 @@ export function RaceDetailsClient({
                                         : 'Aguardando Admin'}
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center gap-1.5 rounded-xl bg-sky-50 text-sky-600 border border-sky-100 px-3 py-1.5 text-[9px] font-black tracking-widest uppercase">
+                                    <span className="inline-flex items-center gap-1.5 rounded-xl border border-sky-100 bg-sky-50 px-3 py-1.5 font-black text-[9px] text-sky-600 uppercase tracking-widest">
                                       Inscrito
                                     </span>
                                   )}
@@ -359,10 +360,10 @@ export function RaceDetailsClient({
                               <Calendar className="h-8 w-8" />
                             </div>
                           </div>
-                          <h3 className="text-xl font-black text-gray-900">
+                          <h3 className="font-black text-gray-900 text-xl">
                             Nenhum inscrito ainda
                           </h3>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="font-medium text-gray-400 text-sm">
                             Seja o primeiro a garantir sua presença clicando em
                             "Inscrever-se" no calendário!
                           </p>
@@ -378,10 +379,10 @@ export function RaceDetailsClient({
           <div className="space-y-6">
             <div className="flex items-end justify-between px-4 sm:px-0">
               <div>
-                <h2 className="text-2xl font-black tracking-tight text-gray-900">
+                <h2 className="font-black text-2xl text-gray-900 tracking-tight">
                   Leaderboard <span className="text-orange-500">do Clube</span>
                 </h2>
-                <p className="text-sm font-medium text-gray-400">
+                <p className="font-medium text-gray-400 text-sm">
                   Os melhores tempos registrados pelos atletas do {club.name}.
                 </p>
               </div>
@@ -391,20 +392,20 @@ export function RaceDetailsClient({
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left">
                   <thead>
-                    <tr className="border-b border-gray-50 bg-gray-50/50">
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                    <tr className="border-gray-50 border-b bg-gray-50/50">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Posição
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Atleta
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Tempo Final
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Pace Médio
                       </th>
-                      <th className="px-8 py-6 text-[10px] font-black tracking-widest text-gray-400 uppercase">
+                      <th className="px-8 py-6 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                         Posição Geral
                       </th>
                     </tr>
@@ -419,7 +420,7 @@ export function RaceDetailsClient({
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-3">
                               <span
-                                className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg font-black ${
+                                className={`flex h-10 w-10 items-center justify-center rounded-xl font-black text-lg ${
                                   index === 0
                                     ? 'bg-amber-100 text-amber-600 shadow-sm'
                                     : index === 1
@@ -459,27 +460,27 @@ export function RaceDetailsClient({
                                   </div>
                                 )}
                               </div>
-                              <span className="text-base font-black text-gray-900 transition-colors group-hover:text-orange-500">
+                              <span className="font-black text-base text-gray-900 transition-colors group-hover:text-orange-500">
                                 {result.athlete.name || 'Atleta Anônimo'}
                               </span>
                             </div>
                           </td>
-                          <td className="px-8 py-6 font-mono text-xl font-black text-gray-900">
+                          <td className="px-8 py-6 font-black font-mono text-gray-900 text-xl">
                             {formatDuration(result.time)}
                           </td>
                           <td className="px-8 py-6">
                             <div className="flex items-center gap-2">
                               <Activity className="h-4 w-4 text-orange-500" />
-                              <span className="text-sm font-black text-gray-600">
+                              <span className="font-black text-gray-600 text-sm">
                                 {formatPace(result.pace)}{' '}
-                                <span className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                                <span className="font-bold text-[10px] text-gray-400 uppercase tracking-widest">
                                   min/km
                                 </span>
                               </span>
                             </div>
                           </td>
                           <td className="px-8 py-6">
-                            <span className="rounded-xl bg-gray-100 px-4 py-2 text-xs font-black text-gray-600">
+                            <span className="rounded-xl bg-gray-100 px-4 py-2 font-black text-gray-600 text-xs">
                               {result.position
                                 ? `${result.position}º Lugar`
                                 : 'N/A'}
@@ -495,10 +496,10 @@ export function RaceDetailsClient({
                               <Clock className="h-8 w-8" />
                             </div>
                           </div>
-                          <h3 className="text-xl font-black text-gray-900">
+                          <h3 className="font-black text-gray-900 text-xl">
                             Nenhum resultado ainda
                           </h3>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="font-medium text-gray-400 text-sm">
                             Os atletas do clube ainda não registraram seus
                             tempos nesta prova.
                           </p>

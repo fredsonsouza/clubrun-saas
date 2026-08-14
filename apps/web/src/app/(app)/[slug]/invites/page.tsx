@@ -48,11 +48,6 @@ export default async function InvitesPage({ params }: InvitesPageProps) {
     createdAt: m.createdAt,
   }))
 
-  const clubInfo = {
-    name: currentClub.name,
-    slug: currentClub.slug,
-  }
-
   return (
     <InvitesClient
       user={{

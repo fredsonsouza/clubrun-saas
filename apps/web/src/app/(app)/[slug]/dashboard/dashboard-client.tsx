@@ -625,7 +625,7 @@ export function DashboardClient({
 
                 {/* Calendar Grid */}
                 <div className="grid grid-cols-7 gap-2">
-                  {daysInMonth.map(({ date, isCurrentMonth }, idx) => {
+                  {daysInMonth.map(({ date, isCurrentMonth }) => {
                     const dayKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
                     const dayData = workoutsByDay[dayKey] || {
                       planned: [],
@@ -641,7 +641,8 @@ export function DashboardClient({
 
                     return (
                       <button
-                        key={idx}
+                        type="button"
+                        key={dayKey}
                         onClick={() => setSelectedDay(date)}
                         className={`relative flex aspect-square flex-col items-center justify-center rounded-2xl border transition-all active:scale-95 ${
                           isSelected
@@ -696,6 +697,7 @@ export function DashboardClient({
                               Nenhum treino agendado ou realizado para este dia.
                             </p>
                             <button
+                              type="button"
                               onClick={() => setIsWorkoutModalOpen(true)}
                               className="flex cursor-pointer items-center gap-2 rounded-xl bg-orange-500 px-4 py-2 font-black text-white text-xs shadow-sm transition-all hover:bg-orange-600 active:scale-95"
                             >
@@ -737,6 +739,7 @@ export function DashboardClient({
                                   )}
                                 </div>
                                 <button
+                                  type="button"
                                   onClick={() => {
                                     setSelectedWorkout(w)
                                     setIsCompleteModalOpen(true)
@@ -853,7 +856,10 @@ export function DashboardClient({
                   </Link>
                 ))}
                 {members.length > 5 && (
-                  <button className="mt-2 w-full cursor-pointer py-2 font-bold text-gray-400 text-xs transition-colors hover:text-gray-600">
+                  <button
+                    type="button"
+                    className="mt-2 w-full cursor-pointer py-2 font-bold text-gray-400 text-xs transition-colors hover:text-gray-600"
+                  >
                     Ver todos os membros
                   </button>
                 )}
@@ -955,12 +961,14 @@ export function DashboardClient({
           </DialogHeader>
           <DialogFooter className="mt-8 gap-3">
             <button
+              type="button"
               onClick={() => setWorkoutToDelete(null)}
               className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
             >
               Cancelar
             </button>
             <button
+              type="button"
               onClick={handleDeleteWorkout}
               disabled={isDeleting}
               className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"

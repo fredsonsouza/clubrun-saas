@@ -14,6 +14,10 @@ vi.mock('@/lib/prisma', () => ({
   },
 }))
 
+vi.mock('@/lib/mail', () => ({
+  resend: { emails: { send: vi.fn().mockResolvedValue({}) } },
+}))
+
 describe('Create Invite (Unit)', () => {
   beforeAll(async () => {
     await app.ready()

@@ -30,7 +30,7 @@ export async function createRaceAction(formData: FormData) {
     revalidatePath(`/${slug}/races`)
 
     return { success: true, message: 'Prova criada com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao criar a prova.' }
   }
 }
@@ -59,7 +59,7 @@ export async function updateRaceAction(formData: FormData) {
     revalidatePath(`/${slug}/races/${raceId}`)
 
     return { success: true, message: 'Prova atualizada com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao atualizar a prova.' }
   }
 }
@@ -74,7 +74,7 @@ export async function deleteRaceAction(formData: FormData) {
     revalidatePath(`/${slug}/races`)
 
     return { success: true, message: 'Prova excluída com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao excluir a prova.' }
   }
 }
@@ -103,7 +103,7 @@ export async function createRaceResultAction(formData: FormData) {
     revalidatePath(`/${slug}/races/${raceId}`)
 
     return { success: true, message: 'Resultado registrado com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao registrar o resultado.' }
   }
 }
@@ -126,7 +126,7 @@ export async function updateRacePaymentStatusAction(formData: FormData) {
     revalidatePath(`/${slug}/races/${raceId}`)
 
     return { success: true, message: 'Status de pagamento atualizado!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao atualizar status de pagamento.' }
   }
 }

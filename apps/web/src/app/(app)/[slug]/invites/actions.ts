@@ -25,7 +25,7 @@ export async function createInviteAction(formData: FormData) {
     try {
       const errorData = await err.response.json()
       message = errorData.message || message
-    } catch (e) {}
+    } catch (_e) {}
 
     return { success: false, message }
   }
@@ -44,7 +44,7 @@ export async function revokeInviteAction({
     await revokeInvite({ slug, inviteId })
     revalidatePath(`/${slug}/invites`)
     return { success: true, message: 'Convite cancelado com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao cancelar convite.' }
   }
 }
@@ -78,7 +78,7 @@ export async function updateMemberStatusAction({
         const errorData = await err.response.json()
         message = errorData.message || message
       }
-    } catch (e) {}
+    } catch (_e) {}
 
     return { success: false, message }
   }
