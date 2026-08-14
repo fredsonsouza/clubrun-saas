@@ -5,7 +5,7 @@ import { ProfileSettingsClient } from './settings-client'
 export default async function ProfileSettingsPage() {
   const { user } = await getProfile()
 
-  if (!user) {
+  if (!user?.id) {
     redirect('/auth/sign-in')
   }
 
@@ -14,7 +14,7 @@ export default async function ProfileSettingsPage() {
       <ProfileSettingsClient
         user={{
           ...user,
-          id: user.id!,
+          id: user.id,
         }}
       />
     </div>

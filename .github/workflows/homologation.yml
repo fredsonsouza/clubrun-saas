@@ -39,13 +39,13 @@ jobs:
           --health-retries 12
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.0.0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: pnpm
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9.0.0
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @saas/api db:migrate:deploy
       - run: pnpm --filter @saas/api test:e2e

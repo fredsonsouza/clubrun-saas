@@ -105,7 +105,10 @@ export default async function AdminBillingPage() {
                 currency: 'BRL',
               }).format(billing.availableBalance)}
             </p>
-            <button className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 opacity-50 transition-colors hover:bg-gray-200">
+            <button
+              type="button"
+              className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-xl bg-gray-100 py-3.5 font-bold text-gray-900 opacity-50 transition-colors hover:bg-gray-200"
+            >
               Efetuar Saque (Indisponível)
             </button>
           </div>
