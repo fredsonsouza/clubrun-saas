@@ -95,7 +95,9 @@ export function AddResultModal({
 
   return (
     <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200 sm:p-6">
-      <div
+      <button
+        type="button"
+        aria-label="Fechar modal de resultado"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -109,6 +111,8 @@ export function AddResultModal({
             Registrar Resultado
           </h2>
           <button
+            type="button"
+            aria-label="Fechar modal de resultado"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-500 transition-colors hover:bg-gray-100"
           >
@@ -127,11 +131,15 @@ export function AddResultModal({
           <form id="result-form" onSubmit={handleSubmit} className="space-y-6">
             {/* TEMPO */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider">
+              <label
+                htmlFor="result-time"
+                className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
+              >
                 <Clock className="h-3.5 w-3.5 text-orange-500" /> Tempo Final
                 (HH:MM:SS)
               </label>
               <input
+                id="result-time"
                 type="text"
                 required
                 pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
@@ -144,12 +152,16 @@ export function AddResultModal({
 
             {/* POSIÇÃO */}
             <div className="space-y-1.5">
-              <label className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider">
+              <label
+                htmlFor="result-position"
+                className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
+              >
                 <Trophy className="h-3.5 w-3.5 text-orange-500" /> Posição Geral
                 (Opcional)
               </label>
               <div className="relative">
                 <input
+                  id="result-position"
                   type="number"
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}

@@ -11,7 +11,7 @@ export default async function IndexPage() {
     return <LandingPage />
   }
 
-  const { user } = await auth()
+  await auth()
 
   /* Temporariamente desativado para facilitar o desenvolvimento
   if (!user.emailVerifiedAt) {
@@ -25,7 +25,7 @@ export default async function IndexPage() {
   try {
     const data = await getClubs()
     clubs = data.clubs
-  } catch (error) {
+  } catch (_error) {
     redirect('/explore')
   }
 

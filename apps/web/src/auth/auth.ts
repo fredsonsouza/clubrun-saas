@@ -32,7 +32,7 @@ export async function auth() {
         emailVerifiedAt: user.emailVerifiedAt,
       },
     }
-  } catch (error) {}
+  } catch (_error) {}
 
   return { user: null }
 }
