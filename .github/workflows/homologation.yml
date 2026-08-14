@@ -47,6 +47,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @saas/api exec prisma generate
       - run: pnpm --filter @saas/api db:migrate:deploy
       - run: pnpm --filter @saas/api test:e2e
       - run: pnpm --filter @saas/api test:integration:migration

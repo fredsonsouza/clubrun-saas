@@ -49,6 +49,7 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @saas/api exec prisma generate
       - run: pnpm exec biome check .
       - run: pnpm --filter @saas/env check-types
       - run: pnpm --filter @saas/auth check-types
