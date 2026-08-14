@@ -1,5 +1,5 @@
-import { getInviteContinuation } from '@/auth/cookies'
 import { auth, isAuthenticated } from '@/auth/auth'
+import { getInviteContinuation } from '@/auth/cookies'
 import { Header } from '@/components/header'
 import { getClubPublicInfo } from '@/http/get-club-public-info'
 import { getClubs } from '@/http/get-clubs'
@@ -18,7 +18,10 @@ interface JoinPageProps {
   }>
 }
 
-export default async function JoinPage({ params, searchParams }: JoinPageProps) {
+export default async function JoinPage({
+  params,
+  searchParams,
+}: JoinPageProps) {
   const { slug } = await params
   const query = await searchParams
 
@@ -91,7 +94,7 @@ export default async function JoinPage({ params, searchParams }: JoinPageProps) 
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
         <div className="max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
-          <h1 className="mb-2 text-xl font-bold text-red-600">
+          <h1 className="mb-2 font-bold text-red-600 text-xl">
             Ops! Algo deu errado.
           </h1>
           <p className="mb-4 text-gray-600">

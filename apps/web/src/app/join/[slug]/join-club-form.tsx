@@ -35,7 +35,7 @@ export function JoinClubForm({ club, user }: JoinClubFormProps) {
       setTimeout(() => {
         router.push('/explore')
       }, 5000)
-    } catch (error) {
+    } catch (_error) {
       toast.error(
         'Falha ao entrar no clube. Verifique o link ou se você já é membro.'
       )
@@ -117,6 +117,7 @@ export function JoinClubForm({ club, user }: JoinClubFormProps) {
         </div>
 
         <button
+          type="button"
           onClick={handleJoin}
           disabled={isLoading}
           className="group flex w-full cursor-pointer items-center justify-center gap-3 rounded-2xl bg-orange-500 py-5 font-black text-white shadow-orange-500/20 shadow-xl transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"

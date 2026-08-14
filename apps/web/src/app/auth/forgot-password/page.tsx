@@ -1,8 +1,8 @@
 'use client'
 
+import { FormError } from '@/components/form-error'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useFormState } from '@/hooks/use-form-state'
-import { FormError } from '@/components/form-error'
 import {
   AlertTriangle,
   ArrowLeft,
@@ -20,9 +20,9 @@ export default function ForgotPasswordPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gray-50 p-6 font-sans">
       {/* Efeito Visual Laranja Suave no Fundo */}
-      <div className="pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-500/5 blur-[120px]" />
+      <div className="-translate-x-1/2 -translate-y-1/2 pointer-events-none absolute top-1/2 left-1/2 h-[600px] w-[800px] rounded-full bg-orange-500/5 blur-[120px]" />
 
-      <div className="animate-in zoom-in-95 relative z-10 w-full max-w-md rounded-3xl border border-gray-100 bg-white p-8 shadow-xl duration-500 sm:p-10">
+      <div className="zoom-in-95 relative z-10 w-full max-w-md animate-in rounded-3xl border border-gray-100 bg-white p-8 shadow-xl duration-500 sm:p-10">
         {/* Logo Centralizada */}
         <div className="mb-8 flex justify-center">
           <Link href="/" className="group flex items-center gap-2">
@@ -35,10 +35,10 @@ export default function ForgotPasswordPage() {
         {!success ? (
           <>
             <div className="mb-8 text-center">
-              <h1 className="mb-2 text-2xl font-extrabold tracking-tight text-gray-900">
+              <h1 className="mb-2 font-extrabold text-2xl text-gray-900 tracking-tight">
                 Esqueceu sua senha?
               </h1>
-              <p className="text-sm font-medium text-gray-500">
+              <p className="font-medium text-gray-500 text-sm">
                 Digite o e-mail associado à sua conta e enviaremos um link para
                 redefinir sua senha.
               </p>
@@ -60,7 +60,7 @@ export default function ForgotPasswordPage() {
               <div className="space-y-1.5">
                 <label
                   htmlFor="email"
-                  className="text-sm font-bold text-gray-700"
+                  className="font-bold text-gray-700 text-sm"
                 >
                   E-mail
                 </label>
@@ -94,30 +94,30 @@ export default function ForgotPasswordPage() {
           </>
         ) : (
           /* Estado de Sucesso (Link Enviado) */
-          <div className="animate-in fade-in slide-in-from-bottom-4 text-center">
+          <div className="fade-in slide-in-from-bottom-4 animate-in text-center">
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-500">
               <MailCheck className="h-8 w-8" />
             </div>
-            <h2 className="mb-3 text-2xl font-extrabold tracking-tight text-gray-900">
+            <h2 className="mb-3 font-extrabold text-2xl text-gray-900 tracking-tight">
               Verifique seu E-mail
             </h2>
-            <p className="mb-8 text-sm font-medium text-gray-500">
+            <p className="mb-8 font-medium text-gray-500 text-sm">
               Enviamos as instruções de recuperação para o e-mail informado. Não
               se esqueça de checar a caixa de spam.
             </p>
             <Link
               href="/auth/forgot-password"
-              className="text-sm font-bold text-gray-500 transition-colors hover:text-gray-900"
+              className="font-bold text-gray-500 text-sm transition-colors hover:text-gray-900"
             >
               Tentar com outro e-mail
             </Link>
           </div>
         )}
 
-        <div className="mt-8 flex justify-center border-t border-gray-100 pt-6">
+        <div className="mt-8 flex justify-center border-gray-100 border-t pt-6">
           <Link
             href="/auth/sign-in"
-            className="flex items-center gap-2 text-sm font-bold text-gray-600 transition-colors hover:text-orange-500"
+            className="flex items-center gap-2 font-bold text-gray-600 text-sm transition-colors hover:text-orange-500"
           >
             <ArrowLeft className="h-4 w-4" /> Voltar para o Login
           </Link>

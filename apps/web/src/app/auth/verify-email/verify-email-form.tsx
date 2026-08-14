@@ -3,12 +3,11 @@
 import { FormError } from '@/components/form-error'
 import { useFormState } from '@/hooks/use-form-state'
 import { AlertCircle, CheckCircle2, Loader2, LogOut } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { resendVerificationAction, verifyEmailAction } from './actions'
 
 export function VerifyEmailForm() {
-  const router = useRouter()
   const [isResending, startResendTransition] = useTransition()
   const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const resendTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)

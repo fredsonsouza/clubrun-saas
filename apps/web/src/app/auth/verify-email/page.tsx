@@ -10,6 +10,8 @@ export default function VerifyEmailPage() {
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
+              role="img"
+              aria-label="Ícone de verificação de e-mail"
               strokeWidth={1.5}
               stroke="currentColor"
               className="h-8 w-8"
@@ -21,10 +23,10 @@ export default function VerifyEmailPage() {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 font-extrabold text-3xl text-gray-900">
             Verifique seu e-mail
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-gray-600 text-sm">
             Enviamos um código de 6 dígitos para o seu e-mail. Digite-o abaixo
             para continuar.
           </p>
