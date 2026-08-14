@@ -112,19 +112,23 @@ export function RescheduleWorkoutModal({
   }
 
   return (
-    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center p-4 duration-200">
-      <div
+    <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200">
+      <button
+        type="button"
+        aria-label="Fechar modal de reagendamento"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      <div className="animate-in zoom-in-95 relative w-full max-w-sm rounded-3xl bg-white shadow-2xl">
-        <header className="flex items-center justify-between border-b border-gray-100 px-6 py-5">
-          <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
+      <div className="zoom-in-95 relative w-full max-w-sm animate-in rounded-3xl bg-white shadow-2xl">
+        <header className="flex items-center justify-between border-gray-100 border-b px-6 py-5">
+          <h2 className="flex items-center gap-2 font-black text-gray-900 text-xl">
             <CalendarIcon className="h-5 w-5 text-orange-500" />
             Reagendar Treino
           </h2>
           <button
+            type="button"
+            aria-label="Fechar modal de reagendamento"
             onClick={onClose}
             className="rounded-full bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
           >
@@ -132,12 +136,12 @@ export function RescheduleWorkoutModal({
           </button>
         </header>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-600 mb-1">
+        <form onSubmit={handleSubmit} className="space-y-6 p-6">
+          <div className="rounded-2xl border border-orange-100 bg-orange-50/50 p-4">
+            <h4 className="mb-1 font-black text-[10px] text-orange-600 uppercase tracking-widest">
               Treino Selecionado
             </h4>
-            <p className="text-sm font-bold text-gray-900">{workout.title}</p>
+            <p className="font-bold text-gray-900 text-sm">{workout.title}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -148,10 +152,14 @@ export function RescheduleWorkoutModal({
               required
             />
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black tracking-widest text-gray-400 uppercase">
+              <label
+                htmlFor="reschedule-time"
+                className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+              >
                 Novo Horário
               </label>
               <input
+                id="reschedule-time"
                 type="text"
                 required
                 value={time}
@@ -167,7 +175,7 @@ export function RescheduleWorkoutModal({
             </div>
           </div>
 
-          <p className="text-[10px] text-gray-400 font-medium leading-relaxed">
+          <p className="font-medium text-[10px] text-gray-400 leading-relaxed">
             Ao reagendar, o treino continuará na sua agenda, mas aparecerá na
             nova data e horário escolhidos.
           </p>
@@ -175,7 +183,7 @@ export function RescheduleWorkoutModal({
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex h-14 items-center justify-center gap-2 rounded-2xl bg-orange-500 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
+            className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 font-black text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:opacity-70"
           >
             {isLoading ? (
               <Loader2 className="h-6 w-6 animate-spin" />

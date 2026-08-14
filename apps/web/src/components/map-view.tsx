@@ -1,16 +1,16 @@
 'use client'
 
 import React, { useMemo, useState, useCallback, useRef, useEffect } from 'react'
-import Map, {
+import MapboxMap, {
   Source,
   Layer,
   NavigationControl,
   ScaleControl,
 } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
+import { env } from '@saas/env'
 import { Box, Globe, Layers } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
-import { env } from '@saas/env'
 
 const MAPBOX_TOKEN = env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 if (MAPBOX_TOKEN) {
@@ -104,7 +104,7 @@ export function MapView({ routeData }: MapViewProps) {
     }
   }, [is3D])
 
-  // Dynamically set terrain when is3D or mapStyle changes
+  // Dynamically set terrain when the 3D mode changes
   useEffect(() => {
     const map = mapRef.current?.getMap()
     if (!map) return
@@ -124,13 +124,13 @@ export function MapView({ routeData }: MapViewProps) {
     } else {
       map.once('style.load', applyTerrain)
     }
-  }, [is3D, mapStyle])
+  }, [is3D])
 
   if (!routeData) return null
 
   return (
     <div className="relative h-[650px] w-full overflow-hidden rounded-[3rem] border border-gray-100 shadow-2xl">
-      <Map
+      <MapboxMap
         ref={mapRef}
         initialViewState={initialViewState}
         mapStyle={mapStyle}
@@ -184,7 +184,7 @@ export function MapView({ routeData }: MapViewProps) {
             }}
           />
         </Source>
-      </Map>
+      </MapboxMap>
 
       {/* OVERLAY INFO & CONTROLS */}
       <div className="absolute top-8 left-8 z-10 flex flex-col gap-4">
@@ -201,6 +201,7 @@ export function MapView({ routeData }: MapViewProps) {
           <div className="flex gap-1">
             {MAP_STYLES.map((style) => (
               <button
+                type="button"
                 key={style.id}
                 onClick={() => setMapStyle(style.id)}
                 className={`flex h-10 items-center gap-2 rounded-2xl px-4 font-black text-[10px] uppercase tracking-tighter transition-all ${
@@ -216,6 +217,7 @@ export function MapView({ routeData }: MapViewProps) {
           </div>
           <div className="mx-2 h-px bg-gray-100" />
           <button
+            type="button"
             onClick={toggle3D}
             className={`flex w-full items-center justify-center gap-2 rounded-2xl py-3 font-black text-[10px] uppercase tracking-widest transition-all ${
               is3D

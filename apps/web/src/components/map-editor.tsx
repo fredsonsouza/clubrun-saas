@@ -9,12 +9,12 @@ import {
   useRef,
   useState,
 } from 'react'
-import Map, { NavigationControl, ScaleControl } from 'react-map-gl/mapbox'
+import MapboxMap, { NavigationControl, ScaleControl } from 'react-map-gl/mapbox'
 import 'mapbox-gl/dist/mapbox-gl.css'
 import '@mapbox/mapbox-gl-draw/dist/mapbox-gl-draw.css'
 import { logToServerAction } from '@/app/(app)/[slug]/dashboard/actions'
-import mapboxgl from 'mapbox-gl'
 import { env } from '@saas/env'
+import mapboxgl from 'mapbox-gl'
 
 const MAPBOX_TOKEN = env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 if (MAPBOX_TOKEN) {
@@ -180,7 +180,7 @@ export function MapEditor({
 
   return (
     <div className="relative h-[400px] w-full overflow-hidden rounded-2xl border border-gray-100 shadow-inner">
-      <Map
+      <MapboxMap
         ref={mapRef}
         {...viewState}
         onMove={(evt) => setViewState(evt.viewState)}
@@ -190,7 +190,7 @@ export function MapEditor({
       >
         <NavigationControl position="top-right" />
         <ScaleControl />
-      </Map>
+      </MapboxMap>
 
       <div className="absolute bottom-4 left-4 z-10 rounded-xl bg-white/90 p-3 font-bold text-[10px] text-gray-900 shadow-lg backdrop-blur-sm">
         <p className="mb-1 text-orange-500 uppercase tracking-widest">

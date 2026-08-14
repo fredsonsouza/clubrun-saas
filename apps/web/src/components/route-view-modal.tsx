@@ -46,7 +46,9 @@ export function RouteViewModal({
   return (
     <div className="fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center p-4 duration-200">
       {/* Backdrop */}
-      <div
+      <button
+        type="button"
+        aria-label="Fechar visualização do trajeto"
         className="absolute inset-0 bg-gray-900/60 backdrop-blur-md"
         onClick={onClose}
       />
@@ -64,6 +66,8 @@ export function RouteViewModal({
             </h3>
           </div>
           <button
+            type="button"
+            aria-label="Fechar visualização do trajeto"
             onClick={onClose}
             className="cursor-pointer rounded-full bg-gray-50 p-2 text-gray-400 transition-colors hover:bg-gray-100"
           >
