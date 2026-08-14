@@ -291,6 +291,8 @@ export function WorkoutCard({
         {isPlanned && isAuthor && (
           <div className="ml-2 flex items-center gap-1">
             <button
+              type="button"
+              aria-label="Reagendar treino"
               onClick={() => onEdit?.(workout.id)}
               title="Reagendar"
               className="rounded-lg border border-orange-100 bg-white/80 p-1.5 text-orange-500 shadow-sm transition-all hover:bg-orange-500 hover:text-white"
@@ -298,6 +300,8 @@ export function WorkoutCard({
               <CalendarIcon className="h-3.5 w-3.5" />
             </button>
             <button
+              type="button"
+              aria-label="Pular treino"
               onClick={() => onDelete?.(workout.id)}
               title="Pular Treino"
               className="rounded-lg border border-orange-100 bg-white/80 p-1.5 text-gray-400 shadow-sm transition-all hover:bg-red-50 hover:text-red-500"
@@ -373,6 +377,8 @@ export function WorkoutCard({
           <div className="mr-32 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             {isAuthor && onEdit && (
               <button
+                type="button"
+                aria-label="Editar treino"
                 onClick={() => onEdit(workout.id)}
                 className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-orange-50 hover:text-orange-500"
               >
@@ -381,6 +387,8 @@ export function WorkoutCard({
             )}
             {onDelete && (
               <button
+                type="button"
+                aria-label="Excluir treino"
                 onClick={() => onDelete(workout.id)}
                 className="cursor-pointer rounded-lg p-2 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-600"
               >
@@ -582,6 +590,7 @@ export function WorkoutCard({
       {isPlanned && isAuthor ? (
         <div className="flex flex-col gap-3 border-orange-100 border-t bg-orange-50 px-5 py-4">
           <button
+            type="button"
             onClick={() => onComplete?.(workout)}
             disabled={!canComplete}
             className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-orange-500 py-3 font-black text-sm text-white shadow-lg shadow-orange-500/20 transition-all hover:bg-orange-600 active:scale-95 disabled:bg-gray-400 disabled:opacity-50 disabled:shadow-none"
@@ -611,6 +620,7 @@ export function WorkoutCard({
                 if (!style) return null
                 return (
                   <button
+                    type="button"
                     onClick={() =>
                       handleSetReaction(workout.currentUserReaction as any)
                     }
@@ -624,6 +634,7 @@ export function WorkoutCard({
               })()
             ) : (
               <button
+                type="button"
                 onClick={() => setShowPicker(!showPicker)}
                 disabled={isReacting}
                 className="flex cursor-pointer items-center gap-1.5 rounded-full border border-transparent px-3 py-1 font-bold text-gray-500 text-sm transition-colors hover:bg-gray-100/50 hover:text-orange-500 active:scale-95 disabled:opacity-50"
@@ -635,14 +646,18 @@ export function WorkoutCard({
 
             {showPicker && (
               <>
-                <div
+                <button
+                  type="button"
+                  aria-label="Fechar seletor de reações"
                   className="fixed inset-0 z-40"
                   onClick={() => setShowPicker(false)}
                 />
                 <div className="fade-in slide-in-from-bottom-2 absolute bottom-full left-0 z-50 mb-2 flex animate-in items-center gap-2 rounded-full border border-gray-100 bg-white p-1.5 shadow-xl duration-200">
                   {Object.entries(REACTION_STYLES).map(([key, style]) => (
                     <button
+                      type="button"
                       key={key}
+                      aria-label={style.label}
                       onClick={() => handleSetReaction(key as any)}
                       disabled={isReacting}
                       className="cursor-pointer rounded-full p-1 text-xl transition-transform duration-200 hover:scale-125 hover:bg-gray-50 active:scale-95 disabled:opacity-50"
