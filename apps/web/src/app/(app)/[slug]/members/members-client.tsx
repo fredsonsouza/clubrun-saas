@@ -267,7 +267,7 @@ export function MembersClient({
     return (
       <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
         <Header user={user} />
-        <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
+        <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-12 duration-700 sm:px-6 lg:px-8">
           <MemberGrid
             members={members}
             searchTerm={searchTerm}
@@ -285,58 +285,62 @@ export function MembersClient({
     <div className="min-h-screen bg-gray-50 pb-20 font-sans text-gray-900 selection:bg-orange-500 selection:text-white">
       <Header user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-12 duration-700 sm:px-6 lg:px-8">
+      <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-12 duration-700 sm:px-6 lg:px-8">
         {/* CABEÇALHO DA PÁGINA (ADMIN) */}
         <div className="mb-10 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-orange-500 text-white shadow-xl shadow-orange-500/20">
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-[1.5rem] bg-orange-500 text-white shadow-orange-500/20 shadow-xl">
               <Users className="h-8 w-8" />
             </div>
-            <h1 className="text-4xl font-black tracking-tight text-gray-900">
+            <h1 className="font-black text-4xl text-gray-900 tracking-tight">
               Pelotão do Clube
             </h1>
-            <p className="mt-2 text-base font-medium text-gray-500">
+            <p className="mt-2 font-medium text-base text-gray-500">
               Gerencie os atletas, cargos e verifique o status de cada membro do{' '}
-              <span className="text-orange-500 font-bold">{club.name}</span>.
+              <span className="font-bold text-orange-500">{club.name}</span>.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex rounded-2xl bg-gray-100 p-1 flex-wrap gap-0.5">
+            <div className="flex flex-wrap gap-0.5 rounded-2xl bg-gray-100 p-1">
               <button
+                type="button"
                 onClick={() => setTab('all')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'all' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`rounded-xl px-4 py-2 font-bold text-xs transition-all ${tab === 'all' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Todos
               </button>
               <button
+                type="button"
                 onClick={() => setTab('active')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'active' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`rounded-xl px-4 py-2 font-bold text-xs transition-all ${tab === 'active' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Adimplentes
               </button>
               <button
+                type="button"
                 onClick={() => setTab('overdue')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'overdue' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`rounded-xl px-4 py-2 font-bold text-xs transition-all ${tab === 'overdue' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Inadimplentes
               </button>
               <button
+                type="button"
                 onClick={() => setTab('birthdays')}
-                className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${tab === 'birthdays' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`rounded-xl px-4 py-2 font-bold text-xs transition-all ${tab === 'birthdays' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
               >
                 Aniversariantes 🎂
               </button>
             </div>
 
             <div className="relative">
-              <Search className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-4 h-4 w-4 text-gray-400" />
               <input
                 type="text"
                 placeholder="Buscar membro..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="h-12 w-full rounded-2xl border border-gray-100 bg-white pl-11 pr-4 text-sm font-bold shadow-sm transition-all focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 focus:outline-none md:w-72"
+                className="h-12 w-full rounded-2xl border border-gray-100 bg-white pr-4 pl-11 font-bold text-sm shadow-sm transition-all focus:border-orange-500 focus:outline-none focus:ring-4 focus:ring-orange-500/10 md:w-72"
               />
             </div>
           </div>
@@ -344,7 +348,7 @@ export function MembersClient({
 
         {/* LISTA DE MEMBROS */}
         <div className="overflow-hidden rounded-[2.5rem] border border-gray-100 bg-white shadow-sm">
-          <div className="hidden grid-cols-12 border-b border-gray-50 bg-gray-50/50 px-8 py-5 text-[10px] font-black uppercase tracking-widest text-gray-400 md:grid">
+          <div className="hidden grid-cols-12 border-gray-50 border-b bg-gray-50/50 px-8 py-5 font-black text-[10px] text-gray-400 uppercase tracking-widest md:grid">
             <div className="col-span-5 flex items-center gap-2">
               Atleta <ArrowUpDown className="h-3 w-3" />
             </div>
@@ -384,26 +388,26 @@ export function MembersClient({
                           </AvatarFallback>
                         </Avatar>
                         {isToday && (
-                          <div className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-pink-500 text-white text-[9px] font-bold shadow-md shadow-pink-500/20 animate-bounce">
+                          <div className="-top-1.5 -right-1.5 absolute flex h-5 w-5 animate-bounce items-center justify-center rounded-full bg-pink-500 font-bold text-[9px] text-white shadow-md shadow-pink-500/20">
                             🎂
                           </div>
                         )}
                       </div>
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Link
                             href={`/profile/${member.userId}`}
-                            className="truncate text-base font-black text-gray-900 hover:text-orange-500 transition-colors"
+                            className="truncate font-black text-base text-gray-900 transition-colors hover:text-orange-500"
                           >
                             {member.name}
                           </Link>
                           {isToday && (
-                            <span className="inline-flex items-center gap-0.5 rounded-full bg-pink-50 px-2 py-0.5 text-[8px] font-black uppercase tracking-widest text-pink-600">
+                            <span className="inline-flex items-center gap-0.5 rounded-full bg-pink-50 px-2 py-0.5 font-black text-[8px] text-pink-600 uppercase tracking-widest">
                               <Crown className="h-2.5 w-2.5" /> Níver Hoje!
                             </span>
                           )}
                         </div>
-                        <p className="flex items-center gap-1.5 text-xs font-bold text-gray-400">
+                        <p className="flex items-center gap-1.5 font-bold text-gray-400 text-xs">
                           <Mail className="h-3 w-3" /> {member.email}
                         </p>
                       </div>
@@ -414,15 +418,15 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Aniversário:
                             </span>
-                            <div className="text-sm font-bold text-gray-800 space-y-0.5">
+                            <div className="space-y-0.5 font-bold text-gray-800 text-sm">
                               <p className="flex items-center gap-1">
                                 {birthdayInfo.formatted}
                               </p>
                               {birthdayInfo.formatted !== 'Não cadastrado' && (
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                <p className="font-bold text-[10px] text-gray-400 uppercase tracking-widest">
                                   Completa {birthdayInfo.age} anos
                                 </p>
                               )}
@@ -430,32 +434,32 @@ export function MembersClient({
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Cargo:
                             </span>
                             {member.role === 'OWNER' ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-orange-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-orange-50 px-2.5 py-1 font-black text-[10px] text-orange-600 uppercase tracking-widest">
                                 <ShieldAlert className="h-3.5 w-3.5" /> Fundador
                               </span>
                             ) : member.role === 'ADMIN' ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-blue-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-blue-50 px-2.5 py-1 font-black text-[10px] text-blue-600 uppercase tracking-widest">
                                 <ShieldCheck className="h-3.5 w-3.5" />{' '}
                                 Administrador
                               </span>
                             ) : member.role === 'MANAGER' ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-indigo-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-50 px-2.5 py-1 font-black text-[10px] text-indigo-600 uppercase tracking-widest">
                                 <Shield className="h-3.5 w-3.5" /> Gestor
                               </span>
                             ) : member.role === 'COACH' ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 font-black text-[10px] text-emerald-600 uppercase tracking-widest">
                                 <Activity className="h-3.5 w-3.5" /> Coach
                               </span>
                             ) : member.role === 'BILLING' ? (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-amber-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1 font-black text-[10px] text-amber-600 uppercase tracking-widest">
                                 <Zap className="h-3.5 w-3.5" /> Financeiro
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-gray-500">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 font-black text-[10px] text-gray-500 uppercase tracking-widest">
                                 <Users className="h-3.5 w-3.5" /> Atleta
                               </span>
                             )}
@@ -469,37 +473,37 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Vestíveis:
                             </span>
-                            <div className="text-[11px] font-bold text-gray-700 space-y-0.5 max-w-xs">
+                            <div className="max-w-xs space-y-0.5 font-bold text-[11px] text-gray-700">
                               <p
                                 className="flex items-center gap-1 truncate"
                                 title={member.shoes || 'Não informado'}
                               >
-                                <ShoeIcon className="h-3.5 w-3.5 text-gray-400 shrink-0" />{' '}
+                                <ShoeIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" />{' '}
                                 {member.shoes || 'Nenhum'}
                               </p>
                               <p
                                 className="flex items-center gap-1 truncate"
                                 title={member.watch || 'Não informado'}
                               >
-                                <Watch className="h-3.5 w-3.5 text-gray-400 shrink-0" />{' '}
+                                <Watch className="h-3.5 w-3.5 shrink-0 text-gray-400" />{' '}
                                 {member.watch || 'Nenhum'}
                               </p>
                             </div>
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Pagamento:
                             </span>
                             {!member.overdue ? (
-                              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500">
+                              <span className="flex items-center gap-1.5 font-black text-[10px] text-emerald-500 uppercase tracking-widest">
                                 <CheckCircle2 className="h-4 w-4" /> Em dia
                               </span>
                             ) : (
-                              <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-red-500">
+                              <span className="flex items-center gap-1.5 font-black text-[10px] text-red-500 uppercase tracking-widest">
                                 <AlertCircle className="h-4 w-4" /> Inadimplente
                               </span>
                             )}
@@ -513,16 +517,16 @@ export function MembersClient({
                       <div className="flex md:block">
                         {tab === 'birthdays' ? (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Ficha Médica:
                             </span>
                             {member.hasMedicalConditions ? (
-                              <div className="group/alert relative inline-flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-red-600 cursor-help shadow-xs">
+                              <div className="group/alert relative inline-flex cursor-help items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1 font-black text-[10px] text-red-600 uppercase tracking-widest shadow-xs">
                                 <HeartPulse className="h-3.5 w-3.5 animate-pulse text-red-500" />{' '}
                                 Ver Alerta
                                 {/* Tooltip Flutuante */}
-                                <div className="pointer-events-none absolute bottom-full left-1/2 mb-2 w-64 -translate-x-1/2 rounded-2xl bg-gray-950 p-4 text-xs font-bold text-white shadow-2xl opacity-0 group-hover/alert:opacity-100 transition-all duration-200 z-30 leading-relaxed text-left normal-case border border-white/5">
-                                  <p className="font-black text-[9px] tracking-widest uppercase text-red-400 mb-1 flex items-center gap-1">
+                                <div className="-translate-x-1/2 pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-64 rounded-2xl border border-white/5 bg-gray-950 p-4 text-left font-bold text-white text-xs normal-case leading-relaxed opacity-0 shadow-2xl transition-all duration-200 group-hover/alert:opacity-100">
+                                  <p className="mb-1 flex items-center gap-1 font-black text-[9px] text-red-400 uppercase tracking-widest">
                                     <AlertCircle className="h-3 w-3" /> Ficha de
                                     Saúde de {member.name}:
                                   </p>
@@ -533,7 +537,7 @@ export function MembersClient({
                                 </div>
                               </div>
                             ) : (
-                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 text-[10px] font-black uppercase tracking-widest text-emerald-600">
+                              <span className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 px-2.5 py-1 font-black text-[10px] text-emerald-600 uppercase tracking-widest">
                                 <CheckCircle2 className="h-3.5 w-3.5" /> Apto p/
                                 Treino
                               </span>
@@ -541,10 +545,10 @@ export function MembersClient({
                           </>
                         ) : (
                           <>
-                            <span className="mr-2 text-[10px] font-black uppercase tracking-widest text-gray-300 md:hidden">
+                            <span className="mr-2 font-black text-[10px] text-gray-300 uppercase tracking-widest md:hidden">
                               Membro desde:
                             </span>
-                            <span className="flex items-center gap-1.5 text-sm font-bold text-gray-500">
+                            <span className="flex items-center gap-1.5 font-bold text-gray-500 text-sm">
                               <Calendar className="h-3.5 w-3.5 text-gray-300" />{' '}
                               {member.joinedAt}
                             </span>
@@ -559,6 +563,7 @@ export function MembersClient({
                       birthdayInfo.formatted !== 'Não cadastrado' ? (
                         <div className="flex gap-2.5">
                           <button
+                            type="button"
                             onClick={() => {
                               setSelectedAthleteForCard({
                                 name: member.name,
@@ -567,19 +572,20 @@ export function MembersClient({
                               })
                               setIsCardModalOpen(true)
                             }}
-                            className="cursor-pointer group flex h-10 items-center justify-center gap-1.5 rounded-xl bg-pink-50 px-3 text-xs font-black text-pink-600 transition-all hover:bg-pink-500 hover:text-white active:scale-95"
+                            className="group flex h-10 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-pink-50 px-3 font-black text-pink-600 text-xs transition-all hover:bg-pink-500 hover:text-white active:scale-95"
                             title="Gerar card comemorativo para redes sociais"
                           >
                             <Crown className="h-4 w-4" /> CARD
                           </button>
 
                           <button
+                            type="button"
                             onClick={() => {
                               const text = `Parabéns, *${member.name}*! 🎉\nO clube *${club.name}* te deseja um feliz aniversário com muitos quilômetros rodados, conquistas incríveis e ritmos cada vez mais rápidos! 🏃‍♂️💨\n\nEstamos muito felizes em ter você no pelotão!`
                               const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`
                               window.open(url, '_blank')
                             }}
-                            className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white active:scale-95"
+                            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-all hover:bg-emerald-500 hover:text-white active:scale-95"
                             title="Enviar parabéns por WhatsApp"
                           >
                             <MessageSquare className="h-4 w-4" />
@@ -589,14 +595,14 @@ export function MembersClient({
                         member.role !== 'OWNER' &&
                         member.id !== user.id ? (
                         <DropdownMenu>
-                          <DropdownMenuTrigger className="cursor-pointer flex h-10 w-10 items-center justify-center rounded-xl text-gray-400 hover:bg-white hover:text-gray-900 hover:shadow-sm ring-1 ring-transparent hover:ring-gray-100 transition-all focus:outline-none">
+                          <DropdownMenuTrigger className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-xl text-gray-400 ring-1 ring-transparent transition-all hover:bg-white hover:text-gray-900 hover:shadow-sm hover:ring-gray-100 focus:outline-none">
                             <MoreHorizontal className="h-5 w-5" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
                             className="w-56 rounded-2xl border-gray-100 bg-white/95 p-2 shadow-2xl backdrop-blur-md"
                           >
-                            <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            <DropdownMenuLabel className="px-3 py-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                               Gerenciar Membro
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-gray-50" />
@@ -604,7 +610,7 @@ export function MembersClient({
                               onClick={() =>
                                 handleUpdateRole(member.id, 'MANAGER')
                               }
-                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-gray-700 text-sm transition-colors focus:bg-orange-50 focus:text-orange-600"
                             >
                               <Shield className="h-4 w-4 text-indigo-500" />{' '}
                               Tornar Gestor
@@ -613,7 +619,7 @@ export function MembersClient({
                               onClick={() =>
                                 handleUpdateRole(member.id, 'COACH')
                               }
-                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-gray-700 text-sm transition-colors focus:bg-orange-50 focus:text-orange-600"
                             >
                               <Activity className="h-4 w-4 text-emerald-500" />{' '}
                               Tornar Treinador
@@ -622,7 +628,7 @@ export function MembersClient({
                               onClick={() =>
                                 handleUpdateRole(member.id, 'BILLING')
                               }
-                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-gray-700 text-sm transition-colors focus:bg-orange-50 focus:text-orange-600"
                             >
                               <Zap className="h-4 w-4 text-amber-500" /> Tornar
                               Financeiro
@@ -631,7 +637,7 @@ export function MembersClient({
                               onClick={() =>
                                 handleUpdateRole(member.id, 'ATHLETE')
                               }
-                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-700 focus:bg-orange-50 focus:text-orange-600 transition-colors"
+                              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-gray-700 text-sm transition-colors focus:bg-orange-50 focus:text-orange-600"
                             >
                               <Users className="h-4 w-4 text-gray-400" /> Tornar
                               Atleta
@@ -639,7 +645,7 @@ export function MembersClient({
                             <DropdownMenuSeparator className="bg-gray-50" />
                             <DropdownMenuItem
                               onClick={() => setMemberToRemove(member)}
-                              className="cursor-pointer flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-bold text-red-600 focus:bg-red-50 focus:text-red-700 transition-colors"
+                              className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 font-bold text-red-600 text-sm transition-colors focus:bg-red-50 focus:text-red-700"
                             >
                               <Trash2 className="h-4 w-4" /> Remover do Clube
                             </DropdownMenuItem>
@@ -657,10 +663,10 @@ export function MembersClient({
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
                 <Search className="mb-4 h-12 w-12 text-gray-200" />
-                <h3 className="text-xl font-black text-gray-900">
+                <h3 className="font-black text-gray-900 text-xl">
                   Nenhum atleta encontrado
                 </h3>
-                <p className="mt-2 text-sm font-medium text-gray-500">
+                <p className="mt-2 font-medium text-gray-500 text-sm">
                   Tente ajustar os termos da sua busca.
                 </p>
               </div>
@@ -688,7 +694,7 @@ export function MembersClient({
                 </span>{' '}
                 do pelotão?
               </DialogDescription>
-              <p className="mt-2 text-sm font-medium text-gray-500 leading-relaxed">
+              <p className="mt-2 font-medium text-gray-500 text-sm leading-relaxed">
                 O atleta perderá acesso imediato aos treinos privados, rankings
                 mensais e histórico de atividades do clube. Esta ação pode ser
                 revertida apenas com um novo convite.
@@ -697,9 +703,9 @@ export function MembersClient({
 
             <div className="mt-6 space-y-6">
               <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                <span className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
                   Motivos da Remoção
-                </label>
+                </span>
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   {[
                     {
@@ -732,11 +738,12 @@ export function MembersClient({
                     },
                   ].map((reason) => (
                     <button
+                      type="button"
                       key={reason.id}
                       onClick={() => toggleReason(reason.id)}
                       className={`flex items-center gap-2 rounded-xl border-2 px-3 py-2.5 transition-all active:scale-95 ${
                         selectedReasons.includes(reason.id)
-                          ? `border-orange-500 bg-white shadow-md ring-4 ring-orange-500/10`
+                          ? 'border-orange-500 bg-white shadow-md ring-4 ring-orange-500/10'
                           : 'border-gray-50 bg-gray-50/50 hover:border-gray-200'
                       }`}
                     >
@@ -746,7 +753,7 @@ export function MembersClient({
                         <reason.icon className="h-4 w-4" />
                       </div>
                       <span
-                        className={`text-xs font-bold ${selectedReasons.includes(reason.id) ? 'text-gray-900' : 'text-gray-500'}`}
+                        className={`font-bold text-xs ${selectedReasons.includes(reason.id) ? 'text-gray-900' : 'text-gray-500'}`}
                       >
                         {reason.label}
                       </span>
@@ -757,35 +764,41 @@ export function MembersClient({
 
               <div>
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                  <label
+                    htmlFor="member-removal-description"
+                    className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                  >
                     Descrição Opcional
                   </label>
-                  <span className="text-[10px] font-bold text-gray-300">
+                  <span className="font-bold text-[10px] text-gray-300">
                     {removeDescription.length}/250
                   </span>
                 </div>
                 <textarea
+                  id="member-removal-description"
                   value={removeDescription}
                   onChange={(e) =>
                     setRemoveDescription(e.target.value.slice(0, 250))
                   }
                   placeholder="Descreva brevemente o motivo da remoção..."
-                  className="mt-2 h-24 w-full resize-none rounded-2xl border border-gray-100 bg-gray-50/50 p-4 text-sm font-medium text-gray-900 transition-all focus:border-orange-500 focus:bg-white focus:ring-4 focus:ring-orange-500/10 focus:outline-none"
+                  className="mt-2 h-24 w-full resize-none rounded-2xl border border-gray-100 bg-gray-50/50 p-4 font-medium text-gray-900 text-sm transition-all focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-orange-500/10"
                 />
               </div>
             </div>
 
             <DialogFooter className="mt-8 gap-3">
               <button
+                type="button"
                 onClick={() => setMemberToRemove(null)}
-                className="cursor-pointer flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4 text-sm font-bold text-gray-600 transition-all hover:bg-gray-50 active:scale-95"
+                className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handleRemoveMember}
                 disabled={isRemoving}
-                className="cursor-pointer flex-[1.5] rounded-2xl bg-red-600 px-6 py-4 text-sm font-black text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
+                className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
               >
                 {isRemoving ? (
                   <div className="flex items-center justify-center gap-2">

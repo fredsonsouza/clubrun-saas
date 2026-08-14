@@ -34,8 +34,7 @@ export function ExploreClubsClient({
   const filteredClubs = clubs.filter(
     (c) =>
       c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (c.location &&
-        c.location.toLowerCase().includes(searchQuery.toLowerCase()))
+      c.location?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const handleJoinRequest = async (

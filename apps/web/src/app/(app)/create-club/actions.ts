@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 
 export async function createClubAction(formData: FormData) {
   const name = formData.get('name') as string
-  const slug = formData.get('slug') as string
+
   // const description = formData.get('description') as string // Não suportado na criação inicial pela API atual
 
   try {

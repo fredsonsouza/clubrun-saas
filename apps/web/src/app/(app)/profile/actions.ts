@@ -19,7 +19,7 @@ export async function connectStravaAction(code?: string) {
     const res = await connectStrava(code)
     revalidatePath('/profile')
     return { success: true, isStravaConnected: res.isStravaConnected }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao conectar com o Strava.' }
   }
 }
@@ -29,7 +29,7 @@ export async function disconnectStravaAction() {
     const res = await disconnectStrava()
     revalidatePath('/profile')
     return { success: true, isStravaConnected: res.isStravaConnected }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao desconectar do Strava.' }
   }
 }
@@ -100,7 +100,7 @@ export async function updateProfileAction(data: {
     revalidatePath('/profile')
 
     return { success: true, message: 'Perfil atualizado com sucesso!' }
-  } catch (err) {
+  } catch (_err) {
     return {
       success: false,
       message: 'Erro ao atualizar perfil. Tente novamente.',
@@ -113,7 +113,7 @@ export async function completeWorkoutAction(formData: FormData) {
   const workoutId = formData.get('workoutId') as string
   const distance = Number(formData.get('distance'))
   const duration = Number(formData.get('duration'))
-  const pace = Number(formData.get('pace'))
+
   const stravaActivityId = formData.get('stravaActivityId') as string | null
   const syncSource = formData.get('syncSource') as string | null
 
@@ -153,7 +153,7 @@ export async function deleteWorkoutAction({
     await mutationApi.delete(`clubs/${slug}/workouts/${workoutId}`)
     revalidatePath('/', 'layout')
     return { success: true, message: 'Treino removido com sucesso.' }
-  } catch (err) {
+  } catch (_err) {
     return { success: false, message: 'Erro ao remover treino.' }
   }
 }

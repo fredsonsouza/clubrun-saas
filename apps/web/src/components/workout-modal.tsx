@@ -48,6 +48,18 @@ const MapEditor = dynamic(
   }
 )
 
+function timeToSeconds(timeStr: string) {
+  if (!timeStr) return 0
+  const parts = timeStr.split(':').map(Number)
+  if (parts.length === 3) {
+    return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
+  }
+  if (parts.length === 2) {
+    return (parts[0] || 0) * 60 + (parts[1] || 0)
+  }
+  return (parts[0] || 0) * 60
+}
+
 interface CreateWorkoutModalProps {
   isOpen: boolean
   slug: string
@@ -127,19 +139,6 @@ export function CreateWorkoutModal({
     const remaining = athleteProfile.shoesRemainingDistance ?? 0
     return d > remaining
   }, [isPrescribing, athleteProfile, distance])
-
-  const timeToSeconds = (timeStr: string) => {
-    if (!timeStr) return 0
-    const parts = timeStr.split(':').map(Number)
-    if (parts.length === 3) {
-      // Format MM:SS:CC (minutes:seconds:centiseconds)
-      return (parts[0] || 0) * 60 + (parts[1] || 0) + (parts[2] || 0) / 100
-    }
-    if (parts.length === 2) {
-      return (parts[0] || 0) * 60 + (parts[1] || 0)
-    }
-    return (parts[0] || 0) * 60
-  }
 
   const pace = useMemo(() => {
     const d = Number.parseFloat(distance) || 0
@@ -275,7 +274,9 @@ export function CreateWorkoutModal({
 
   return (
     <div className="fade-in fixed inset-0 z-50 flex animate-in items-center justify-center p-4 duration-200">
-      <div
+      <button
+        type="button"
+        aria-label="Fechar modal"
         className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
         onClick={onClose}
       />
@@ -289,6 +290,7 @@ export function CreateWorkoutModal({
             {isPrescribing ? 'Prescrever Treino' : 'Registrar Atividade'}
           </h2>
           <button
+            type="button"
             onClick={onClose}
             className="rounded-full bg-gray-50 p-2 text-gray-500 hover:bg-gray-100"
           >
@@ -306,10 +308,14 @@ export function CreateWorkoutModal({
               <div className="space-y-6">
                 {canPrescribe && (
                   <div className="space-y-1.5">
-                    <label className="flex items-center gap-2 font-black text-[10px] text-orange-600 uppercase tracking-widest">
+                    <label
+                      htmlFor="workout-athlete"
+                      className="flex items-center gap-2 font-black text-[10px] text-orange-600 uppercase tracking-widest"
+                    >
                       <UsersIcon className="h-3.5 w-3.5" /> Prescrever Para
                     </label>
                     <select
+                      id="workout-athlete"
                       value={athleteId}
                       onChange={(e) => setAthleteId(e.target.value)}
                       className="w-full rounded-2xl border border-orange-100 bg-orange-50/50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
@@ -325,10 +331,14 @@ export function CreateWorkoutModal({
                 )}
 
                 <div className="space-y-1.5">
-                  <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                  <label
+                    htmlFor="workout-title"
+                    className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                  >
                     Título do Treino
                   </label>
                   <input
+                    id="workout-title"
                     type="text"
                     required
                     value={title}
@@ -346,10 +356,14 @@ export function CreateWorkoutModal({
                     required
                   />
                   <div className="space-y-1.5">
-                    <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="workout-time"
+                      className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       Hora
                     </label>
                     <input
+                      id="workout-time"
                       type="text"
                       required
                       value={time}
@@ -367,10 +381,14 @@ export function CreateWorkoutModal({
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="workout-distance"
+                      className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       Distância (km)
                     </label>
                     <input
+                      id="workout-distance"
                       type="number"
                       step="0.1"
                       required
@@ -380,10 +398,14 @@ export function CreateWorkoutModal({
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="workout-duration"
+                      className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       Duração (MM:SS)
                     </label>
                     <input
+                      id="workout-duration"
                       type="text"
                       required
                       value={duration}
@@ -394,10 +416,14 @@ export function CreateWorkoutModal({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                  <label
+                    htmlFor="workout-type"
+                    className="font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                  >
                     Tipo de Treino
                   </label>
                   <select
+                    id="workout-type"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
                     className="w-full appearance-none rounded-2xl border border-gray-100 bg-gray-50 px-5 py-4 font-bold text-gray-900 focus:border-orange-500 focus:bg-white focus:outline-none"
@@ -474,10 +500,10 @@ export function CreateWorkoutModal({
               </div>
 
               <div className="flex flex-col space-y-4 lg:h-full">
-                <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
                   <MapIcon className="h-3.5 w-3.5 text-orange-500" /> Percurso
                   (Opcional)
-                </label>
+                </span>
                 <div className="min-h-[350px] flex-1 overflow-hidden rounded-3xl border border-gray-100">
                   <MapEditor
                     forwardedRef={mapEditorRef}
@@ -507,6 +533,7 @@ export function CreateWorkoutModal({
 
         <footer className="flex items-center justify-end gap-4 border-gray-100 border-t bg-gray-50 px-8 py-6">
           <button
+            type="button"
             onClick={onClose}
             className="h-14 rounded-2xl px-8 font-bold text-gray-600 hover:bg-gray-200/50"
           >

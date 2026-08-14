@@ -401,6 +401,7 @@ export function SettingsClient({
         <div className="flex flex-col gap-10 lg:flex-row">
           <aside className="w-full shrink-0 space-y-2 lg:w-72">
             <button
+              type="button"
               onClick={() => !isBillingPending && setActiveTab('overview')}
               disabled={isBillingPending}
               className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'overview' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -412,6 +413,7 @@ export function SettingsClient({
               )}
             </button>
             <button
+              type="button"
               onClick={() => !isBillingPending && setActiveTab('general')}
               disabled={isBillingPending}
               className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'general' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'cursor-not-allowed opacity-50' : ''}`}
@@ -423,6 +425,7 @@ export function SettingsClient({
               )}
             </button>
             <button
+              type="button"
               onClick={() => setActiveTab('billing')}
               className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'billing' ? 'bg-white text-orange-500 shadow-sm ring-1 ring-gray-100' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'} ${isBillingPending ? 'bg-red-50 ring-2 ring-red-200' : ''}`}
             >
@@ -439,6 +442,7 @@ export function SettingsClient({
                   <div className="h-px bg-gray-200" />
                 </div>
                 <button
+                  type="button"
                   onClick={() => setActiveTab('danger')}
                   className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl px-4 py-4 font-bold text-sm transition-all ${activeTab === 'danger' ? 'bg-red-50 text-red-600 shadow-sm ring-1 ring-red-100' : 'text-red-500/70 hover:bg-red-50 hover:text-red-600'}`}
                 >
@@ -561,11 +565,15 @@ export function SettingsClient({
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="club-name"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <Trophy className="h-3.5 w-3.5 text-orange-500" /> Nome
                         do Clube
                       </label>
                       <input
+                        id="club-name"
                         type="text"
                         required
                         value={name}
@@ -576,11 +584,15 @@ export function SettingsClient({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="club-cnpj"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <ShieldCheck className="h-3.5 w-3.5 text-orange-500" />{' '}
                         CNPJ (Opcional)
                       </label>
                       <input
+                        id="club-cnpj"
                         type="text"
                         value={cnpj}
                         onChange={(e) => setCnpj(e.target.value)}
@@ -592,10 +604,14 @@ export function SettingsClient({
 
                   <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="club-state"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <Globe className="h-3.5 w-3.5 text-orange-500" /> Estado
                       </label>
                       <select
+                        id="club-state"
                         value={
                           ufs.find((u) => u.nome === state || u.sigla === state)
                             ?.sigla || ''
@@ -618,10 +634,14 @@ export function SettingsClient({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                      <label
+                        htmlFor="club-city"
+                        className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                      >
                         <Globe className="h-3.5 w-3.5 text-orange-500" /> Cidade
                       </label>
                       <select
+                        id="club-city"
                         value={city}
                         onChange={(e) => setCity(e.target.value)}
                         disabled={isLoadingCities || !state}
@@ -645,11 +665,15 @@ export function SettingsClient({
                   </div>
 
                   <div className="space-y-2">
-                    <label className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest">
+                    <label
+                      htmlFor="club-description"
+                      className="flex items-center gap-2 font-black text-[10px] text-gray-400 uppercase tracking-widest"
+                    >
                       <AlignLeft className="h-3.5 w-3.5 text-orange-500" />{' '}
                       Descrição do Clube
                     </label>
                     <textarea
+                      id="club-description"
                       rows={4}
                       value={description}
                       onChange={(e) => setDescription(e.target.value)}
@@ -711,6 +735,7 @@ export function SettingsClient({
                     </div>
                     <div className="flex gap-3">
                       <button
+                        type="button"
                         onClick={
                           isBillingPending && simulationEnabled
                             ? handleActivateBilling
@@ -748,7 +773,7 @@ export function SettingsClient({
                         style={{
                           width: `${Math.min((billing.seats.amount / 50) * 100, 100)}%`,
                         }}
-                      ></div>
+                      />
                     </div>
                     <p className="mt-3 font-medium text-gray-500 text-xs leading-relaxed">
                       Sua assinatura cobre {billing.seats.amount} membros
@@ -800,6 +825,7 @@ export function SettingsClient({
                       )}
                     </div>
                     <button
+                      type="button"
                       onClick={
                         isBillingPending && simulationEnabled
                           ? handleActivateBilling
@@ -841,7 +867,10 @@ export function SettingsClient({
                               </span>
                             </div>
                           </div>
-                          <button className="cursor-pointer rounded-xl p-3 text-gray-400 opacity-0 transition-all hover:bg-orange-50 hover:text-orange-500 group-hover:opacity-100">
+                          <button
+                            type="button"
+                            className="cursor-pointer rounded-xl p-3 text-gray-400 opacity-0 transition-all hover:bg-orange-50 hover:text-orange-500 group-hover:opacity-100"
+                          >
                             <Download className="h-4 w-4" />
                           </button>
                         </div>
@@ -866,6 +895,7 @@ export function SettingsClient({
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={() => setIsTransferModalOpen(true)}
                     className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                   >
@@ -904,9 +934,9 @@ export function SettingsClient({
                     </DialogHeader>
 
                     <div className="py-6">
-                      <label className="mb-2 block font-black text-gray-400 text-xs uppercase tracking-widest">
+                      <span className="mb-2 block font-black text-gray-400 text-xs uppercase tracking-widest">
                         Selecionar Novo Proprietário
-                      </label>
+                      </span>
                       {admins.length > 0 ? (
                         <div className="space-y-3">
                           {admins.map((admin) => (
@@ -980,12 +1010,14 @@ export function SettingsClient({
 
                     <DialogFooter className="mt-2 gap-3">
                       <button
+                        type="button"
                         onClick={() => setIsTransferModalOpen(false)}
                         className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                       >
                         Cancelar
                       </button>
                       <button
+                        type="button"
                         onClick={handleTransferOwnership}
                         disabled={!transferTargetId || isTransferring}
                         className="flex-[1.5] cursor-pointer rounded-2xl bg-gray-900 px-6 py-4 font-black text-sm text-white shadow-gray-900/20 shadow-lg transition-all hover:bg-gray-800 active:scale-95 disabled:opacity-50"
@@ -1019,6 +1051,7 @@ export function SettingsClient({
                     imediatamente.
                   </p>
                   <button
+                    type="button"
                     onClick={() => setIsDeleteDialogOpen(true)}
                     disabled={club.status === 'DEACTIVATED'}
                     className="cursor-pointer rounded-xl bg-red-600 px-8 py-4 font-bold text-white shadow-md transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50"
@@ -1064,12 +1097,14 @@ export function SettingsClient({
                     </div>
                     <DialogFooter className="mt-6 gap-3">
                       <button
+                        type="button"
                         onClick={() => setIsDeleteDialogOpen(false)}
                         className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm transition-all hover:bg-gray-50 active:scale-95"
                       >
                         Cancelar
                       </button>
                       <button
+                        type="button"
                         onClick={handleDeleteClub}
                         disabled={deleteConfirmName !== club.name || isDeleting}
                         className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 transition-all hover:bg-red-700 active:scale-95 disabled:opacity-50 disabled:shadow-none"

@@ -20,7 +20,7 @@ import { createClubAction } from './actions'
 const generateSlug = (text: string) => {
   return text
     .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\p{M}/gu, '')
     .toLowerCase()
     .trim()
     .replace(/\s+/g, '-')
@@ -89,20 +89,21 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
       {/* HEADER IMPORTADO E CONFIGURADO */}
       <Header variant="onboarding" user={user} />
 
-      <main className="animate-in fade-in mx-auto max-w-7xl px-4 pt-8 pb-24 duration-500 sm:px-6 lg:px-8">
+      <main className="fade-in mx-auto max-w-7xl animate-in px-4 pt-8 pb-24 duration-500 sm:px-6 lg:px-8">
         <button
+          type="button"
           onClick={handleGoBack}
-          className="group mb-6 flex items-center gap-2 rounded-lg p-1 text-sm font-bold text-gray-500 transition-colors hover:text-gray-900 focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+          className="group mb-6 flex items-center gap-2 rounded-lg p-1 font-bold text-gray-500 text-sm transition-colors hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500/50"
         >
-          <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+          <ArrowLeft className="group-hover:-translate-x-1 h-4 w-4 transition-transform" />
           Voltar
         </button>
 
         <div className="mb-10 text-center md:text-left">
-          <h1 className="mb-3 text-4xl font-extrabold tracking-tight text-gray-900">
+          <h1 className="mb-3 font-extrabold text-4xl text-gray-900 tracking-tight">
             Crie o seu pelotão
           </h1>
-          <p className="text-lg font-medium text-gray-500">
+          <p className="font-medium text-gray-500 text-lg">
             Defina a identidade do seu clube e convide seus atletas para
             começarem a competir.
           </p>
@@ -114,7 +115,7 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="name"
-                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                  className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
                 >
                   <Trophy className="h-4 w-4 text-orange-500" /> Nome do Clube
                 </label>
@@ -125,19 +126,19 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Ex: Macuxi Runner"
-                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-lg font-bold text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 font-bold text-gray-900 text-lg shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
 
               <div className="space-y-2">
                 <label
                   htmlFor="slug"
-                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                  className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
                 >
                   <Globe className="h-4 w-4 text-orange-500" /> Link Público
                 </label>
                 <div className="flex items-stretch overflow-hidden rounded-xl shadow-sm transition-all focus-within:border-orange-500 focus-within:ring-2 focus-within:ring-orange-500/50">
-                  <span className="flex items-center border border-r-0 border-gray-200 bg-gray-100 px-4 text-sm font-medium text-gray-500 sm:text-base">
+                  <span className="flex items-center border border-gray-200 border-r-0 bg-gray-100 px-4 font-medium text-gray-500 text-sm sm:text-base">
                     clubrun.com/
                   </span>
                   <input
@@ -155,7 +156,7 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
               <div className="space-y-2">
                 <label
                   htmlFor="description"
-                  className="flex items-center gap-2 text-xs font-bold tracking-wider text-gray-500 uppercase"
+                  className="flex items-center gap-2 font-bold text-gray-500 text-xs uppercase tracking-wider"
                 >
                   <AlignLeft className="h-4 w-4 text-orange-500" /> Descrição
                   (Opcional)
@@ -166,7 +167,7 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Qual o foco da sua assessoria ou grupo de amigos?"
-                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/50 focus:outline-none"
+                  className="w-full resize-none rounded-xl border border-gray-200 bg-gray-50 p-5 font-medium text-gray-900 shadow-sm transition-all placeholder:text-gray-400 focus:border-orange-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/50"
                 />
               </div>
 
@@ -199,8 +200,8 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
 
           <div className="relative hidden md:block lg:col-span-5">
             <div className="sticky top-24">
-              <div className="mb-4 ml-2 flex items-center gap-2 text-xs font-bold tracking-widest text-gray-400 uppercase">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500"></span>{' '}
+              <div className="mb-4 ml-2 flex items-center gap-2 font-bold text-gray-400 text-xs uppercase tracking-widest">
+                <span className="h-2 w-2 animate-pulse rounded-full bg-green-500" />{' '}
                 Pré-visualização ao vivo
               </div>
               <div className="relative overflow-hidden rounded-4xl border border-gray-100 bg-white p-8 shadow-xl transition-all duration-300">
@@ -209,16 +210,16 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
                   <Zap className="h-8 w-8" />
                 </div>
                 <h3
-                  className={`mb-2 truncate text-2xl font-extrabold transition-colors duration-300 ${name ? 'text-gray-900' : 'text-gray-300'}`}
+                  className={`mb-2 truncate font-extrabold text-2xl transition-colors duration-300 ${name ? 'text-gray-900' : 'text-gray-300'}`}
                 >
                   {name || 'Nome do seu Clube'}
                 </h3>
                 <p
-                  className={`mb-6 line-clamp-3 min-h-[60px] text-sm font-medium transition-colors duration-300 ${description ? 'text-gray-500' : 'text-gray-300'}`}
+                  className={`mb-6 line-clamp-3 min-h-[60px] font-medium text-sm transition-colors duration-300 ${description ? 'text-gray-500' : 'text-gray-300'}`}
                 >
                   {description || 'Sua descrição aparecerá aqui...'}
                 </p>
-                <div className="mb-8 flex flex-wrap gap-3 text-xs font-bold text-gray-600">
+                <div className="mb-8 flex flex-wrap gap-3 font-bold text-gray-600 text-xs">
                   <span className="flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5">
                     <MapPin className="h-3.5 w-3.5 text-gray-400" /> Global
                   </span>
@@ -227,7 +228,7 @@ export function CreateClubForm({ user }: CreateClubFormProps) {
                   </span>
                 </div>
                 <div className="flex w-full cursor-not-allowed items-center justify-between rounded-xl border border-gray-100 bg-gray-50 p-4 opacity-50 grayscale">
-                  <span className="text-sm font-bold text-gray-500">
+                  <span className="font-bold text-gray-500 text-sm">
                     Pedir para Participar
                   </span>
                   <ArrowRight className="h-4 w-4 text-gray-400" />
