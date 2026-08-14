@@ -9,7 +9,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import z from 'zod'
 import { BadRequestError } from '../_errors/bad-request-error'
 
-
 export async function deleteRace(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()

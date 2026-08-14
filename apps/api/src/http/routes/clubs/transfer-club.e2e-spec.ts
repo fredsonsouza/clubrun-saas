@@ -15,20 +15,23 @@ describe('Transfer Club Ownership (E2E)', () => {
   })
 
   it('should be able to transfer club ownership', async () => {
-    const { token, user, club } = await createAndAuthenticateUser(app, 'OWNER')
+    const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
+    if (!club) {
+      throw new Error('Expected authenticated user to have a club')
+    }
 
     // Cria um segundo usuário e o adiciona como membro do clube
     const secondUser = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: faker.internet.email().toLowerCase(),
       },
     })
 
     await prisma.member.create({
       data: {
         userId: secondUser.id,
-        clubId: club?.id!,
+        clubId: club.id,
         role: 'ATHLETE',
       },
     })
@@ -51,7 +54,7 @@ describe('Transfer Club Ownership (E2E)', () => {
     const secondUserMembership = await prisma.member.findUnique({
       where: {
         clubId_userId: {
-          clubId: club?.id!,
+          clubId: club.id,
           userId: secondUser.id,
         },
       },
@@ -66,7 +69,7 @@ describe('Transfer Club Ownership (E2E)', () => {
     const anotherUser = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: faker.internet.email().toLowerCase(),
       },
     })
 
@@ -79,7 +82,7 @@ describe('Transfer Club Ownership (E2E)', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.body.message).toBe(
-      'Target user is not a member of this club'
+      'Target user must be an active member of this club'
     )
   })
 
@@ -93,7 +96,7 @@ describe('Transfer Club Ownership (E2E)', () => {
         transferToUserId: faker.string.uuid(),
       })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 
   it('should not be able to transfer ownership with invalid data', async () => {

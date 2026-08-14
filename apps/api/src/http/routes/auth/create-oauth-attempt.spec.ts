@@ -66,9 +66,21 @@ describe('OAuth attempts', () => {
   })
 
   it.each([
-    ['expired', { expiresAt: new Date(Date.now() - 1), consumedAt: null }, verifier],
-    ['consumed', { expiresAt: new Date(Date.now() + 60_000), consumedAt: new Date() }, verifier],
-    ['wrong verifier', { expiresAt: new Date(Date.now() + 60_000), consumedAt: null }, 'b'.repeat(43)],
+    [
+      'expired',
+      { expiresAt: new Date(Date.now() - 1), consumedAt: null },
+      verifier,
+    ],
+    [
+      'consumed',
+      { expiresAt: new Date(Date.now() + 60_000), consumedAt: new Date() },
+      verifier,
+    ],
+    [
+      'wrong verifier',
+      { expiresAt: new Date(Date.now() + 60_000), consumedAt: null },
+      'b'.repeat(43),
+    ],
   ])('rejects an %s attempt', async (_label, overrides, suppliedVerifier) => {
     const tx = {
       oAuthAttempt: {

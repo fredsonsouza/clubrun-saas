@@ -5,9 +5,9 @@ import {
   verifyPassword,
 } from '@/utils/identity'
 import {
+  EMAIL_VERIFICATION_MAX_ATTEMPTS,
   consumeOtpInTransaction,
   digestOtp,
-  EMAIL_VERIFICATION_MAX_ATTEMPTS,
   issueBearerTokenInTransaction,
 } from '@/utils/tokens'
 import { hash as hashBcrypt } from 'bcryptjs'
@@ -28,13 +28,17 @@ describe('Identity core utilities', () => {
   it('creates Argon2id hashes and identifies valid legacy bcrypt for rehash', async () => {
     const argonHash = await hashPassword('a-secure-password')
     expect(argonHash).toMatch(/^\$argon2id\$/)
-    await expect(verifyPassword('a-secure-password', argonHash)).resolves.toEqual({
+    await expect(
+      verifyPassword('a-secure-password', argonHash)
+    ).resolves.toEqual({
       valid: true,
       needsRehash: false,
     })
 
     const legacyHash = await hashBcrypt('legacy-password', 4)
-    await expect(verifyPassword('legacy-password', legacyHash)).resolves.toEqual({
+    await expect(
+      verifyPassword('legacy-password', legacyHash)
+    ).resolves.toEqual({
       valid: true,
       needsRehash: true,
     })
@@ -87,12 +91,7 @@ describe('Identity core utilities', () => {
     }
 
     await expect(
-      consumeOtpInTransaction(
-        tx,
-        'user-id',
-        '000000',
-        'EMAIL_VERIFICATION'
-      )
+      consumeOtpInTransaction(tx, 'user-id', '000000', 'EMAIL_VERIFICATION')
     ).resolves.toBe(false)
     expect(tx.token.updateMany).toHaveBeenCalledWith({
       where: { id: 'otp-id', consumedAt: null, attempts: 4 },

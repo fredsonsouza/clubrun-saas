@@ -1,8 +1,4 @@
-import {
-  PublicClubDto,
-  publicClubSelect,
-  toPublicClubDto,
-} from '@/http/dtos'
+import { PublicClubDto, publicClubSelect, toPublicClubDto } from '@/http/dtos'
 import { prisma } from '@/lib/prisma'
 import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'

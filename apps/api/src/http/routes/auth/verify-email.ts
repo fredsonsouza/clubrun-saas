@@ -99,7 +99,9 @@ export async function verifyEmail(app: FastifyInstance) {
         })
 
         if (!verified) {
-          throw new BadRequestError('Código de verificação inválido ou expirado.')
+          throw new BadRequestError(
+            'Código de verificação inválido ou expirado.'
+          )
         }
         return reply.status(204).send(null)
       }

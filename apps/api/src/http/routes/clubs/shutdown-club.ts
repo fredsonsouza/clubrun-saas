@@ -9,7 +9,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 
-
 export async function shutdownClub(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()

@@ -16,19 +16,22 @@ describe('Update Member (E2E)', () => {
 
   it('should be able to update a member role', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
+    if (!club) {
+      throw new Error('Expected authenticated user to have a club')
+    }
 
     // Cria um segundo usuário e o adiciona como membro do clube
     const secondUser = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: faker.internet.email().toLowerCase(),
       },
     })
 
     const member = await prisma.member.create({
       data: {
         userId: secondUser.id,
-        clubId: club?.id!,
+        clubId: club.id,
         role: 'ATHLETE',
       },
     })
@@ -51,18 +54,21 @@ describe('Update Member (E2E)', () => {
 
   it('should be able to update a member status', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
+    if (!club) {
+      throw new Error('Expected authenticated user to have a club')
+    }
 
     const secondUser = await prisma.user.create({
       data: {
         name: faker.person.fullName(),
-        email: faker.internet.email(),
+        email: faker.internet.email().toLowerCase(),
       },
     })
 
     const member = await prisma.member.create({
       data: {
         userId: secondUser.id,
-        clubId: club?.id!,
+        clubId: club.id,
         role: 'ATHLETE',
         status: 'ACTIVE',
       },
@@ -95,7 +101,7 @@ describe('Update Member (E2E)', () => {
         role: 'OWNER',
       })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 
   it('should not be able to update a member with invalid data', async () => {

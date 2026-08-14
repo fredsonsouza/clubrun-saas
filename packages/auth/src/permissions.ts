@@ -100,7 +100,11 @@ export const permissions: Record<Role, PermissionsByRole> = {
 
     const tenant = tenantCondition(user)
     can('get', 'Club', clubCondition(user))
-    can('get', ['User', 'AthleteProfile', 'Race', 'RaceResult', 'Ranking'], tenant)
+    can(
+      'get',
+      ['User', 'AthleteProfile', 'Race', 'RaceResult', 'Ranking'],
+      tenant
+    )
     can(['get', 'update', 'export'], 'Billing', tenant)
     can(['get', 'create', 'update', 'delete'], 'Invoice', tenant)
   },

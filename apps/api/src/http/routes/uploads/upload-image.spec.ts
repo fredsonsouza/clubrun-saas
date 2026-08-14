@@ -1,8 +1,8 @@
-import { app } from '@/http/server'
 import {
   MAX_IMAGE_PIXELS,
   validateDecodedImage,
 } from '@/http/routes/uploads/upload-image'
+import { app } from '@/http/server'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/prisma', () => ({ prisma: {} }))
@@ -10,11 +10,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {} }))
 function multipartBody(mimetype: string, content: string) {
   const boundary = 'club-run-test-boundary'
   const body = Buffer.from(
-    `--${boundary}\r\n` +
-      `Content-Disposition: form-data; name="file"; filename="image.bin"\r\n` +
-      `Content-Type: ${mimetype}\r\n\r\n` +
-      `${content}\r\n` +
-      `--${boundary}--\r\n`
+    `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="image.bin"\r\nContent-Type: ${mimetype}\r\n\r\n${content}\r\n--${boundary}--\r\n`
   )
 
   return {

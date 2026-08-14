@@ -310,10 +310,10 @@ model AuditLog {
 
 model Ranking {
   id          String            @id @default(uuid())
-  periodType  RankingPeriodType
+  periodType  RankingPeriodType @map("period_type")
   periodStart DateTime          @map("period_start")
   points      Int               @default(0)
-  createdAt   DateTime          @default(now())
+  createdAt   DateTime          @default(now()) @map("created_at")
   clubId      String            @map("club_id")
   athleteId   String            @map("athlete_id")
   athlete     User              @relation(fields: [athleteId], references: [id], onDelete: Cascade)

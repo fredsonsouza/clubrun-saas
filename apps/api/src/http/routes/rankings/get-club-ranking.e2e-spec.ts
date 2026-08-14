@@ -47,7 +47,10 @@ describe('Get Club Ranking (E2E)', () => {
           clubId: club.id,
           athleteId: (
             await prisma.user.create({
-              data: { name: 'Other Athlete', email: faker.internet.email() },
+              data: {
+                name: 'Other Athlete',
+                email: faker.internet.email().toLowerCase(),
+              },
             })
           ).id,
           periodType: 'MONTH',
@@ -140,7 +143,10 @@ describe('Get Club Ranking (E2E)', () => {
         slug: faker.string.uuid(),
         ownerId: (
           await prisma.user.create({
-            data: { name: 'Owner', email: faker.internet.email() },
+            data: {
+              name: 'Owner',
+              email: faker.internet.email().toLowerCase(),
+            },
           })
         ).id,
       },
@@ -150,6 +156,6 @@ describe('Get Club Ranking (E2E)', () => {
       .get(`/clubs/${club.slug}/rankings`)
       .set('Authorization', `Bearer ${token}`)
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

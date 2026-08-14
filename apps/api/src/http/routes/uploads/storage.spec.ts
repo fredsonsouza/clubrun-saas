@@ -9,9 +9,9 @@ const temporaryDirectories: string[] = []
 afterEach(async () => {
   vi.unstubAllEnvs()
   await Promise.all(
-    temporaryDirectories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true })
-    )
+    temporaryDirectories
+      .splice(0)
+      .map((directory) => rm(directory, { recursive: true, force: true }))
   )
 })
 
@@ -30,8 +30,8 @@ describe('Local image storage (Unit)', () => {
     expect(stored.key).toMatch(/^[0-9a-f-]+\.webp$/)
     expect(entries).toEqual([stored.key])
     expect(entries.some((entry) => entry.startsWith('.'))).toBe(false)
-    await expect(readFile(path.join(uploadDirectory, stored.key))).resolves.toEqual(
-      content
-    )
+    await expect(
+      readFile(path.join(uploadDirectory, stored.key))
+    ).resolves.toEqual(content)
   })
 })

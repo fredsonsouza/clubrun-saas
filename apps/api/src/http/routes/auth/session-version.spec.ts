@@ -48,7 +48,10 @@ describe('JWT session version and verification guard', () => {
 
   it('allows an unverified user to read their profile', async () => {
     vi.mocked(prisma.user.findUnique)
-      .mockResolvedValueOnce({ sessionVersion: 0, emailVerifiedAt: null } as any)
+      .mockResolvedValueOnce({
+        sessionVersion: 0,
+        emailVerifiedAt: null,
+      } as any)
       .mockResolvedValueOnce({
         id: '4f88e178-57d5-4537-8e68-c1d00c4c4af5',
         name: 'Runner',

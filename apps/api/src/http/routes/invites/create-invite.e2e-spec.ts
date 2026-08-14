@@ -3,7 +3,18 @@ import { prisma } from '@/lib/prisma'
 import { createAndAuthenticateUser } from '@/utils/test/create-and-authenticate-user'
 import { faker } from '@faker-js/faker'
 import request from 'supertest'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/lib/mail', () => ({
+  // E2E valida o fluxo HTTP e a persistência sem chamar um provider externo.
+  resend: {
+    emails: {
+      send: vi
+        .fn()
+        .mockResolvedValue({ data: { id: 'test-email-id' }, error: null }),
+    },
+  },
+}))
 
 describe('Create Invite (E2E)', () => {
   beforeAll(async () => {
@@ -17,7 +28,7 @@ describe('Create Invite (E2E)', () => {
   it('should be able to create a new invite', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
 
-    const inviteEmail = faker.internet.email()
+    const inviteEmail = faker.internet.email().toLowerCase()
 
     const response = await request(app.server)
       .post(`/clubs/${club?.slug}/invites`)
@@ -52,7 +63,7 @@ describe('Create Invite (E2E)', () => {
         role: 'ATHLETE',
       })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 
   it('should not be able to create an invite if email domain matches club auto-attach domain', async () => {
@@ -115,15 +126,18 @@ describe('Create Invite (E2E)', () => {
 
   it('should not be able to invite someone who is already a member', async () => {
     const { token, club } = await createAndAuthenticateUser(app, 'OWNER')
+    if (!club) {
+      throw new Error('Expected authenticated user to have a club')
+    }
 
-    const secondUserEmail = faker.internet.email()
+    const secondUserEmail = faker.internet.email().toLowerCase()
     await prisma.user.create({
       data: {
         name: faker.person.fullName(),
         email: secondUserEmail,
         members_on: {
           create: {
-            clubId: club?.id!,
+            clubId: club.id,
             role: 'ATHLETE',
           },
         },

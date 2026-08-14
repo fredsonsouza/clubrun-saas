@@ -4,9 +4,7 @@ import { sha256 } from './tokens'
 export const OAUTH_ATTEMPT_TTL_MS = 10 * 60 * 1000
 
 export function createPkceChallenge(codeVerifier: string): string {
-  return createHash('sha256')
-    .update(codeVerifier, 'utf8')
-    .digest('base64url')
+  return createHash('sha256').update(codeVerifier, 'utf8').digest('base64url')
 }
 
 export function validatePkce(

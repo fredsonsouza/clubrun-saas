@@ -239,6 +239,7 @@ export function InvitesClient({
                     className="flex-1 truncate bg-transparent px-3 font-medium text-gray-600 text-sm outline-none"
                   />
                   <button
+                    type="button"
                     onClick={handleCopyLink}
                     className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg transition-all ${isCopied ? 'bg-green-50 text-green-600' : 'border border-gray-200 bg-white text-gray-700 shadow-sm hover:bg-gray-50'}`}
                   >
@@ -355,6 +356,7 @@ export function InvitesClient({
                       </div>
                       <div className="flex items-center gap-2">
                         <button
+                          type="button"
                           onClick={() =>
                             setMemberToProcess({ member, action: 'INACTIVE' })
                           }
@@ -363,6 +365,7 @@ export function InvitesClient({
                           Recusar
                         </button>
                         <button
+                          type="button"
                           onClick={() =>
                             setMemberToProcess({ member, action: 'ACTIVE' })
                           }
@@ -411,6 +414,7 @@ export function InvitesClient({
                         </div>
                       </div>
                       <button
+                        type="button"
                         onClick={() => setInviteToRevoke(invite)}
                         className="cursor-pointer rounded-lg p-2 text-gray-400 transition-all hover:bg-red-50 hover:text-red-600 group-hover:opacity-100 md:opacity-0"
                       >
@@ -459,12 +463,14 @@ export function InvitesClient({
             </DialogHeader>
             <DialogFooter className="mt-8 gap-3">
               <button
+                type="button"
                 onClick={() => setMemberToProcess(null)}
                 className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handleUpdateMemberStatus}
                 disabled={isProcessingMember}
                 className={`flex-[1.5] cursor-pointer rounded-2xl px-6 py-4 font-black text-sm text-white shadow-lg ${memberToProcess?.action === 'ACTIVE' ? 'bg-green-600 shadow-green-600/20 hover:bg-green-700' : 'bg-red-600 shadow-red-600/20 hover:bg-red-700'}`}
@@ -494,12 +500,14 @@ export function InvitesClient({
             </DialogHeader>
             <DialogFooter className="mt-8 gap-3">
               <button
+                type="button"
                 onClick={() => setInviteToRevoke(null)}
                 className="flex-1 cursor-pointer rounded-2xl border border-gray-200 bg-white px-6 py-4 font-bold text-gray-600 text-sm hover:bg-gray-50"
               >
                 Cancelar
               </button>
               <button
+                type="button"
                 onClick={handleRevokeInvite}
                 disabled={isRevoking}
                 className="flex-[1.5] cursor-pointer rounded-2xl bg-red-600 px-6 py-4 font-black text-sm text-white shadow-lg shadow-red-600/20 hover:bg-red-700"

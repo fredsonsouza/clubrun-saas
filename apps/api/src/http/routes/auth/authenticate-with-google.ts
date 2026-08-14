@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
-import { authRateLimit } from '@/utils/auth-rate-limit'
 import { createAuditLog } from '@/utils/audit-log'
+import { authRateLimit } from '@/utils/auth-rate-limit'
 import { normalizeEmail } from '@/utils/identity'
 import { issueAccessToken } from '@/utils/jwt'
 import { consumeOAuthAttemptInTransaction } from '@/utils/oauth'
@@ -91,7 +91,9 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
 
       const googleUserResponse = await fetch(
         'https://www.googleapis.com/oauth2/v3/userinfo',
-        { headers: { Authorization: `Bearer ${accessToken.data.access_token}` } }
+        {
+          headers: { Authorization: `Bearer ${accessToken.data.access_token}` },
+        }
       )
       if (!googleUserResponse.ok) {
         return reply.status(400).send({ error: 'google_oauth_error' })
@@ -103,11 +105,7 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
         return reply.status(400).send({ error: 'google_email_unverified' })
       }
 
-      const {
-        sub: googleId,
-        name,
-        picture: avatarUrl,
-      } = googleUser.data
+      const { sub: googleId, name, picture: avatarUrl } = googleUser.data
       const email = normalizeEmail(googleUser.data.email)
 
       const account = await prisma.account.findUnique({
@@ -174,7 +172,9 @@ export async function authenticateWithGoogle(app: FastifyInstance) {
         })
       }
 
-      return reply.status(201).send({ token: await issueAccessToken(reply, user) })
+      return reply
+        .status(201)
+        .send({ token: await issueAccessToken(reply, user) })
     }
   )
 }

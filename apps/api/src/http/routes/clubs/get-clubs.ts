@@ -31,7 +31,7 @@ export async function getClubs(app: FastifyInstance) {
           },
         },
       },
-      async (request, reply) => {
+      async (request, _reply) => {
         const userId = await request.getCurrentUserId()
 
         const clubs = await prisma.club.findMany({

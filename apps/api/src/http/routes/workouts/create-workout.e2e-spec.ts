@@ -81,7 +81,7 @@ describe('Create Workout (E2E)', () => {
         date: new Date().toISOString(),
       })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(400)
   })
 
   it('should not be able to register a workout with invalid data', async () => {
@@ -157,6 +157,6 @@ describe('Create Workout (E2E)', () => {
         date: new Date().toISOString(),
       })
 
-    expect(response.statusCode).toBe(401)
+    expect(response.statusCode).toBe(403)
   })
 })

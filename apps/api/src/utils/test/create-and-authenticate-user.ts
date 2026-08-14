@@ -17,13 +17,34 @@ export async function createAndAuthenticateUser(
   let club = null
 
   if (role) {
+    const owner =
+      role === 'OWNER'
+        ? user
+        : await prisma.user.create({
+            data: {
+              name: 'Club Owner',
+              email: `club-owner-${randomUUID()}@example.com`,
+              passwordHash: '$2a$10$asdfghjklpowieurytqxcvbnm',
+            },
+          })
+
     club = await prisma.club.create({
       data: {
         name: 'Sample Club',
         slug: `sample-club-${randomUUID()}`,
-        ownerId: user.id,
+        ownerId: owner.id,
       },
     })
+
+    if (role !== 'OWNER') {
+      await prisma.member.create({
+        data: {
+          userId: owner.id,
+          clubId: club.id,
+          role: 'OWNER',
+        },
+      })
+    }
 
     await prisma.member.create({
       data: {

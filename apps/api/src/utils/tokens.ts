@@ -1,4 +1,10 @@
-import { createHash, createHmac, randomBytes, randomInt, timingSafeEqual } from 'node:crypto'
+import {
+  createHash,
+  createHmac,
+  randomBytes,
+  randomInt,
+  timingSafeEqual,
+} from 'node:crypto'
 import { env } from '@saas/env'
 import type { TokenType } from '../../generated/prisma/client'
 
@@ -34,7 +40,10 @@ export function createBearerToken(): { token: string; digest: string } {
   return { token, digest: sha256(token) }
 }
 
-export function createOtp(userId: string, type: TokenType): {
+export function createOtp(
+  userId: string,
+  type: TokenType
+): {
   code: string
   digest: string
 } {

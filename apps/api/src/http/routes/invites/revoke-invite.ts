@@ -11,7 +11,6 @@ import { BadRequestError } from '@/http/routes/_errors/bad-request-error'
 
 import { prisma } from '@/lib/prisma'
 
-
 export async function revokeInvite(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()

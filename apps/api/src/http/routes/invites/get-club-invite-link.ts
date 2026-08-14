@@ -11,7 +11,6 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod'
 import type { FastifyInstance } from 'fastify/types/instance'
 import z from 'zod'
 
-
 export async function getClubInviteLink(app: FastifyInstance) {
   app
     .withTypeProvider<ZodTypeProvider>()
@@ -33,7 +32,7 @@ export async function getClubInviteLink(app: FastifyInstance) {
           },
         },
       },
-      async (request, reply) => {
+      async (request, _reply) => {
         const { slug } = request.params
         const context = await requireActiveMembership(request, slug)
         requireClubAbility(context, 'create', 'Invite')

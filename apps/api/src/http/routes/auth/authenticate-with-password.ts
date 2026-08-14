@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
-import { authRateLimit } from '@/utils/auth-rate-limit'
 import { createAuditLog } from '@/utils/audit-log'
+import { authRateLimit } from '@/utils/auth-rate-limit'
 import { hashPassword, normalizeEmail, verifyPassword } from '@/utils/identity'
 import { issueAccessToken } from '@/utils/jwt'
 import type { FastifyInstance } from 'fastify'
@@ -44,7 +44,9 @@ export function authenticateWithPassword(app: FastifyInstance) {
           action: 'USER_LOGIN_FAILED',
           entity: 'USER',
           entityId: user?.id ?? 'SYSTEM',
-          payload: { reason: user ? 'missing_password_hash' : 'user_not_found' },
+          payload: {
+            reason: user ? 'missing_password_hash' : 'user_not_found',
+          },
         })
         throw new BadRequestError('Invalid credentials')
       }
