@@ -2,7 +2,7 @@ import { Algorithm, hash, verify } from '@node-rs/argon2'
 import { compare as verifyBcrypt } from 'bcryptjs'
 import { z } from 'zod'
 
-export const passwordSchema = z.string().min(12).max(128)
+export const passwordSchema = z.string().min(6).max(128)
 
 const ARGON2_OPTIONS = {
   algorithm: Algorithm.Argon2id,

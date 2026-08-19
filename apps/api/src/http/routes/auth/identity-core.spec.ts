@@ -18,9 +18,9 @@ describe('Identity core utilities', () => {
     expect(normalizeEmail('  Runner@Example.COM\t')).toBe('runner@example.com')
   })
 
-  it('enforces the single 12..128 password policy', () => {
-    expect(passwordSchema.safeParse('x'.repeat(11)).success).toBe(false)
-    expect(passwordSchema.safeParse('x'.repeat(12)).success).toBe(true)
+  it('enforces the single 6..128 password policy', () => {
+    expect(passwordSchema.safeParse('x'.repeat(5)).success).toBe(false)
+    expect(passwordSchema.safeParse('x'.repeat(6)).success).toBe(true)
     expect(passwordSchema.safeParse('x'.repeat(128)).success).toBe(true)
     expect(passwordSchema.safeParse('x'.repeat(129)).success).toBe(false)
   })
