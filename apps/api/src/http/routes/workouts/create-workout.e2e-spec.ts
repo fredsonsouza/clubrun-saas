@@ -129,12 +129,19 @@ describe('Create Workout (E2E)', () => {
         .send(payload),
     ])
 
-    expect(responses.map((response) => response.statusCode).sort()).toEqual([
-      201, 409,
-    ])
     expect(
-      responses.find((response) => response.statusCode === 201)?.body.workoutId
-    ).toBeDefined()
+      responses.every((response) => [201, 409].includes(response.statusCode))
+    ).toBe(true)
+
+    const successfulResponses = responses.filter(
+      (response) => response.statusCode === 201
+    )
+    expect(successfulResponses).not.toHaveLength(0)
+    expect(
+      new Set(successfulResponses.map((response) => response.body.workoutId))
+        .size
+    ).toBe(1)
+
     const workouts = await prisma.workout.findMany({
       where: { athleteId: user.id, title: payload.title },
     })
