@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { shouldBypassEmailVerification } from '@/utils/email-verification'
 
 import type { FastifyInstance } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
@@ -30,8 +31,12 @@ export const auth = fastifyPlugin(async (app: FastifyInstance) => {
         if (!user || user.sessionVersion !== payload.sv) {
           throw new UnauthorizedError('Invalid auth token')
         }
-        if (!options.allowUnverified && !user.emailVerifiedAt) {
-          throw new ForbiddenError('Email verification required')
+        if (
+          !options.allowUnverified &&
+          !user.emailVerifiedAt &&
+          !shouldBypassEmailVerification()
+        ) {
+          throw new ForbiddenError('Verificação de e-mail obrigatória.')
         }
         return payload.sub
       } catch (error) {

@@ -38,6 +38,12 @@ export const env = createEnv({
     GOOGLE_OAUTH_CLIENT_SECRET: z.string(),
     GOOGLE_OAUTH_CLIENT_REDIRECT_URI: requiredProductionUrl,
     RESEND_API_KEY: z.string(),
+    BYPASS_EMAIL_VERIFICATION: z
+      .enum(['true', 'false'])
+      .default('false')
+      .refine((value) => !isProduction || value === 'false', {
+        message: 'BYPASS_EMAIL_VERIFICATION must be false in production',
+      }),
   },
   client: {
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: z.string(),
@@ -62,6 +68,7 @@ export const env = createEnv({
     NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN:
       process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    BYPASS_EMAIL_VERIFICATION: process.env.BYPASS_EMAIL_VERIFICATION,
   },
 
   emptyStringAsUndefined: true,

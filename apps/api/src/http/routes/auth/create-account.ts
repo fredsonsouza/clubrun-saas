@@ -2,6 +2,7 @@ import { enqueueEmail } from '@/lib/email'
 import { prisma } from '@/lib/prisma'
 import { createAuditLog } from '@/utils/audit-log'
 import { authRateLimit } from '@/utils/auth-rate-limit'
+import { shouldBypassEmailVerification } from '@/utils/email-verification'
 import { hashPassword, normalizeEmail, passwordSchema } from '@/utils/identity'
 import {
   EMAIL_VERIFICATION_TTL_MS,
@@ -45,13 +46,16 @@ export async function createAccount(app: FastifyInstance) {
       ])
 
       if (userWithSameEmail) {
-        throw new BadRequestError('User with same e-mail already exists!')
+        throw new BadRequestError(
+          'Já existe uma conta cadastrada com este e-mail.'
+        )
       }
       if (userWithSameUsername) {
-        throw new BadRequestError('Username already taken!')
+        throw new BadRequestError('Este nome de usuário já está em uso.')
       }
 
       const passwordHash = await hashPassword(password)
+      const bypassEmailVerification = shouldBypassEmailVerification()
       const { user } = await prisma.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
@@ -59,6 +63,7 @@ export async function createAccount(app: FastifyInstance) {
             username,
             email,
             passwordHash,
+            emailVerifiedAt: bypassEmailVerification ? new Date() : undefined,
             athleteProfile: {
               create: {
                 isPublic: true,
@@ -68,19 +73,21 @@ export async function createAccount(app: FastifyInstance) {
           },
           select: { id: true, username: true },
         })
-        const verificationCode = await issueOtpInTransaction(
-          tx,
-          user.id,
-          'EMAIL_VERIFICATION',
-          EMAIL_VERIFICATION_TTL_MS
-        )
-        await enqueueEmail(tx, {
-          userId: user.id,
-          to: email,
-          template: 'EMAIL_VERIFICATION',
-          payload: { name, code: verificationCode },
-          idempotencyKey: `verification:${user.id}:${await sha256(verificationCode)}`,
-        })
+        if (!bypassEmailVerification) {
+          const verificationCode = await issueOtpInTransaction(
+            tx,
+            user.id,
+            'EMAIL_VERIFICATION',
+            EMAIL_VERIFICATION_TTL_MS
+          )
+          await enqueueEmail(tx, {
+            userId: user.id,
+            to: email,
+            template: 'EMAIL_VERIFICATION',
+            payload: { name, code: verificationCode },
+            idempotencyKey: `verification:${user.id}:${await sha256(verificationCode)}`,
+          })
+        }
         return { user }
       })
 

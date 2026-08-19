@@ -49,10 +49,16 @@ export async function signInUpAction(data: FormData) {
   } catch (err) {
     if (err instanceof HTTPError) {
       let { message } = await err.response.json()
-      if (message === 'User already exists with same email') {
+      if (
+        message === 'User already exists with same email' ||
+        message === 'Já existe uma conta cadastrada com este e-mail.'
+      ) {
         message = 'Este e-mail já está sendo utilizado por outra conta.'
-      } else if (message === 'User already exists with same username') {
-        message = 'Este nome de usuário (username) já está sendo utilizado.'
+      } else if (
+        message === 'User already exists with same username' ||
+        message === 'Este nome de usuário já está em uso.'
+      ) {
+        message = 'Este nome de usuário já está sendo utilizado.'
       }
       return { success: false, message, errors: null }
     }

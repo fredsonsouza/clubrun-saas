@@ -1,5 +1,6 @@
 import { app } from '@/http/server'
 import { prisma } from '@/lib/prisma'
+import { shouldBypassEmailVerification } from '@/utils/email-verification'
 import { hashPassword } from '@/utils/identity'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -9,6 +10,9 @@ vi.mock('@/lib/mail', () => ({
 vi.mock('@/utils/identity', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/utils/identity')>()),
   hashPassword: vi.fn(),
+}))
+vi.mock('@/utils/email-verification', () => ({
+  shouldBypassEmailVerification: vi.fn(() => false),
 }))
 vi.mock('@/lib/prisma', () => {
   const prisma = {
@@ -27,6 +31,7 @@ describe('Create Account (Unit)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(hashPassword).mockResolvedValue('argon2id-hash')
+    vi.mocked(shouldBypassEmailVerification).mockReturnValue(false)
     vi.mocked(prisma.user.findUnique).mockResolvedValue(null)
     vi.mocked(prisma.user.create).mockResolvedValue({
       id: 'user-id',
@@ -73,6 +78,31 @@ describe('Create Account (Unit)', () => {
     expect(prisma.$transaction).toHaveBeenCalledTimes(1)
   })
 
+  it('marks local development accounts as verified without enqueuing e-mail', async () => {
+    vi.mocked(shouldBypassEmailVerification).mockReturnValue(true)
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/users',
+      body: {
+        name: 'John Doe',
+        username: 'johndoe',
+        email: 'john@example.com',
+        password: 'a-secure-password',
+      },
+    })
+
+    expect(response.statusCode).toBe(201)
+    expect(prisma.user.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        emailVerifiedAt: expect.any(Date),
+      }),
+      select: { id: true, username: true },
+    })
+    expect(prisma.token.create).not.toHaveBeenCalled()
+    expect(prisma.emailOutbox.upsert).not.toHaveBeenCalled()
+  })
+
   it('does not consult memberships, clubs or invites during registration', async () => {
     const response = await app.inject({
       method: 'POST',
@@ -108,6 +138,9 @@ describe('Create Account (Unit)', () => {
     })
 
     expect(response.statusCode).toBe(400)
+    expect(response.json().message).toBe(
+      'Já existe uma conta cadastrada com este e-mail.'
+    )
     expect(prisma.user.findUnique).toHaveBeenCalledWith({
       where: { email: 'john@example.com' },
       select: { id: true },
