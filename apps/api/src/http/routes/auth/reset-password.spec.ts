@@ -85,11 +85,14 @@ describe('Reset Password (Unit)', () => {
     expect(prisma.user.update).not.toHaveBeenCalled()
   })
 
-  it('enforces the central 12 character password policy', async () => {
+  it('enforces the central 6 character password policy', async () => {
     const response = await app.inject({
       method: 'POST',
       url: '/password/reset',
-      body: { code: rawToken, password: 'too-short' },
+      body: {
+        code: `${rawToken}-password-policy`,
+        password: 'short',
+      },
     })
 
     expect(response.statusCode).toBe(400)
