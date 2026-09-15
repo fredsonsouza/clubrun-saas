@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { mkdirSync } from 'node:fs'
 import fastifyCors from '@fastify/cors'
 import fastifyJwt from '@fastify/jwt'
