@@ -14,6 +14,7 @@
     "db:migrate:status": "pnpm env:load prisma migrate status",
     "db:studio": "pnpm env:load prisma studio",
     "db:seed": "pnpm env:load tsx prisma/seed.ts",
+    "create-admin": "pnpm env:load tsx prisma/create-admin.ts",
     "env:load": "dotenv -e ../../.env --",
     "test": "vitest run --project unit",
     "test:unit:idempotency": "vitest run src/utils/idempotency.spec.ts",
