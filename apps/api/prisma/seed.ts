@@ -1,82 +1,93 @@
 import 'dotenv/config'
-import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client'
-import { hashPassword, passwordSchema } from '../src/utils/identity'
+import { z } from 'zod'
+import { pool, prisma } from '../src/lib/prisma'
+import { hashPassword } from '../src/utils/identity'
 
-declare const process: any
+const seedAdminSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  username: z.string().min(3).optional(),
+  name: z.string().optional(),
+})
 
-const SEED_CONFIRMATION = 'DELETE_ALL_DATA'
+async function seed() {
+  console.log('🌱 Iniciando verificação de seed/bootstrap do banco de dados ClubRun...')
 
-function getSeedConfiguration() {
-  const environment = process.env.NODE_ENV
+  const seedAdminEmail = process.env.SEED_ADMIN_EMAIL
+  const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD
+  const seedAdminUsername = process.env.SEED_ADMIN_USERNAME || 'adminclubrun'
+  const seedAdminName = process.env.SEED_ADMIN_NAME || 'Administrador ClubRun'
 
-  if (environment !== 'development' && environment !== 'test') {
-    throw new Error('Seed is only allowed in development or test environments.')
+  if (!seedAdminEmail || !seedAdminPassword) {
+    console.log(
+      'ℹ️ Bootstrap de administrador ignorado: variáveis SEED_ADMIN_EMAIL e SEED_ADMIN_PASSWORD não definidas.'
+    )
+    return
   }
 
-  if (process.env.SEED_CONFIRMATION !== SEED_CONFIRMATION) {
+  const adminCredentials = seedAdminSchema.safeParse({
+    email: seedAdminEmail,
+    password: seedAdminPassword,
+    username: seedAdminUsername,
+    name: seedAdminName,
+  })
+
+  if (!adminCredentials.success) {
     throw new Error(
-      `Refusing to seed without SEED_CONFIRMATION=${SEED_CONFIRMATION}.`
+      'SEED_ADMIN_EMAIL deve ser um e-mail válido e SEED_ADMIN_PASSWORD deve ter no mínimo 8 caracteres.'
     )
   }
 
-  const password = process.env.SEED_ADMIN_PASSWORD
-  if (!password) {
-    throw new Error('SEED_ADMIN_PASSWORD is required to run the seed.')
+  const { email, password, username, name } = adminCredentials.data
+
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      OR: [{ email }, { username }],
+    },
+  })
+
+  if (existingUser) {
+    console.log(
+      `ℹ️ Usuário existente preservado sem alterações: ${existingUser.email} (${existingUser.username})`
+    )
+    if (!existingUser.isSystemAdmin) {
+      await prisma.user.update({
+        where: { id: existingUser.id },
+        data: {
+          isSystemAdmin: true,
+          emailVerifiedAt: new Date(),
+        },
+      })
+      console.log('✅ Permissões de Super Admin concedidas ao usuário existente!')
+    }
+    return
   }
 
-  const databaseUrl = process.env.DATABASE_URL
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required to run the seed.')
-  }
+  const passwordHash = await hashPassword(password)
 
-  return { databaseUrl, password }
+  const adminUser = await prisma.user.create({
+    data: {
+      email,
+      name,
+      username,
+      avatarUrl: 'https://github.com/fredsonsouza.png',
+      passwordHash,
+      isSystemAdmin: true,
+      emailVerifiedAt: new Date(),
+    },
+  })
+
+  console.log(`✅ Usuário administrador criado com sucesso: ${adminUser.email}`)
 }
 
-async function seed() {
-  const { databaseUrl, password } = getSeedConfiguration()
-  const adapter = new PrismaPg({ connectionString: databaseUrl })
-  const prisma = new PrismaClient({ adapter })
-
-  try {
-    console.log('Cleaning database...')
-    await prisma.auditLog.deleteMany()
-    await prisma.ranking.deleteMany()
-    await prisma.workout.deleteMany()
-    await prisma.raceResult.deleteMany()
-    await prisma.race.deleteMany()
-    await prisma.invoice.deleteMany()
-    await prisma.member.deleteMany()
-    await prisma.invite.deleteMany()
-    await prisma.account.deleteMany()
-    await prisma.oAuthAttempt.deleteMany()
-    await prisma.token.deleteMany()
-    await prisma.athleteProfile.deleteMany()
-    await prisma.club.deleteMany()
-    await prisma.user.deleteMany()
-
-    passwordSchema.parse(password)
-    const passwordHash = await hashPassword(password)
-
-    console.log('Creating super admin...')
-    await prisma.user.create({
-      data: {
-        name: 'Super Admin',
-        email: 'admin@clubrun.com',
-        username: 'adminclubrun',
-        avatarUrl: 'https://github.com/fredsonsouza.png',
-        passwordHash,
-        isSystemAdmin: true,
-      },
-    })
-
-    console.log('Seed complete!')
-  } finally {
+seed()
+  .then(async () => {
     await prisma.$disconnect()
-  }
-}
-
-seed().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+    await pool.end()
+  })
+  .catch(async (error) => {
+    console.error('❌ Erro ao executar o seed:', error)
+    await prisma.$disconnect()
+    await pool.end()
+    process.exit(1)
+  })
