@@ -8,9 +8,8 @@ export default async function AuthLayout({
 }>) {
   const { user } = await auth().catch(() => ({ user: null }))
 
-  // Se estiver logado E verificado, não faz sentido estar nas páginas de auth (login/cadastro)
-  // Mas se estiver logado e NÃO verificado, ele PODE estar na página de verificação.
-  if (user?.emailVerifiedAt) {
+  // Se estiver logado, redireciona para o painel principal
+  if (user) {
     redirect('/')
   }
 
