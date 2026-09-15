@@ -80,15 +80,17 @@ export async function setOAuthTransaction(
   cookieStore.set(OAUTH_PKCE_VERIFIER_COOKIE_NAME, codeVerifier, options)
 }
 
-export async function getOAuthTransaction() {
-  const cookieStore = await cookies()
+export async function getOAuthTransaction(cookieStore?: {
+  get: (name: string) => { value: string } | undefined
+}) {
+  const store = cookieStore ?? (await cookies())
 
   return {
-    state: cookieStore.get(OAUTH_STATE_COOKIE_NAME)?.value,
+    state: store.get(OAUTH_STATE_COOKIE_NAME)?.value,
     redirectTo: parseInternalRedirect(
-      cookieStore.get(OAUTH_REDIRECT_COOKIE_NAME)?.value
+      store.get(OAUTH_REDIRECT_COOKIE_NAME)?.value
     ),
-    codeVerifier: cookieStore.get(OAUTH_PKCE_VERIFIER_COOKIE_NAME)?.value,
+    codeVerifier: store.get(OAUTH_PKCE_VERIFIER_COOKIE_NAME)?.value,
   }
 }
 

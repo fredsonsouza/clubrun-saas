@@ -26,25 +26,37 @@ function statesMatch(receivedState: string, expectedState?: string) {
   )
 }
 
-export async function GET(request: NextRequest) {
-  const parsed = callbackSchema.safeParse({
-    code: request.nextUrl.searchParams.get('code'),
-    state: request.nextUrl.searchParams.get('state'),
-  })
-  const transaction = await getOAuthTransaction()
+export const dynamic = 'force-dynamic'
 
-  await clearOAuthTransaction()
+export async function GET(request: NextRequest) {
+  const code = request.nextUrl.searchParams.get('code')
+  const state = request.nextUrl.searchParams.get('state')
+
+  const parsed = callbackSchema.safeParse({ code, state })
+  const transaction = await getOAuthTransaction(request.cookies)
 
   if (
     !parsed.success ||
     !statesMatch(parsed.data.state, transaction.state) ||
     !transaction.codeVerifier
   ) {
+    console.error('[OAUTH CALLBACK FAILED]', {
+      parsedSuccess: parsed.success,
+      receivedState: state,
+      storedState: transaction.state,
+      hasCodeVerifier: Boolean(transaction.codeVerifier),
+      cookiesReceived: request.cookies.getAll().map((c) => c.name),
+    })
+
+    await clearOAuthTransaction()
+
     return NextResponse.json(
       { message: 'Estado OAuth ausente ou inválido.' },
       { status: 400 }
     )
   }
+
+  await clearOAuthTransaction()
 
   const { token } = await signInWithGoogle({
     code: parsed.data.code,
